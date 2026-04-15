@@ -13,8 +13,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata = {
-  title: "Offroady | BC Off-road Trails & Community",
-  description: "Discover off-road trails and events around Vancouver & BC.",
+  title: "Offroady | Trails & Community",
+  description: "Discover off-road trails and events.",
   icons: {
     icon: "/icon.png",
   },

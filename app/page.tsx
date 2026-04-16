@@ -1,37 +1,165 @@
-export default function Home() {
+export const revalidate = 3600;
+
+type ForecastResponse = {
+  current?: {
+    temperature_2m?: number;
+    weather_code?: number;
+    wind_speed_10m?: number;
+  };
+  daily?: {
+    time?: string[];
+    weather_code?: number[];
+    temperature_2m_max?: number[];
+    temperature_2m_min?: number[];
+    precipitation_probability_max?: number[];
+  };
+};
+
+function getComingSunday(base = new Date()) {
+  const d = new Date(base);
+  const day = d.getDay();
+  const diff = (7 - day) % 7 || 7;
+  d.setDate(d.getDate() + diff);
+  d.setHours(0, 0, 0, 0);
+  return d;
+}
+
+function formatDate(date: Date) {
+  return date.toLocaleDateString("en-CA", {
+    weekday: "long",
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
+}
+
+function weatherLabel(code?: number) {
+  const map: Record<number, string> = {
+    0: "Clear sky",
+    1: "Mainly clear",
+    2: "Partly cloudy",
+    3: "Overcast",
+    45: "Fog",
+    48: "Rime fog",
+    51: "Light drizzle",
+    53: "Moderate drizzle",
+    55: "Dense drizzle",
+    56: "Freezing drizzle",
+    57: "Heavy freezing drizzle",
+    61: "Light rain",
+    63: "Moderate rain",
+    65: "Heavy rain",
+    66: "Freezing rain",
+    67: "Heavy freezing rain",
+    71: "Light snow",
+    73: "Moderate snow",
+    75: "Heavy snow",
+    77: "Snow grains",
+    80: "Rain showers",
+    81: "Rain showers",
+    82: "Heavy rain showers",
+    85: "Snow showers",
+    86: "Heavy snow showers",
+    95: "Thunderstorm",
+    96: "Thunderstorm with hail",
+    99: "Thunderstorm with heavy hail",
+  };
+
+  return map[code ?? -1] || "Check latest conditions";
+}
+
+async function getTrailWeather(latitude: number, longitude: number) {
+  const sunday = getComingSunday();
+  const targetDate = sunday.toISOString().split("T")[0];
+
+  const url = new URL("https://api.open-meteo.com/v1/forecast");
+  url.searchParams.set("latitude", String(latitude));
+  url.searchParams.set("longitude", String(longitude));
+  url.searchParams.set(
+    "daily",
+    "weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max"
+  );
+  url.searchParams.set("current", "temperature_2m,weather_code,wind_speed_10m");
+  url.searchParams.set("timezone", "America/Vancouver");
+  url.searchParams.set("start_date", targetDate);
+  url.searchParams.set("end_date", targetDate);
+
+  const res = await fetch(url.toString(), {
+    next: { revalidate: 3600 },
+  });
+
+  if (!res.ok) {
+    throw new Error("Failed to fetch weather");
+  }
+
+  const data = (await res.json()) as ForecastResponse;
+  const daily = data.daily;
+
+  return {
+    dateLabel: formatDate(sunday),
+    currentTemp: data.current?.temperature_2m,
+    currentWind: data.current?.wind_speed_10m,
+    currentCode: data.current?.weather_code,
+    dayCode: daily?.weather_code?.[0],
+    tempMax: daily?.temperature_2m_max?.[0],
+    tempMin: daily?.temperature_2m_min?.[0],
+    precipMax: daily?.precipitation_probability_max?.[0],
+  };
+}
+
+function badgeStyle(level: string) {
+  if (level === "Easy") return "bg-green-100 text-green-800 border-green-200";
+  if (level === "Medium") return "bg-amber-100 text-amber-800 border-amber-200";
+  if (level === "Hard") return "bg-red-100 text-red-800 border-red-200";
+  return "bg-gray-200 text-gray-800 border-gray-300";
+}
+
+export default async function Home() {
   const heroImage = "/images/bc-hero.jpg";
-  const featureImage = "/images/bc-trail-vehicle.jpg";
-  const groupRideImage = "/images/bc-group.jpg";
+  const featureImage = "/images/cheam-lookout.jpg";
+  const darkTrailImage = "/images/4xe-dark.jpg";
+  const rockTrailImage = "/images/4xe-rock.jpg";
+  const waterTrailImage = "/images/g63-water.jpg";
+
+  const trailOfWeek = {
+    title: "Cheam Lookout",
+    latitude: 49.15836869814306,
+    longitude: -121.7454383360047,
+    locationLabel: "Near Chilliwack, BC",
+    heroImageAlt: "Cheam Lookout Fraser Valley scenic off road viewpoint BC",
+  };
+
+  let weather: Awaited<ReturnType<typeof getTrailWeather>> | null = null;
+
+  try {
+    weather = await getTrailWeather(trailOfWeek.latitude, trailOfWeek.longitude);
+  } catch (error) {
+    console.error(error);
+  }
 
   const trails = [
     {
-      title: "Sea to Sky Viewpoint Run",
+      title: "Cheam Lookout",
       level: "Medium",
       date: "This Sunday",
-      note: "Forest climb, open sky, classic BC viewpoint.",
+      note: "Scenic lookout run with sweeping Fraser Valley views.",
       image: featureImage,
     },
     {
-      title: "Crew Day by the Water",
-      level: "Easy",
-      date: "Next Weekend",
-      note: "Relaxed ride, meet people, hang out.",
-      image: groupRideImage,
+      title: "Granite Climb Session",
+      level: "Hard",
+      date: "Weekend Pick",
+      note: "More technical, more traction, and definitely more fun if you like testing your rig.",
+      image: rockTrailImage,
     },
     {
-      title: "Howe Sound Scenic Route",
-      level: "Easy",
-      date: "Any clear day",
-      note: "Less about difficulty, more about the view.",
-      image: heroImage,
+      title: "Night Trail Run",
+      level: "Medium",
+      date: "By plan",
+      note: "A different vibe once the sun goes down. Go prepared and don’t run solo.",
+      image: darkTrailImage,
     },
   ];
-
-  const badgeStyle = (level: string) => {
-    if (level === "Easy") return "bg-green-100 text-green-800 border-green-200";
-    if (level === "Medium") return "bg-amber-100 text-amber-800 border-amber-200";
-    return "bg-gray-200 text-gray-800 border-gray-300";
-  };
 
   return (
     <div className="min-h-screen bg-[#f4f6f3] text-[#2b2b2b]">
@@ -48,9 +176,15 @@ export default function Home() {
           </div>
 
           <nav className="hidden items-center gap-6 text-sm text-gray-600 md:flex">
-            <a href="#trails" className="transition hover:text-[#2f5d3a]">Trails</a>
-            <a href="#events" className="transition hover:text-[#2f5d3a]">Events</a>
-            <a href="#about" className="transition hover:text-[#2f5d3a]">About</a>
+            <a href="#trails" className="transition hover:text-[#2f5d3a]">
+              Trails
+            </a>
+            <a href="#events" className="transition hover:text-[#2f5d3a]">
+              Events
+            </a>
+            <a href="#about" className="transition hover:text-[#2f5d3a]">
+              About
+            </a>
           </nav>
 
           <div className="flex items-center gap-3">
@@ -122,32 +256,143 @@ export default function Home() {
             <div className="grid lg:grid-cols-[1.2fr_0.8fr]">
               <img
                 src={featureImage}
-                alt="Trail of the week vehicle view"
-                className="h-full min-h-[300px] w-full object-cover"
+                alt={trailOfWeek.heroImageAlt}
+                className="h-full min-h-[320px] w-full object-cover"
               />
+
               <div className="p-6 lg:p-8">
                 <div className="inline-flex rounded-full bg-[#eef5ee] px-3 py-1 text-sm font-semibold text-[#2f5d3a]">
                   This week’s pick
                 </div>
-                <h3 className="mt-4 text-2xl font-bold">Sea to Sky Viewpoint</h3>
+
+                <h3 className="mt-4 text-2xl font-bold">{trailOfWeek.title}</h3>
+
                 <p className="mt-3 leading-7 text-gray-600">
-                  A scenic forest climb with one of those classic BC views that makes
-                  the whole trip worth it.
+                  One of those BC lookout spots where you just park, step out, and go
+                  wow. Scenic, simple, and a great excuse to get out for a Sunday run.
                 </p>
 
                 <div className="mt-4 flex flex-wrap gap-2 text-sm text-gray-600">
-                  <span className="rounded-full bg-gray-100 px-3 py-1">📍 Vancouver Area</span>
+                  <span className="rounded-full bg-gray-100 px-3 py-1">
+                    📍 {trailOfWeek.locationLabel}
+                  </span>
                   <span className="rounded-full bg-gray-100 px-3 py-1">🟡 Medium</span>
-                  <span className="rounded-full bg-gray-100 px-3 py-1">☀️ Best on a clear day</span>
+                  <span className="rounded-full bg-gray-100 px-3 py-1">
+                    📅 {weather?.dateLabel || "The coming Sunday"}
+                  </span>
                 </div>
 
+                <div className="mt-5 space-y-3 rounded-xl bg-[#f7faf6] p-4 text-sm text-gray-700">
+                  <div>
+                    <span className="font-semibold text-[#243126]">Coordinates:</span>{" "}
+                    {trailOfWeek.latitude}, {trailOfWeek.longitude}
+                  </div>
+
+                  {weather ? (
+                    <>
+                      <div>
+                        <span className="font-semibold text-[#243126]">
+                          Sunday forecast:
+                        </span>{" "}
+                        {weatherLabel(weather.dayCode)}
+                      </div>
+                      <div>
+                        <span className="font-semibold text-[#243126]">
+                          Temperature:
+                        </span>{" "}
+                        {weather.tempMin ?? "-"}°C to {weather.tempMax ?? "-"}°C
+                      </div>
+                      <div>
+                        <span className="font-semibold text-[#243126]">
+                          Rain chance:
+                        </span>{" "}
+                        {weather.precipMax ?? "-"}%
+                      </div>
+                      <div>
+                        <span className="font-semibold text-[#243126]">
+                          Current nearby:
+                        </span>{" "}
+                        {weather.currentTemp ?? "-"}°C,{" "}
+                        {weatherLabel(weather.currentCode)}, wind{" "}
+                        {weather.currentWind ?? "-"} km/h
+                      </div>
+                    </>
+                  ) : (
+                    <div>
+                      <span className="font-semibold text-[#243126]">Weather:</span>{" "}
+                      Unavailable right now. Please try again shortly.
+                    </div>
+                  )}
+
+                  <div>
+                    <span className="font-semibold text-[#243126]">
+                      Road conditions:
+                    </span>{" "}
+                    FSR-style access. Expect gravel, potholes, and possible mud if
+                    there’s been recent rain. AWD / 4x4 recommended.
+                  </div>
+                </div>
+
+                <p className="mt-3 text-xs text-gray-500">
+                  Representative view of the area. Weather data by Open-Meteo.
+                </p>
+
                 <div className="mt-6 flex flex-wrap gap-3">
-                  <button className="rounded-lg bg-[#2f5d3a] px-4 py-2.5 font-semibold text-white transition hover:bg-[#264d30]">
-                    View Details
-                  </button>
-                  <button className="rounded-lg border border-gray-300 px-4 py-2.5 font-semibold text-gray-800 transition hover:bg-gray-50">
+                  <a
+                    href={`https://www.google.com/maps?q=${trailOfWeek.latitude},${trailOfWeek.longitude}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="rounded-lg bg-[#2f5d3a] px-4 py-2.5 font-semibold text-white transition hover:bg-[#264d30]"
+                  >
+                    View on Map
+                  </a>
+                  <a
+                    href="#events"
+                    className="rounded-lg border border-gray-300 px-4 py-2.5 font-semibold text-gray-800 transition hover:bg-gray-50"
+                  >
                     Join Ride
-                  </button>
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section className="mx-auto max-w-7xl px-4 pb-16 sm:px-6 lg:px-8">
+          <div className="overflow-hidden rounded-2xl border border-black/8 bg-[#101412] shadow-sm">
+            <div className="grid items-center lg:grid-cols-[0.9fr_1.1fr]">
+              <img
+                src={darkTrailImage}
+                alt="Off-road vehicle at night on trail obstacles"
+                className="h-full min-h-[320px] w-full object-cover"
+              />
+              <div className="p-8 text-white lg:p-10">
+                <p className="text-sm font-semibold uppercase tracking-[0.16em] text-[#9dc2a2]">
+                  Real off-road experience
+                </p>
+                <h2 className="mt-3 text-3xl font-bold tracking-tight">
+                  Not just views.
+                  <br />
+                  This is what it feels like out there.
+                </h2>
+                <p className="mt-4 max-w-xl leading-7 text-white/80">
+                  Offroady is not just a map app and not just a hiking blog. It is a
+                  simple way to discover real off-road trails, local rides, and good
+                  people to go with.
+                </p>
+                <div className="mt-6 flex flex-wrap gap-3">
+                  <a
+                    href="#trails"
+                    className="rounded-lg bg-white px-5 py-3 font-semibold text-[#203326] transition hover:bg-[#f2f5f1]"
+                  >
+                    Explore More Trails
+                  </a>
+                  <a
+                    href="#events"
+                    className="rounded-lg border border-white/20 px-5 py-3 font-medium text-white transition hover:bg-white/10"
+                  >
+                    Join the Community
+                  </a>
                 </div>
               </div>
             </div>
@@ -205,8 +450,8 @@ export default function Home() {
         </section>
 
         <section id="events" className="bg-[#e8efe6] py-16">
-          <div className="mx-auto grid max-w-7xl gap-8 px-4 sm:px-6 lg:grid-cols-2 lg:px-8">
-            <div>
+          <div className="mx-auto grid max-w-7xl gap-8 px-4 sm:px-6 lg:grid-cols-[0.95fr_1.05fr] lg:px-8">
+            <div className="rounded-2xl border border-black/8 bg-white p-6 shadow-sm">
               <p className="text-sm font-semibold uppercase tracking-[0.16em] text-[#5d7d61]">
                 Community
               </p>
@@ -217,18 +462,8 @@ export default function Home() {
                 Keep it simple. Share a route, post a plan, or hop into a ride that
                 already looks good.
               </p>
-              <button className="mt-6 rounded-lg bg-[#2f5d3a] px-5 py-3 font-semibold text-white transition hover:bg-[#264d30]">
-                Start a Crew
-              </button>
-            </div>
 
-            <div className="rounded-2xl border border-black/8 bg-white p-6 shadow-sm">
-              <h3 className="text-xl font-bold text-[#243126]">Stay updated</h3>
-              <p className="mt-2 text-sm leading-6 text-gray-600">
-                Get trail updates, event ideas, and local off-road community news.
-              </p>
-
-              <form
+             <form
   action="https://formspree.io/f/mdayabgb"
   method="POST"
   className="mt-6 space-y-4"
@@ -257,6 +492,23 @@ export default function Home() {
     Join Community
   </button>
 </form>
+
+            <div className="overflow-hidden rounded-2xl border border-black/8 bg-white shadow-sm">
+              <img
+                src={waterTrailImage}
+                alt="Off-road vehicle splashing through water"
+                className="h-full min-h-[360px] w-full object-cover"
+              />
+              <div className="border-t border-black/8 p-6">
+                <h3 className="text-2xl font-bold text-[#243126]">Better with a crew</h3>
+                <p className="mt-3 leading-7 text-gray-600">
+                  Some runs are scenic. Some get messy. Either way, it is always more
+                  fun when you have a few good people with you.
+                </p>
+                <button className="mt-5 rounded-lg bg-[#2f5d3a] px-5 py-3 font-semibold text-white transition hover:bg-[#264d30]">
+                  Start a Crew
+                </button>
+              </div>
             </div>
           </div>
         </section>
@@ -319,9 +571,15 @@ export default function Home() {
         <div className="mx-auto flex max-w-7xl flex-col gap-4 px-4 py-8 text-sm text-gray-500 sm:px-6 lg:flex-row lg:items-center lg:justify-between lg:px-8">
           <div>Offroady — Built by local drivers in BC</div>
           <div className="flex gap-5">
-            <a href="#" className="hover:text-[#2f5d3a]">Instagram</a>
-            <a href="#" className="hover:text-[#2f5d3a]">YouTube</a>
-            <a href="#" className="hover:text-[#2f5d3a]">TikTok</a>
+            <a href="#" className="hover:text-[#2f5d3a]">
+              Instagram
+            </a>
+            <a href="#" className="hover:text-[#2f5d3a]">
+              YouTube
+            </a>
+            <a href="#" className="hover:text-[#2f5d3a]">
+              TikTok
+            </a>
           </div>
         </div>
       </footer>

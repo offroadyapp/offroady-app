@@ -1,4 +1,3 @@
-import JoinedList from "./components/JoinedList";
 export const revalidate = 3600;
 
 type ForecastResponse = {
@@ -268,8 +267,6 @@ export default async function Home() {
 
                 <h3 className="mt-4 text-2xl font-bold">{trailOfWeek.title}</h3>
 
-		<JoinedList />
-
                 <p className="mt-3 leading-7 text-gray-600">
                   One of those BC lookout spots where you just park, step out, and go
                   wow. Scenic, simple, and a great excuse to get out for a Sunday run.
@@ -494,6 +491,11 @@ export default async function Home() {
         >
           Join Community
         </button>
+<input
+  type="hidden"
+  name="_next"
+  value="https://www.offroady.app/?success=1"
+/>
       </form>
     </div>
 

@@ -1,0 +1,56 @@
+"use client";
+
+import { useState } from "react";
+
+export default function JoinTrail({ onJoin }: { onJoin: (name: string) => void }) {
+  const [open, setOpen] = useState(false);
+  const [name, setName] = useState("");
+
+  return (
+    <>
+      <button
+        onClick={() => setOpen(true)}
+        className="shrink-0 rounded-lg bg-[#2f5d3a] px-4 py-2 font-semibold text-white hover:bg-[#264d30]"
+      >
+        Join this trail
+      </button>
+
+      {open && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+          <div className="bg-white rounded-xl p-6 w-[90%] max-w-sm">
+            <h3 className="text-lg font-bold mb-4">
+              Join Cheam Lookout
+            </h3>
+
+            <input
+              placeholder="Display name"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              className="w-full border px-3 py-2 rounded mb-3"
+            />
+
+            <button
+              onClick={() => {
+                const trimmed = name.trim();
+                if (!trimmed) return;
+                onJoin(trimmed);
+                setOpen(false);
+                setName("");
+              }}
+              className="w-full bg-[#2f5d3a] text-white py-2 rounded"
+            >
+              Confirm
+            </button>
+
+            <button
+              onClick={() => setOpen(false)}
+              className="mt-2 text-sm text-gray-500 w-full"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
+    </>
+  );
+}

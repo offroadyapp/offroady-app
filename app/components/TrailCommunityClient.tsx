@@ -1,0 +1,371 @@
+"use client";
+
+import { useEffect, useMemo, useState } from 'react';
+import type { CommunitySnapshot } from '@/lib/offroady/community';
+
+type Identity = {
+  displayName: string;
+  email: string;
+  phone: string;
+};
+
+type Props = {
+  trailSlug: string;
+  trailTitle: string;
+  initialSnapshot: CommunitySnapshot;
+};
+
+const emptyIdentity: Identity = {
+  displayName: '',
+  email: '',
+  phone: '',
+};
+
+function formatDate(value: string) {
+  return new Date(value).toLocaleString('en-CA', {
+    month: 'short',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+  });
+}
+
+export default function TrailCommunityClient({ trailSlug, trailTitle, initialSnapshot }: Props) {
+  const [identity, setIdentity] = useState<Identity>(emptyIdentity);
+  const [signupStatus, setSignupStatus] = useState('');
+  const [community, setCommunity] = useState(initialSnapshot);
+  const [joinLoading, setJoinLoading] = useState(false);
+  const [crewLoading, setCrewLoading] = useState(false);
+  const [commentLoading, setCommentLoading] = useState(false);
+  const [signupLoading, setSignupLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [crewName, setCrewName] = useState('');
+  const [crewDescription, setCrewDescription] = useState('');
+  const [comment, setComment] = useState('');
+
+  useEffect(() => {
+    const saved = window.localStorage.getItem('offroady.identity');
+    if (saved) {
+      try {
+        setIdentity(JSON.parse(saved));
+      } catch {}
+    }
+  }, []);
+
+  useEffect(() => {
+    if (identity.displayName || identity.email || identity.phone) {
+      window.localStorage.setItem('offroady.identity', JSON.stringify(identity));
+    }
+  }, [identity]);
+
+  const joinedNames = useMemo(
+    () => community.participants.map((participant) => participant.displayName).join(' · '),
+    [community.participants]
+  );
+
+  function updateIdentity<K extends keyof Identity>(key: K, value: Identity[K]) {
+    setIdentity((current) => ({ ...current, [key]: value }));
+  }
+
+  async function handleSignup(event: React.FormEvent) {
+    event.preventDefault();
+    setSignupLoading(true);
+    setError('');
+    setSignupStatus('');
+
+    try {
+      const response = await fetch('/api/signup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(identity),
+      });
+      const payload = await response.json();
+      if (!response.ok) throw new Error(payload.error || 'Signup failed');
+      setSignupStatus('You are on the list. We will keep you posted.');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Signup failed');
+    } finally {
+      setSignupLoading(false);
+    }
+  }
+
+  async function handleJoin(event: React.FormEvent) {
+    event.preventDefault();
+    setJoinLoading(true);
+    setError('');
+
+    try {
+      const response = await fetch(`/api/trails/${trailSlug}/join`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(identity),
+      });
+      const payload = await response.json();
+      if (!response.ok) throw new Error(payload.error || 'Failed to join trail');
+      setCommunity(payload);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to join trail');
+    } finally {
+      setJoinLoading(false);
+    }
+  }
+
+  async function handleCrew(event: React.FormEvent) {
+    event.preventDefault();
+    setCrewLoading(true);
+    setError('');
+
+    try {
+      const response = await fetch(`/api/trails/${trailSlug}/crews`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ...identity,
+          crewName,
+          description: crewDescription,
+        }),
+      });
+      const payload = await response.json();
+      if (!response.ok) throw new Error(payload.error || 'Failed to create crew');
+      setCommunity(payload);
+      setCrewName('');
+      setCrewDescription('');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to create crew');
+    } finally {
+      setCrewLoading(false);
+    }
+  }
+
+  async function handleComment(event: React.FormEvent) {
+    event.preventDefault();
+    setCommentLoading(true);
+    setError('');
+
+    try {
+      const response = await fetch(`/api/trails/${trailSlug}/comments`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ...identity,
+          content: comment,
+        }),
+      });
+      const payload = await response.json();
+      if (!response.ok) throw new Error(payload.error || 'Failed to post comment');
+      setCommunity(payload);
+      setComment('');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to post comment');
+    } finally {
+      setCommentLoading(false);
+    }
+  }
+
+  return (
+    <section className="mx-auto max-w-7xl px-4 pb-16 sm:px-6 lg:px-8">
+      <div className="mb-8 rounded-2xl border border-black/8 bg-[#101412] p-5 text-white shadow-sm">
+        <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+          <div>
+            <p className="text-sm font-semibold uppercase tracking-[0.16em] text-[#9dc2a2]">
+              Offroady MVP
+            </p>
+            <h2 className="mt-2 text-2xl font-bold">Join the trail, start a crew, talk it out.</h2>
+            <p className="mt-2 max-w-3xl text-sm leading-6 text-white/80">
+              This is the core social layer for {trailTitle}. Low friction up front, real participation underneath.
+            </p>
+          </div>
+          {!community.dbReady ? (
+            <div className="rounded-xl border border-amber-400/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-100">
+              Database is not ready yet. UI is wired, but Supabase tables likely still need to be created.
+            </div>
+          ) : null}
+        </div>
+      </div>
+
+      {error ? (
+        <div className="mb-6 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</div>
+      ) : null}
+
+      <div className="grid gap-6 lg:grid-cols-[0.9fr_1.1fr]">
+        <div className="space-y-6">
+          <div className="rounded-2xl border border-black/8 bg-white p-6 shadow-sm">
+            <p className="text-sm font-semibold uppercase tracking-[0.16em] text-[#5d7d61]">Sign up</p>
+            <h3 className="mt-2 text-2xl font-bold text-[#243126]">Stay in the loop</h3>
+            <p className="mt-3 text-sm leading-6 text-gray-600">
+              This is for Offroady updates in general. It is separate from joining this specific trail.
+            </p>
+            <form onSubmit={handleSignup} className="mt-5 space-y-3">
+              <input
+                value={identity.displayName}
+                onChange={(event) => updateIdentity('displayName', event.target.value)}
+                placeholder="Display name"
+                className="w-full rounded-lg border border-gray-300 px-4 py-3 outline-none transition focus:border-[#2f5d3a]"
+              />
+              <input
+                value={identity.email}
+                onChange={(event) => updateIdentity('email', event.target.value)}
+                placeholder="Email"
+                type="email"
+                className="w-full rounded-lg border border-gray-300 px-4 py-3 outline-none transition focus:border-[#2f5d3a]"
+              />
+              <input
+                value={identity.phone}
+                onChange={(event) => updateIdentity('phone', event.target.value)}
+                placeholder="Phone (optional)"
+                type="tel"
+                className="w-full rounded-lg border border-gray-300 px-4 py-3 outline-none transition focus:border-[#2f5d3a]"
+              />
+              <button
+                type="submit"
+                disabled={signupLoading}
+                className="w-full rounded-lg bg-[#2f5d3a] py-3 font-semibold text-white transition hover:bg-[#264d30] disabled:cursor-not-allowed disabled:opacity-70"
+              >
+                {signupLoading ? 'Saving...' : 'Sign up for Offroady'}
+              </button>
+              {signupStatus ? <p className="text-sm text-[#2f5d3a]">{signupStatus}</p> : null}
+            </form>
+          </div>
+
+          <div className="rounded-2xl border border-black/8 bg-white p-6 shadow-sm">
+            <p className="text-sm font-semibold uppercase tracking-[0.16em] text-[#5d7d61]">Join trail</p>
+            <h3 className="mt-2 text-2xl font-bold text-[#243126]">Join {trailTitle}</h3>
+            <p className="mt-3 text-sm leading-6 text-gray-600">
+              Publicly visible: your display name. Private: your email and phone.
+            </p>
+
+            <div className="mt-5 rounded-xl bg-[#f7faf6] p-4 text-sm text-gray-700">
+              <div className="text-base font-semibold text-[#243126]">
+                {community.participants.length} people joined
+              </div>
+              <p className="mt-1 text-gray-600">{joinedNames || 'Be the first one in.'}</p>
+            </div>
+
+            <form onSubmit={handleJoin} className="mt-5 space-y-3">
+              <input
+                value={identity.displayName}
+                onChange={(event) => updateIdentity('displayName', event.target.value)}
+                placeholder="Display name"
+                className="w-full rounded-lg border border-gray-300 px-4 py-3 outline-none transition focus:border-[#2f5d3a]"
+              />
+              <input
+                value={identity.email}
+                onChange={(event) => updateIdentity('email', event.target.value)}
+                placeholder="Email"
+                type="email"
+                className="w-full rounded-lg border border-gray-300 px-4 py-3 outline-none transition focus:border-[#2f5d3a]"
+              />
+              <input
+                value={identity.phone}
+                onChange={(event) => updateIdentity('phone', event.target.value)}
+                placeholder="Phone (optional)"
+                type="tel"
+                className="w-full rounded-lg border border-gray-300 px-4 py-3 outline-none transition focus:border-[#2f5d3a]"
+              />
+              <button
+                type="submit"
+                disabled={joinLoading}
+                className="w-full rounded-lg bg-[#2f5d3a] py-3 font-semibold text-white transition hover:bg-[#264d30] disabled:cursor-not-allowed disabled:opacity-70"
+              >
+                {joinLoading ? 'Joining...' : 'Join this trail'}
+              </button>
+            </form>
+          </div>
+        </div>
+
+        <div className="space-y-6">
+          <div className="rounded-2xl border border-black/8 bg-white p-6 shadow-sm">
+            <p className="text-sm font-semibold uppercase tracking-[0.16em] text-[#5d7d61]">Crews</p>
+            <h3 className="mt-2 text-2xl font-bold text-[#243126]">Start a crew</h3>
+            <p className="mt-3 text-sm leading-6 text-gray-600">
+              Make a small group for this trail and let others see who is organizing.
+            </p>
+            <form onSubmit={handleCrew} className="mt-5 space-y-3">
+              <input
+                value={crewName}
+                onChange={(event) => setCrewName(event.target.value)}
+                placeholder="Crew name"
+                className="w-full rounded-lg border border-gray-300 px-4 py-3 outline-none transition focus:border-[#2f5d3a]"
+              />
+              <textarea
+                value={crewDescription}
+                onChange={(event) => setCrewDescription(event.target.value)}
+                placeholder="Short plan, vibe, or meeting point"
+                rows={3}
+                className="w-full rounded-lg border border-gray-300 px-4 py-3 outline-none transition focus:border-[#2f5d3a]"
+              />
+              <button
+                type="submit"
+                disabled={crewLoading}
+                className="w-full rounded-lg border border-[#2f5d3a] px-4 py-3 font-semibold text-[#2f5d3a] transition hover:bg-[#f2f5f1] disabled:cursor-not-allowed disabled:opacity-70"
+              >
+                {crewLoading ? 'Creating crew...' : 'Start a crew'}
+              </button>
+            </form>
+
+            <div className="mt-6 space-y-3">
+              {community.crews.length ? (
+                community.crews.map((crew) => (
+                  <div key={crew.id} className="rounded-xl border border-black/8 bg-[#f8faf8] p-4">
+                    <div className="flex flex-wrap items-center justify-between gap-3">
+                      <div>
+                        <div className="font-semibold text-[#243126]">{crew.crewName}</div>
+                        <div className="text-sm text-gray-500">
+                          Started by {crew.createdByDisplayName} · {crew.memberCount} member{crew.memberCount === 1 ? '' : 's'}
+                        </div>
+                      </div>
+                      <div className="text-xs text-gray-500">{formatDate(crew.createdAt)}</div>
+                    </div>
+                    {crew.description ? <p className="mt-2 text-sm text-gray-600">{crew.description}</p> : null}
+                  </div>
+                ))
+              ) : (
+                <div className="rounded-xl bg-[#f7faf6] p-4 text-sm text-gray-600">No crews yet. Start the first one.</div>
+              )}
+            </div>
+          </div>
+
+          <div className="rounded-2xl border border-black/8 bg-white p-6 shadow-sm">
+            <p className="text-sm font-semibold uppercase tracking-[0.16em] text-[#5d7d61]">Comments</p>
+            <h3 className="mt-2 text-2xl font-bold text-[#243126]">Talk under the trail</h3>
+            <p className="mt-3 text-sm leading-6 text-gray-600">
+              Keep it local and useful: rigs, conditions, timing, and meetup ideas.
+            </p>
+            <form onSubmit={handleComment} className="mt-5 space-y-3">
+              <textarea
+                value={comment}
+                onChange={(event) => setComment(event.target.value)}
+                placeholder="Say something helpful about this run"
+                rows={4}
+                className="w-full rounded-lg border border-gray-300 px-4 py-3 outline-none transition focus:border-[#2f5d3a]"
+              />
+              <button
+                type="submit"
+                disabled={commentLoading}
+                className="w-full rounded-lg bg-[#2f5d3a] py-3 font-semibold text-white transition hover:bg-[#264d30] disabled:cursor-not-allowed disabled:opacity-70"
+              >
+                {commentLoading ? 'Posting...' : 'Post comment'}
+              </button>
+            </form>
+
+            <div className="mt-6 space-y-3">
+              {community.comments.length ? (
+                community.comments.map((item) => (
+                  <div key={item.id} className="rounded-xl border border-black/8 bg-[#f8faf8] p-4">
+                    <div className="flex items-center justify-between gap-3">
+                      <div className="font-semibold text-[#243126]">{item.displayName}</div>
+                      <div className="text-xs text-gray-500">{formatDate(item.createdAt)}</div>
+                    </div>
+                    <p className="mt-2 text-sm leading-6 text-gray-700">{item.content}</p>
+                  </div>
+                ))
+              ) : (
+                <div className="rounded-xl bg-[#f7faf6] p-4 text-sm text-gray-600">No comments yet. Start the conversation.</div>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}

@@ -449,69 +449,70 @@ export default async function Home() {
           </div>
         </section>
 
-        <section id="events" className="bg-[#e8efe6] py-16">
-          <div className="mx-auto grid max-w-7xl gap-8 px-4 sm:px-6 lg:grid-cols-[0.95fr_1.05fr] lg:px-8">
-            <div className="rounded-2xl border border-black/8 bg-white p-6 shadow-sm">
-              <p className="text-sm font-semibold uppercase tracking-[0.16em] text-[#5d7d61]">
-                Community
-              </p>
-              <h2 className="mt-2 text-3xl font-bold tracking-tight text-[#243126]">
-                Start or join a ride
-              </h2>
-              <p className="mt-4 max-w-lg leading-7 text-gray-700">
-                Keep it simple. Share a route, post a plan, or hop into a ride that
-                already looks good.
-              </p>
+<section id="events" className="bg-[#e8efe6] py-16">
+  <div className="mx-auto grid max-w-7xl gap-8 px-4 sm:px-6 lg:grid-cols-[0.95fr_1.05fr] lg:px-8">
+    <div className="rounded-2xl border border-black/8 bg-white p-6 shadow-sm">
+      <p className="text-sm font-semibold uppercase tracking-[0.16em] text-[#5d7d61]">
+        Community
+      </p>
+      <h2 className="mt-2 text-3xl font-bold tracking-tight text-[#243126]">
+        Start or join a ride
+      </h2>
+      <p className="mt-4 max-w-lg leading-7 text-gray-700">
+        Keep it simple. Share a route, post a plan, or hop into a ride that
+        already looks good.
+      </p>
 
-             <form
-  action="https://formspree.io/f/mdayabgb"
-  method="POST"
-  className="mt-6 space-y-4"
->
-  <input type="hidden" name="_subject" value="New Offroady Signup" />
+      <form
+        action="https://formspree.io/f/mdayabgb"
+        method="POST"
+        className="mt-6 space-y-4"
+      >
+        <input type="hidden" name="_subject" value="New Offroady Signup" />
 
-  <input
-    name="email"
-    placeholder="Email"
-    type="email"
-    required
-    className="w-full rounded-lg border border-gray-300 px-4 py-3 outline-none focus:border-[#2f5d3a]"
-  />
+        <input
+          name="email"
+          placeholder="Email"
+          type="email"
+          required
+          className="w-full rounded-lg border border-gray-300 px-4 py-3 outline-none transition focus:border-[#2f5d3a]"
+        />
 
-  <input
-    name="phone"
-    placeholder="Phone (optional)"
-    type="tel"
-    className="w-full rounded-lg border border-gray-300 px-4 py-3 outline-none focus:border-[#2f5d3a]"
-  />
+        <input
+          name="phone"
+          placeholder="Phone (optional)"
+          type="tel"
+          className="w-full rounded-lg border border-gray-300 px-4 py-3 outline-none transition focus:border-[#2f5d3a]"
+        />
 
-  <button
-    type="submit"
-    className="w-full rounded-lg bg-[#2f5d3a] py-3 font-semibold text-white hover:bg-[#264d30]"
-  >
-    Join Community
-  </button>
-</form>
+        <button
+          type="submit"
+          className="w-full rounded-lg bg-[#2f5d3a] py-3 font-semibold text-white transition hover:bg-[#264d30]"
+        >
+          Join Community
+        </button>
+      </form>
+    </div>
 
-            <div className="overflow-hidden rounded-2xl border border-black/8 bg-white shadow-sm">
-              <img
-                src={waterTrailImage}
-                alt="Off-road vehicle splashing through water"
-                className="h-full min-h-[360px] w-full object-cover"
-              />
-              <div className="border-t border-black/8 p-6">
-                <h3 className="text-2xl font-bold text-[#243126]">Better with a crew</h3>
-                <p className="mt-3 leading-7 text-gray-600">
-                  Some runs are scenic. Some get messy. Either way, it is always more
-                  fun when you have a few good people with you.
-                </p>
-                <button className="mt-5 rounded-lg bg-[#2f5d3a] px-5 py-3 font-semibold text-white transition hover:bg-[#264d30]">
-                  Start a Crew
-                </button>
-              </div>
-            </div>
-          </div>
-        </section>
+    <div className="overflow-hidden rounded-2xl border border-black/8 bg-white shadow-sm">
+      <img
+        src={waterTrailImage}
+        alt="Off-road vehicle splashing through water"
+        className="h-full min-h-[360px] w-full object-cover"
+      />
+      <div className="border-t border-black/8 p-6">
+        <h3 className="text-2xl font-bold text-[#243126]">Better with a crew</h3>
+        <p className="mt-3 leading-7 text-gray-600">
+          Some runs are scenic. Some get messy. Either way, it is always more
+          fun when you have a few good people with you.
+        </p>
+        <button className="mt-5 rounded-lg bg-[#2f5d3a] px-5 py-3 font-semibold text-white transition hover:bg-[#264d30]">
+          Start a Crew
+        </button>
+      </div>
+    </div>
+  </div>
+</section>
 
         <section id="about" className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
           <div className="grid gap-8 lg:grid-cols-[1fr_1fr]">

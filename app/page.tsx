@@ -93,6 +93,15 @@ export default async function Home() {
   const localTrail = getLocalFeaturedTrail();
   const snapshot = await getCommunitySnapshot(localTrail.slug);
   const trail = snapshot.trail ?? localTrail;
+  const featuredTrail = {
+    title: 'Cheam Lookout',
+    latitude: 49.15836869814306,
+    longitude: -121.7454383360047,
+    locationLabel: 'Near Chilliwack, BC',
+    summary:
+      'One of those BC lookout spots where you just park, step out, and go wow. Scenic, simple, and a great excuse to get out for a Sunday run.',
+    difficulty: 'medium',
+  };
 
   const heroImage = '/images/bc-hero.jpg';
   const featureImage = '/images/cheam-lookout.jpg';
@@ -100,9 +109,9 @@ export default async function Home() {
   const waterTrailImage = '/images/g63-water.jpg';
 
   let weather: Awaited<ReturnType<typeof getTrailWeather>> | null = null;
-  if (trail.latitude && trail.longitude) {
+  if (featuredTrail.latitude && featuredTrail.longitude) {
     try {
-      weather = await getTrailWeather(trail.latitude, trail.longitude);
+      weather = await getTrailWeather(featuredTrail.latitude, featuredTrail.longitude);
     } catch {
       weather = null;
     }
@@ -142,14 +151,14 @@ export default async function Home() {
                 Build a crew.
               </h1>
               <p className="mt-5 max-w-xl text-lg leading-8 text-white/90">
-                Offroady helps people discover real BC off-road routes, see who is interested, and coordinate runs without the usual forum chaos.
+                Discover a featured BC trail, see who else is in, and decide whether you want updates, a crew, or just a good reason to get out this weekend.
               </p>
               <div className="mt-8 flex flex-wrap gap-3">
                 <a href="#featured" className="rounded-lg bg-white px-5 py-3 font-semibold text-[#2f5d3a] shadow-sm transition hover:bg-[#f2f5f1]">
                   See Trail of the Week
                 </a>
                 <a href="#community" className="rounded-lg border border-white/70 px-5 py-3 font-medium text-white transition hover:bg-white/10">
-                  Open community tools
+                  Join for Updates
                 </a>
               </div>
             </div>
@@ -164,27 +173,23 @@ export default async function Home() {
 
           <div className="overflow-hidden rounded-2xl border border-black/8 bg-white shadow-sm">
             <div className="grid lg:grid-cols-[1.2fr_0.8fr]">
-              <img src={featureImage} alt={trail.title} className="h-full min-h-[320px] w-full object-cover" />
+              <img src={featureImage} alt={featuredTrail.title} className="h-full min-h-[320px] w-full object-cover" />
               <div className="p-6 lg:p-8">
                 <div className="inline-flex rounded-full bg-[#eef5ee] px-3 py-1 text-sm font-semibold text-[#2f5d3a]">
                   This week's pick
                 </div>
-                <h3 className="mt-4 text-2xl font-bold">{trail.title}</h3>
-                <p className="mt-3 leading-7 text-gray-600">
-                  {trail.summary_zh || 'A featured route for this week, chosen from Offroady\'s verified BC trail pool.'}
-                </p>
+                <h3 className="mt-4 text-2xl font-bold">{featuredTrail.title}</h3>
+                <p className="mt-3 leading-7 text-gray-600">{featuredTrail.summary}</p>
                 <div className="mt-4 flex flex-wrap gap-2 text-sm text-gray-600">
-                  {trail.region ? <span className="rounded-full bg-gray-100 px-3 py-1">📍 {trail.region}</span> : null}
-                  <span className={`rounded-full border px-3 py-1 ${difficultyBadge('medium')}`}>🟡 Medium</span>
+                  <span className="rounded-full bg-gray-100 px-3 py-1">📍 {featuredTrail.locationLabel}</span>
+                  <span className={`rounded-full border px-3 py-1 ${difficultyBadge(featuredTrail.difficulty)}`}>🟡 Medium</span>
                   <span className="rounded-full bg-gray-100 px-3 py-1">📅 {weather?.dateLabel || 'This weekend'}</span>
                 </div>
 
                 <div className="mt-5 space-y-3 rounded-xl bg-[#f7faf6] p-4 text-sm text-gray-700">
-                  {trail.latitude && trail.longitude ? (
-                    <div>
-                      <span className="font-semibold text-[#243126]">Coordinates:</span> {trail.latitude}, {trail.longitude}
-                    </div>
-                  ) : null}
+                  <div>
+                    <span className="font-semibold text-[#243126]">Coordinates:</span> {featuredTrail.latitude}, {featuredTrail.longitude}
+                  </div>
                   {weather ? (
                     <>
                       <div><span className="font-semibold text-[#243126]">Sunday forecast:</span> {weatherLabel(weather.dayCode)}</div>
@@ -195,32 +200,26 @@ export default async function Home() {
                   ) : (
                     <div><span className="font-semibold text-[#243126]">Weather:</span> unavailable right now.</div>
                   )}
-                  {trail.coordinate_source ? (
-                    <div><span className="font-semibold text-[#243126]">Coordinate source:</span> {trail.coordinate_source}</div>
-                  ) : null}
+                  <div>
+                    <span className="font-semibold text-[#243126]">Road conditions:</span> FSR-style access. Expect gravel, potholes, and possible mud if there has been recent rain. AWD / 4x4 recommended.
+                  </div>
                 </div>
 
                 <div className="mt-6 flex flex-wrap gap-3">
-                  {trail.latitude && trail.longitude ? (
-                    <a
-                      href={`https://www.google.com/maps?q=${trail.latitude},${trail.longitude}`}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="rounded-lg bg-[#2f5d3a] px-4 py-2.5 font-semibold text-white transition hover:bg-[#264d30]"
-                    >
-                      View on Map
-                    </a>
-                  ) : null}
-                  {trail.facebook_post_url ? (
-                    <a
-                      href={trail.facebook_post_url}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="rounded-lg border border-gray-300 px-4 py-2.5 font-semibold text-gray-800 transition hover:bg-gray-50"
-                    >
-                      Source post
-                    </a>
-                  ) : null}
+                  <a
+                    href={`https://www.google.com/maps?q=${featuredTrail.latitude},${featuredTrail.longitude}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="rounded-lg bg-[#2f5d3a] px-4 py-2.5 font-semibold text-white transition hover:bg-[#264d30]"
+                  >
+                    View on Map
+                  </a>
+                  <a
+                    href="#join-trail"
+                    className="rounded-lg border border-gray-300 px-4 py-2.5 font-semibold text-gray-800 transition hover:bg-gray-50"
+                  >
+                    Join trail
+                  </a>
                 </div>
               </div>
             </div>
@@ -232,10 +231,10 @@ export default async function Home() {
             <div className="grid items-center lg:grid-cols-[0.9fr_1.1fr]">
               <img src={darkTrailImage} alt="Off-road vehicle at night on trail obstacles" className="h-full min-h-[320px] w-full object-cover" />
               <div className="p-8 text-white lg:p-10">
-                <p className="text-sm font-semibold uppercase tracking-[0.16em] text-[#9dc2a2]">MVP direction</p>
-                <h2 className="mt-3 text-3xl font-bold tracking-tight">Trail-first social coordination.</h2>
+                <p className="text-sm font-semibold uppercase tracking-[0.16em] text-[#9dc2a2]">How it works</p>
+                <h2 className="mt-3 text-3xl font-bold tracking-tight">Make weekend trail plans without the forum mess.</h2>
                 <p className="mt-4 max-w-xl leading-7 text-white/80">
-                  Not a generic forum. Not just a pretty content site. Offroady is being built around one job: helping people pick a trail and actually get out there together.
+                  Offroady keeps it simple: find a trail, see who is interested, start a small crew if you want, and leave useful notes under the route.
                 </p>
               </div>
             </div>

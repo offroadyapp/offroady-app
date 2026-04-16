@@ -170,9 +170,9 @@ export default function TrailCommunityClient({ trailSlug, trailTitle, initialSna
             <p className="text-sm font-semibold uppercase tracking-[0.16em] text-[#9dc2a2]">
               Offroady MVP
             </p>
-            <h2 className="mt-2 text-2xl font-bold">Join the trail, start a crew, talk it out.</h2>
+            <h2 className="mt-2 text-2xl font-bold">Pick how you want to join in.</h2>
             <p className="mt-2 max-w-3xl text-sm leading-6 text-white/80">
-              This is the core social layer for {trailTitle}. Low friction up front, real participation underneath.
+              Want updates only? Sign up below. Want in on {trailTitle}? Join the trail. Want to lead a smaller group? Start a crew. Have something useful to share? Leave a comment.
             </p>
           </div>
           {!community.dbReady ? (
@@ -193,7 +193,7 @@ export default function TrailCommunityClient({ trailSlug, trailTitle, initialSna
             <p className="text-sm font-semibold uppercase tracking-[0.16em] text-[#5d7d61]">Sign up</p>
             <h3 className="mt-2 text-2xl font-bold text-[#243126]">Stay in the loop</h3>
             <p className="mt-3 text-sm leading-6 text-gray-600">
-              This is for Offroady updates in general. It is separate from joining this specific trail.
+              Just want to hear about future trails and local runs? Sign up here. This does not automatically join you to this specific trail.
             </p>
             <form onSubmit={handleSignup} className="mt-5 space-y-3">
               <input
@@ -227,11 +227,11 @@ export default function TrailCommunityClient({ trailSlug, trailTitle, initialSna
             </form>
           </div>
 
-          <div className="rounded-2xl border border-black/8 bg-white p-6 shadow-sm">
+          <div id="join-trail" className="rounded-2xl border border-black/8 bg-white p-6 shadow-sm">
             <p className="text-sm font-semibold uppercase tracking-[0.16em] text-[#5d7d61]">Join trail</p>
             <h3 className="mt-2 text-2xl font-bold text-[#243126]">Join {trailTitle}</h3>
             <p className="mt-3 text-sm leading-6 text-gray-600">
-              Publicly visible: your display name. Private: your email and phone.
+              Want to go on this run? Add your name here so others can see who is interested. Your display name is public; your email and phone stay private.
             </p>
 
             <div className="mt-5 rounded-xl bg-[#f7faf6] p-4 text-sm text-gray-700">
@@ -278,7 +278,7 @@ export default function TrailCommunityClient({ trailSlug, trailTitle, initialSna
             <p className="text-sm font-semibold uppercase tracking-[0.16em] text-[#5d7d61]">Crews</p>
             <h3 className="mt-2 text-2xl font-bold text-[#243126]">Start a crew</h3>
             <p className="mt-3 text-sm leading-6 text-gray-600">
-              Make a small group for this trail and let others see who is organizing.
+              Want to lead a smaller group for this trail? Name your crew, add a short plan, and let others see who is organizing.
             </p>
             <form onSubmit={handleCrew} className="mt-5 space-y-3">
               <input
@@ -329,7 +329,7 @@ export default function TrailCommunityClient({ trailSlug, trailTitle, initialSna
             <p className="text-sm font-semibold uppercase tracking-[0.16em] text-[#5d7d61]">Comments</p>
             <h3 className="mt-2 text-2xl font-bold text-[#243126]">Talk under the trail</h3>
             <p className="mt-3 text-sm leading-6 text-gray-600">
-              Keep it local and useful: rigs, conditions, timing, and meetup ideas.
+              Share anything that helps the next person decide: vehicle setup, current conditions, timing, meeting spots, or whether the route is worth it this week.
             </p>
             <form onSubmit={handleComment} className="mt-5 space-y-3">
               <textarea

@@ -13,7 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata = {
-  title: "Offroady | Trails & Community",
+  title: "Offroady | 越野搭子 Trails & Trips",
   description: "Discover off-road trails and events.",
   icons: {
     icon: "/icon.png",

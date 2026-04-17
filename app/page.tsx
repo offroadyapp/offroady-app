@@ -1,5 +1,10 @@
 import TrailCommunityClient from './components/TrailCommunityClient';
+import AuthMenu from './components/AuthMenu';
+import AuthPanel from './components/AuthPanel';
+import FavoriteTrailButton from './components/FavoriteTrailButton';
 import { getCommunitySnapshot } from '@/lib/offroady/community';
+import { getSessionUser } from '@/lib/offroady/auth';
+import { getFavoriteTrailSlugs } from '@/lib/offroady/account';
 import { getLocalFeaturedTrail, localTrails } from '@/lib/offroady/trails';
 
 export const revalidate = 3600;
@@ -91,6 +96,8 @@ function difficultyBadge(level?: string | null) {
 
 export default async function Home() {
   const localTrail = getLocalFeaturedTrail();
+  const viewer = await getSessionUser();
+  const favoriteTrailSlugs = viewer ? await getFavoriteTrailSlugs(viewer.id) : [];
   const snapshot = await getCommunitySnapshot(localTrail.slug);
   const trail = snapshot.trail ?? localTrail;
   const featuredTrail = {
@@ -122,17 +129,32 @@ export default async function Home() {
       <header className="sticky top-0 z-30 border-b border-black/10 bg-white/95 backdrop-blur">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#2f5d3a] text-lg font-bold text-white shadow-sm">O</div>
+            <img
+              src="/icon.png"
+              alt="Offroady logo"
+              className="h-11 w-11 rounded-xl object-cover shadow-sm"
+            />
             <div>
-              <div className="text-lg font-bold tracking-tight">Offroady</div>
+              <div className="flex items-baseline gap-2">
+                <div className="text-lg font-bold tracking-tight text-[#243126]">Offroady</div>
+                <div className="text-sm font-semibold text-[#2f5d3a]">越野搭子</div>
+              </div>
               <div className="text-xs text-gray-500">Trail-based off-road community in BC</div>
             </div>
           </div>
-          <nav className="hidden items-center gap-6 text-sm text-gray-600 md:flex">
-            <a href="#featured" className="transition hover:text-[#2f5d3a]">Trail of the Week</a>
-            <a href="#community" className="transition hover:text-[#2f5d3a]">Community</a>
-            <a href="#about" className="transition hover:text-[#2f5d3a]">About</a>
-          </nav>
+          <div className="flex items-center gap-4">
+            <nav className="hidden items-center gap-6 text-sm text-gray-600 md:flex">
+              <a href="#featured" className="transition hover:text-[#2f5d3a]">Trail of the Week</a>
+              <a href="#community" className="transition hover:text-[#2f5d3a]">Community</a>
+              <a href="#about" className="transition hover:text-[#2f5d3a]">About</a>
+            </nav>
+            <AuthMenu viewer={viewer ? {
+              displayName: viewer.displayName,
+              email: viewer.email,
+              profileSlug: viewer.profileSlug,
+              avatarImage: viewer.avatarImage,
+            } : null} />
+          </div>
         </div>
       </header>
 
@@ -157,13 +179,15 @@ export default async function Home() {
                 <a href="#featured" className="rounded-lg bg-white px-5 py-3 font-semibold text-[#2f5d3a] shadow-sm transition hover:bg-[#f2f5f1]">
                   See Trail of the Week
                 </a>
-                <a href="#community" className="rounded-lg border border-white/70 px-5 py-3 font-medium text-white transition hover:bg-white/10">
-                  Join for Updates
+                <a href={viewer ? '#community' : '#member-access'} className="rounded-lg border border-white/70 px-5 py-3 font-medium text-white transition hover:bg-white/10">
+                  {viewer ? 'Go to Community' : 'Join for Updates'}
                 </a>
               </div>
             </div>
           </div>
         </section>
+
+        {!viewer ? <AuthPanel /> : null}
 
         <section id="featured" className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
           <div className="mb-6">
@@ -176,7 +200,7 @@ export default async function Home() {
               <img src={featureImage} alt={featuredTrail.title} className="h-full min-h-[320px] w-full object-cover" />
               <div className="p-6 lg:p-8">
                 <div className="inline-flex rounded-full bg-[#eef5ee] px-3 py-1 text-sm font-semibold text-[#2f5d3a]">
-                  This week's pick
+                  This week&apos;s pick
                 </div>
                 <h3 className="mt-4 text-2xl font-bold">{featuredTrail.title}</h3>
                 <p className="mt-3 leading-7 text-gray-600">{featuredTrail.summary}</p>
@@ -220,6 +244,12 @@ export default async function Home() {
                   >
                     Join trail
                   </a>
+                  {viewer ? (
+                    <FavoriteTrailButton
+                      trailSlug={trail.slug}
+                      initialFavorite={favoriteTrailSlugs.includes(trail.slug)}
+                    />
+                  ) : null}
                 </div>
               </div>
             </div>
@@ -242,7 +272,17 @@ export default async function Home() {
         </section>
 
         <div id="community">
-          <TrailCommunityClient trailSlug={trail.slug} trailTitle={featuredTrail.title} initialSnapshot={snapshot} moreTrails={localTrails} />
+          <TrailCommunityClient
+            trailSlug={trail.slug}
+            trailTitle={featuredTrail.title}
+            initialSnapshot={snapshot}
+            moreTrails={localTrails}
+            viewer={viewer ? {
+              displayName: viewer.displayName,
+              email: viewer.email,
+              phone: viewer.phone || '',
+            } : null}
+          />
         </div>
 
         <section id="about" className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">

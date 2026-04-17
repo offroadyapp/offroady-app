@@ -1,3 +1,4 @@
+import { slugifyProfile } from '@/lib/offroady/members';
 import { getLocalFeaturedTrail, getLocalTrailBySlug, type LocalTrail } from '@/lib/offroady/trails';
 import { getServiceSupabase } from '@/lib/supabase/server';
 
@@ -10,7 +11,7 @@ export type IdentityInput = {
 export type CommunitySnapshot = {
   dbReady: boolean;
   trail: LocalTrail | DbTrail | null;
-  participants: Array<{ displayName: string; role: string; joinedAt: string }>;
+  participants: Array<{ displayName: string; profileSlug: string; role: string; joinedAt: string }>;
   crews: Array<{
     id: string;
     crewName: string;
@@ -24,6 +25,7 @@ export type CommunitySnapshot = {
     content: string;
     createdAt: string;
     displayName: string;
+    profileSlug: string;
   }>;
 };
 
@@ -57,6 +59,7 @@ function normalizeIdentity(input: IdentityInput) {
     displayName: input.displayName.trim(),
     email: normalizeEmail(input.email),
     phone: input.phone?.trim() || null,
+    profileSlug: slugifyProfile(input.displayName),
   };
 }
 
@@ -93,7 +96,7 @@ async function upsertUser(identity: IdentityInput) {
 
   const { data: existing, error: existingError } = await supabase
     .from('users')
-    .select('id, email, display_name, phone')
+    .select('id, email, display_name, profile_slug, phone')
     .ilike('email', normalized.email)
     .maybeSingle();
 
@@ -104,11 +107,12 @@ async function upsertUser(identity: IdentityInput) {
       .from('users')
       .update({
         display_name: normalized.displayName,
+        profile_slug: normalized.profileSlug,
         phone: normalized.phone,
         updated_at: new Date().toISOString(),
       })
       .eq('id', existing.id)
-      .select('id, email, display_name, phone')
+      .select('id, email, display_name, profile_slug, phone')
       .single();
 
     if (error) throw error;
@@ -121,8 +125,9 @@ async function upsertUser(identity: IdentityInput) {
       email: normalized.email,
       phone: normalized.phone,
       display_name: normalized.displayName,
+      profile_slug: normalized.profileSlug,
     })
-    .select('id, email, display_name, phone')
+    .select('id, email, display_name, profile_slug, phone')
     .single();
 
   if (error) throw error;
@@ -267,16 +272,17 @@ export async function getCommunitySnapshot(slug?: string): Promise<CommunitySnap
     const { data: participantUsers, error: participantUsersError } = participantUserIds.length
       ? await supabase
           .from('users')
-          .select('id, display_name')
+          .select('id, display_name, profile_slug')
           .in('id', participantUserIds)
       : { data: [], error: null };
 
     if (participantUsersError) throw participantUsersError;
 
-    const userMap = new Map((participantUsers ?? []).map((user) => [user.id, user.display_name]));
+    const userMap = new Map((participantUsers ?? []).map((user) => [user.id, user]));
 
     const participants = (participantRows ?? []).map((row) => ({
-      displayName: userMap.get(row.user_id) ?? 'Unknown rider',
+      displayName: userMap.get(row.user_id)?.display_name ?? 'Unknown rider',
+      profileSlug: userMap.get(row.user_id)?.profile_slug ?? 'unknown-rider',
       role: row.role,
       joinedAt: row.joined_at,
     }));
@@ -331,18 +337,19 @@ export async function getCommunitySnapshot(slug?: string): Promise<CommunitySnap
 
     const commentUserIds = [...new Set((commentRows ?? []).map((row) => row.user_id))];
     const { data: commentUsers, error: commentUsersError } = commentUserIds.length
-      ? await supabase.from('users').select('id, display_name').in('id', commentUserIds)
+      ? await supabase.from('users').select('id, display_name, profile_slug').in('id', commentUserIds)
       : { data: [], error: null };
 
     if (commentUsersError) throw commentUsersError;
 
-    const commentUserMap = new Map((commentUsers ?? []).map((user) => [user.id, user.display_name]));
+    const commentUserMap = new Map((commentUsers ?? []).map((user) => [user.id, user]));
 
     const comments = (commentRows ?? []).map((comment) => ({
       id: comment.id,
       content: comment.content,
       createdAt: comment.created_at,
-      displayName: commentUserMap.get(comment.user_id) ?? 'Unknown rider',
+      displayName: commentUserMap.get(comment.user_id)?.display_name ?? 'Unknown rider',
+      profileSlug: commentUserMap.get(comment.user_id)?.profile_slug ?? 'unknown-rider',
     }));
 
     return {

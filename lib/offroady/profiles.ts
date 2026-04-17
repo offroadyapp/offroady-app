@@ -1,5 +1,6 @@
 export type SampleProfile = {
   displayName: string;
+  profileSlug: string;
   email: string;
   bio: string;
   avatarImage: string;
@@ -15,6 +16,7 @@ export type SampleProfile = {
 
 export const trailScoutProfile: SampleProfile = {
   displayName: 'TrailScout',
+  profileSlug: 'trailscout',
   email: 'cheng108@me.com',
   bio: "I like off-roading, scenic routes, and trips that are just unpredictable enough to be memorable. I drive a 2022 Wrangler Rubicon 4xe with a WARN winch and onboard air, and I've been wheeling since 2021 around Mission, Squamish, and other BC spots, with a few runs around Toronto too. I've done recoveries, needed recoveries, and picked up a few lessons the hard way. Back home, I've got a golden British Shorthair named Kiwi who is a lot cleaner than my Jeep. Always up for good trails, good people, and trips beyond BC.",
   avatarImage: '/images/TrailScout.jpg',

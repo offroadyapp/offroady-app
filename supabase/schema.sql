@@ -24,6 +24,7 @@ create table if not exists public.users (
   email text not null,
   phone text,
   display_name text not null,
+  profile_slug text,
   bio text,
   avatar_image text,
   rig_name text,
@@ -34,6 +35,7 @@ create table if not exists public.users (
   pet_name text,
   pet_note text,
   share_vibe text,
+  password_hash text,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
@@ -41,6 +43,7 @@ create table if not exists public.users (
 alter table public.users add column if not exists email text;
 alter table public.users add column if not exists phone text;
 alter table public.users add column if not exists display_name text;
+alter table public.users add column if not exists profile_slug text;
 alter table public.users add column if not exists bio text;
 alter table public.users add column if not exists avatar_image text;
 alter table public.users add column if not exists rig_name text;
@@ -51,10 +54,12 @@ alter table public.users add column if not exists areas_driven text[];
 alter table public.users add column if not exists pet_name text;
 alter table public.users add column if not exists pet_note text;
 alter table public.users add column if not exists share_vibe text;
+alter table public.users add column if not exists password_hash text;
 alter table public.users add column if not exists created_at timestamptz not null default now();
 alter table public.users add column if not exists updated_at timestamptz not null default now();
 
 create unique index if not exists idx_users_email_lower_unique on public.users (lower(email));
+create unique index if not exists idx_users_profile_slug_unique on public.users (profile_slug) where profile_slug is not null;
 create index if not exists idx_users_display_name on public.users (display_name);
 
 drop trigger if exists trg_users_updated_at on public.users;
@@ -158,6 +163,23 @@ create unique index if not exists idx_trail_participants_unique on public.trail_
 create index if not exists idx_trail_participants_trail_id on public.trail_participants (trail_id);
 create index if not exists idx_trail_participants_user_id on public.trail_participants (user_id);
 
+-- FAVORITE TRAILS
+create table if not exists public.favorite_trails (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references public.users(id) on delete cascade,
+  trail_id uuid not null references public.trails(id) on delete cascade,
+  created_at timestamptz not null default now(),
+  constraint favorite_trails_unique unique (user_id, trail_id)
+);
+
+alter table public.favorite_trails add column if not exists user_id uuid;
+alter table public.favorite_trails add column if not exists trail_id uuid;
+alter table public.favorite_trails add column if not exists created_at timestamptz not null default now();
+
+create unique index if not exists idx_favorite_trails_unique on public.favorite_trails (user_id, trail_id);
+create index if not exists idx_favorite_trails_user_id on public.favorite_trails (user_id);
+create index if not exists idx_favorite_trails_trail_id on public.favorite_trails (trail_id);
+
 -- CREWS
 create table if not exists public.crews (
   id uuid primary key default gen_random_uuid(),
@@ -204,6 +226,24 @@ alter table public.crew_members add column if not exists joined_at timestamptz n
 create unique index if not exists idx_crew_members_unique on public.crew_members (crew_id, user_id);
 create index if not exists idx_crew_members_crew_id on public.crew_members (crew_id);
 create index if not exists idx_crew_members_user_id on public.crew_members (user_id);
+
+-- USER SESSIONS
+create table if not exists public.user_sessions (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references public.users(id) on delete cascade,
+  session_token_hash text not null unique,
+  expires_at timestamptz not null,
+  created_at timestamptz not null default now()
+);
+
+alter table public.user_sessions add column if not exists user_id uuid;
+alter table public.user_sessions add column if not exists session_token_hash text;
+alter table public.user_sessions add column if not exists expires_at timestamptz;
+alter table public.user_sessions add column if not exists created_at timestamptz not null default now();
+
+create unique index if not exists idx_user_sessions_token_hash on public.user_sessions (session_token_hash);
+create index if not exists idx_user_sessions_user_id on public.user_sessions (user_id);
+create index if not exists idx_user_sessions_expires_at on public.user_sessions (expires_at);
 
 -- COMMENTS
 create table if not exists public.comments (
@@ -277,6 +317,8 @@ alter table public.trail_participants enable row level security;
 alter table public.crews enable row level security;
 alter table public.crew_members enable row level security;
 alter table public.comments enable row level security;
+alter table public.favorite_trails enable row level security;
+alter table public.user_sessions enable row level security;
 
 -- Minimal read-only public policies.
 -- Public writes are intentionally NOT enabled here.
@@ -330,6 +372,17 @@ for select
 using (
   status = 'published'
   and exists (
+    select 1 from public.trails t
+    where t.id = trail_id and t.is_published = true
+  )
+);
+
+drop policy if exists "public can read favorite trails" on public.favorite_trails;
+create policy "public can read favorite trails"
+on public.favorite_trails
+for select
+using (
+  exists (
     select 1 from public.trails t
     where t.id = trail_id and t.is_published = true
   )

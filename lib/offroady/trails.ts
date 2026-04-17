@@ -5,6 +5,7 @@ export type LocalTrail = {
   slug: string;
   title: string;
   region: string | null;
+  location_label: string | null;
   latitude: number | null;
   longitude: number | null;
   facebook_post_url: string | null;
@@ -14,6 +15,18 @@ export type LocalTrail = {
   verification_level: string | null;
   source_type: string | null;
   featured_candidate: boolean;
+  hero_image: string;
+  card_image: string;
+  card_blurb: string;
+  access_type: string;
+  difficulty: 'easy' | 'medium' | 'hard';
+  best_for: string[];
+  vehicle_recommendation: string;
+  route_condition_note: string;
+  members_only_view: boolean;
+  members_only_plan_trip: boolean;
+  plan_trip_enabled: boolean;
+  referral_sharing_enabled: boolean;
 };
 
 export const localTrails = trailsJson as LocalTrail[];

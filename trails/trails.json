@@ -12,7 +12,24 @@
     "notes": "FB public post + Trailforks trailhead coordinates",
     "verification_level": "double-verified",
     "source_type": "facebook-public-post-plus-secondary-public-source",
-    "featured_candidate": true
+    "featured_candidate": true,
+    "location_label": "Squamish",
+    "hero_image": "/images/g63-water.jpg",
+    "card_image": "/images/g63-water.jpg",
+    "card_blurb": "Squamish route with a balanced off-road feel, good for planning a local trip with friends.",
+    "access_type": "trailhead",
+    "difficulty": "medium",
+    "best_for": [
+      "exploring",
+      "group-run",
+      "forest-road"
+    ],
+    "vehicle_recommendation": "AWD or 4x4 recommended; avoid low-clearance vehicles.",
+    "route_condition_note": "Expect typical FSR conditions: gravel, potholes, mud after rain, and changing access through the season.",
+    "members_only_view": true,
+    "members_only_plan_trip": true,
+    "plan_trip_enabled": true,
+    "referral_sharing_enabled": true
   },
   {
     "id": "indian-river-fsr-turnoff-from-mamquam",
@@ -27,7 +44,24 @@
     "notes": "FB public post + route guide turnoff coordinates",
     "verification_level": "double-verified",
     "source_type": "facebook-public-post-plus-secondary-public-source",
-    "featured_candidate": true
+    "featured_candidate": true,
+    "location_label": "Squamish",
+    "hero_image": "/images/g63-water.jpg",
+    "card_image": "/images/g63-water.jpg",
+    "card_blurb": "Squamish route with a balanced off-road feel, good for planning a local trip with friends.",
+    "access_type": "trailhead",
+    "difficulty": "medium",
+    "best_for": [
+      "exploring",
+      "group-run",
+      "forest-road"
+    ],
+    "vehicle_recommendation": "AWD or 4x4 recommended; avoid low-clearance vehicles.",
+    "route_condition_note": "Expect typical FSR conditions: gravel, potholes, mud after rain, and changing access through the season.",
+    "members_only_view": true,
+    "members_only_plan_trip": true,
+    "plan_trip_enabled": true,
+    "referral_sharing_enabled": true
   },
   {
     "id": "squamish-valley-fsr",
@@ -42,7 +76,24 @@
     "notes": "FB public post + route guide coordinates",
     "verification_level": "double-verified",
     "source_type": "facebook-public-post-plus-secondary-public-source",
-    "featured_candidate": true
+    "featured_candidate": true,
+    "location_label": "Squamish",
+    "hero_image": "/images/bc-hero.jpg",
+    "card_image": "/images/bc-hero.jpg",
+    "card_blurb": "Squamish route with a balanced off-road feel, good for planning a local trip with friends.",
+    "access_type": "trailhead",
+    "difficulty": "medium",
+    "best_for": [
+      "exploring",
+      "group-run",
+      "forest-road"
+    ],
+    "vehicle_recommendation": "AWD or 4x4 recommended; avoid low-clearance vehicles.",
+    "route_condition_note": "Expect typical FSR conditions: gravel, potholes, mud after rain, and changing access through the season.",
+    "members_only_view": true,
+    "members_only_plan_trip": true,
+    "plan_trip_enabled": true,
+    "referral_sharing_enabled": true
   },
   {
     "id": "ashlu-river-fsr",
@@ -57,7 +108,24 @@
     "notes": "FB public post + Trailforks trailhead coordinates",
     "verification_level": "double-verified",
     "source_type": "facebook-public-post-plus-secondary-public-source",
-    "featured_candidate": true
+    "featured_candidate": true,
+    "location_label": "Squamish",
+    "hero_image": "/images/g63-water.jpg",
+    "card_image": "/images/g63-water.jpg",
+    "card_blurb": "Squamish route with a balanced off-road feel, good for planning a local trip with friends.",
+    "access_type": "trailhead",
+    "difficulty": "medium",
+    "best_for": [
+      "exploring",
+      "group-run",
+      "forest-road"
+    ],
+    "vehicle_recommendation": "AWD or 4x4 recommended; avoid low-clearance vehicles.",
+    "route_condition_note": "Expect typical FSR conditions: gravel, potholes, mud after rain, and changing access through the season.",
+    "members_only_view": true,
+    "members_only_plan_trip": true,
+    "plan_trip_enabled": true,
+    "referral_sharing_enabled": true
   },
   {
     "id": "harrison-east-fsr",
@@ -72,7 +140,24 @@
     "notes": "FB public post + Trailforks trailhead coordinates",
     "verification_level": "double-verified",
     "source_type": "facebook-public-post-plus-secondary-public-source",
-    "featured_candidate": true
+    "featured_candidate": true,
+    "location_label": "Harrison",
+    "hero_image": "/images/g63-water.jpg",
+    "card_image": "/images/g63-water.jpg",
+    "card_blurb": "Harrison route with a balanced off-road feel, good for planning a local trip with friends.",
+    "access_type": "trailhead",
+    "difficulty": "medium",
+    "best_for": [
+      "exploring",
+      "group-run",
+      "forest-road"
+    ],
+    "vehicle_recommendation": "AWD or 4x4 recommended; avoid low-clearance vehicles.",
+    "route_condition_note": "Expect typical FSR conditions: gravel, potholes, mud after rain, and changing access through the season.",
+    "members_only_view": true,
+    "members_only_plan_trip": true,
+    "plan_trip_enabled": true,
+    "referral_sharing_enabled": true
   },
   {
     "id": "west-harrison-stsailes-west-fsr-approach",
@@ -87,7 +172,24 @@
     "notes": "FB public post + Trailforks trailhead coordinates",
     "verification_level": "double-verified",
     "source_type": "facebook-public-post-plus-secondary-public-source",
-    "featured_candidate": true
+    "featured_candidate": true,
+    "location_label": "Harrison",
+    "hero_image": "/images/g63-water.jpg",
+    "card_image": "/images/g63-water.jpg",
+    "card_blurb": "Harrison route with a balanced off-road feel, good for planning a local trip with friends.",
+    "access_type": "approach",
+    "difficulty": "medium",
+    "best_for": [
+      "exploring",
+      "group-run",
+      "forest-road"
+    ],
+    "vehicle_recommendation": "AWD or 4x4 recommended; avoid low-clearance vehicles.",
+    "route_condition_note": "Expect typical FSR conditions: gravel, potholes, mud after rain, and changing access through the season.",
+    "members_only_view": true,
+    "members_only_plan_trip": true,
+    "plan_trip_enabled": true,
+    "referral_sharing_enabled": true
   },
   {
     "id": "norrish-creek-fsr",
@@ -102,7 +204,24 @@
     "notes": "FB public post + Trailforks trailhead coordinates",
     "verification_level": "double-verified",
     "source_type": "facebook-public-post-plus-secondary-public-source",
-    "featured_candidate": true
+    "featured_candidate": true,
+    "location_label": "Mission / Abbotsford",
+    "hero_image": "/images/g63-water.jpg",
+    "card_image": "/images/g63-water.jpg",
+    "card_blurb": "Mission / Abbotsford route with a balanced off-road feel, good for planning a local trip with friends.",
+    "access_type": "trailhead",
+    "difficulty": "medium",
+    "best_for": [
+      "exploring",
+      "group-run",
+      "forest-road"
+    ],
+    "vehicle_recommendation": "AWD may work in good conditions, but 4x4 is the safer choice.",
+    "route_condition_note": "Access can change because of gates, washouts, or maintenance, so plan conservatively.",
+    "members_only_view": true,
+    "members_only_plan_trip": true,
+    "plan_trip_enabled": true,
+    "referral_sharing_enabled": true
   },
   {
     "id": "florence-lake-fsr",
@@ -117,7 +236,24 @@
     "notes": "FB public post + route guide access coordinates",
     "verification_level": "double-verified",
     "source_type": "facebook-public-post-plus-secondary-public-source",
-    "featured_candidate": true
+    "featured_candidate": true,
+    "location_label": "Maple Ridge / Stave",
+    "hero_image": "/images/g63-water.jpg",
+    "card_image": "/images/g63-water.jpg",
+    "card_blurb": "Maple Ridge / Stave route with a balanced off-road feel, good for planning a local trip with friends.",
+    "access_type": "trailhead",
+    "difficulty": "medium",
+    "best_for": [
+      "views",
+      "day-run",
+      "shareable"
+    ],
+    "vehicle_recommendation": "AWD may work in good conditions, but 4x4 is the safer choice.",
+    "route_condition_note": "Access can change because of gates, washouts, or maintenance, so plan conservatively.",
+    "members_only_view": true,
+    "members_only_plan_trip": true,
+    "plan_trip_enabled": true,
+    "referral_sharing_enabled": true
   },
   {
     "id": "eagle-mountain-access-area",
@@ -132,7 +268,24 @@
     "notes": "FB public post + Trailforks access coordinates",
     "verification_level": "double-verified",
     "source_type": "facebook-public-post-plus-secondary-public-source",
-    "featured_candidate": true
+    "featured_candidate": true,
+    "location_label": "Coquitlam",
+    "hero_image": "/images/cheam-lookout.jpg",
+    "card_image": "/images/cheam-lookout.jpg",
+    "card_blurb": "Coquitlam route with a balanced off-road feel, good for planning a local trip with friends.",
+    "access_type": "access-point",
+    "difficulty": "medium",
+    "best_for": [
+      "views",
+      "day-run",
+      "shareable"
+    ],
+    "vehicle_recommendation": "AWD may work in good conditions, but 4x4 is the safer choice.",
+    "route_condition_note": "Expect typical FSR conditions: gravel, potholes, mud after rain, and changing access through the season.",
+    "members_only_view": true,
+    "members_only_plan_trip": true,
+    "plan_trip_enabled": true,
+    "referral_sharing_enabled": true
   },
   {
     "id": "jones-lake-route-waypoint",
@@ -147,7 +300,24 @@
     "notes": "FB public post + public campsite coordinates on route",
     "verification_level": "double-verified",
     "source_type": "facebook-public-post-plus-secondary-public-source",
-    "featured_candidate": true
+    "featured_candidate": true,
+    "location_label": "Fraser Valley / Hope",
+    "hero_image": "/images/g63-water.jpg",
+    "card_image": "/images/g63-water.jpg",
+    "card_blurb": "Fraser Valley / Hope route with a easier-going off-road feel, good for planning a local trip with friends.",
+    "access_type": "waypoint",
+    "difficulty": "easy",
+    "best_for": [
+      "views",
+      "day-run",
+      "shareable"
+    ],
+    "vehicle_recommendation": "AWD or 4x4 recommended; avoid low-clearance vehicles.",
+    "route_condition_note": "Expect typical FSR conditions: gravel, potholes, mud after rain, and changing access through the season.",
+    "members_only_view": true,
+    "members_only_plan_trip": true,
+    "plan_trip_enabled": true,
+    "referral_sharing_enabled": true
   },
   {
     "id": "kookipi-creek-fsr",
@@ -162,7 +332,24 @@
     "notes": "FB public post + Trailforks trailhead coordinates",
     "verification_level": "double-verified",
     "source_type": "facebook-public-post-plus-secondary-public-source",
-    "featured_candidate": true
+    "featured_candidate": true,
+    "location_label": "Harrison / Nahatlatch connector",
+    "hero_image": "/images/g63-water.jpg",
+    "card_image": "/images/g63-water.jpg",
+    "card_blurb": "Harrison / Nahatlatch connector route with a balanced off-road feel, good for planning a local trip with friends.",
+    "access_type": "trailhead",
+    "difficulty": "medium",
+    "best_for": [
+      "exploring",
+      "group-run",
+      "forest-road"
+    ],
+    "vehicle_recommendation": "AWD or 4x4 recommended; avoid low-clearance vehicles.",
+    "route_condition_note": "Expect typical FSR conditions: gravel, potholes, mud after rain, and changing access through the season.",
+    "members_only_view": true,
+    "members_only_plan_trip": true,
+    "plan_trip_enabled": true,
+    "referral_sharing_enabled": true
   },
   {
     "id": "chehalis-forest-service-road",
@@ -177,7 +364,24 @@
     "notes": "FB public post + Trailforks trailhead coordinates",
     "verification_level": "double-verified",
     "source_type": "facebook-public-post-plus-secondary-public-source",
-    "featured_candidate": true
+    "featured_candidate": true,
+    "location_label": "Harrison / Fraser Valley",
+    "hero_image": "/images/g63-water.jpg",
+    "card_image": "/images/g63-water.jpg",
+    "card_blurb": "Harrison / Fraser Valley route with a balanced off-road feel, good for planning a local trip with friends.",
+    "access_type": "trailhead",
+    "difficulty": "medium",
+    "best_for": [
+      "exploring",
+      "group-run",
+      "forest-road"
+    ],
+    "vehicle_recommendation": "AWD or 4x4 recommended; avoid low-clearance vehicles.",
+    "route_condition_note": "Expect typical FSR conditions: gravel, potholes, mud after rain, and changing access through the season.",
+    "members_only_view": true,
+    "members_only_plan_trip": true,
+    "plan_trip_enabled": true,
+    "referral_sharing_enabled": true
   },
   {
     "id": "mystery-creek-fsr-approach",
@@ -192,7 +396,24 @@
     "notes": "FB public post + Trailforks access corridor coordinates",
     "verification_level": "double-verified",
     "source_type": "facebook-public-post-plus-secondary-public-source",
-    "featured_candidate": true
+    "featured_candidate": true,
+    "location_label": "Harrison / North Chehalis",
+    "hero_image": "/images/g63-water.jpg",
+    "card_image": "/images/g63-water.jpg",
+    "card_blurb": "Harrison / North Chehalis route with a more technical off-road feel, good for planning a local trip with friends.",
+    "access_type": "approach",
+    "difficulty": "hard",
+    "best_for": [
+      "exploring",
+      "group-run",
+      "forest-road"
+    ],
+    "vehicle_recommendation": "High-clearance 4x4 recommended; off-road tires are a strong plus.",
+    "route_condition_note": "Seasonal snow and ice can change access quickly, so check conditions before you go.",
+    "members_only_view": true,
+    "members_only_plan_trip": true,
+    "plan_trip_enabled": true,
+    "referral_sharing_enabled": true
   },
   {
     "id": "nahatlatch-fsr",
@@ -207,7 +428,24 @@
     "notes": "FB public post + Trailforks trailhead coordinates",
     "verification_level": "double-verified",
     "source_type": "facebook-public-post-plus-secondary-public-source",
-    "featured_candidate": true
+    "featured_candidate": true,
+    "location_label": "Boston Bar / Nahatlatch",
+    "hero_image": "/images/bc-hero.jpg",
+    "card_image": "/images/bc-hero.jpg",
+    "card_blurb": "Boston Bar / Nahatlatch route with a more technical off-road feel, good for planning a local trip with friends.",
+    "access_type": "trailhead",
+    "difficulty": "hard",
+    "best_for": [
+      "exploring",
+      "group-run",
+      "forest-road"
+    ],
+    "vehicle_recommendation": "High-clearance 4x4 recommended; off-road tires are a strong plus.",
+    "route_condition_note": "Expect active industrial traffic in some seasons and give working vehicles plenty of space.",
+    "members_only_view": true,
+    "members_only_plan_trip": true,
+    "plan_trip_enabled": true,
+    "referral_sharing_enabled": true
   },
   {
     "id": "nahatlatch-fire-lookout-access",
@@ -222,7 +460,24 @@
     "notes": "FB public post + Trailforks trailhead coordinates",
     "verification_level": "double-verified",
     "source_type": "facebook-public-post-plus-secondary-public-source",
-    "featured_candidate": true
+    "featured_candidate": true,
+    "location_label": "Boston Bar / Nahatlatch",
+    "hero_image": "/images/cheam-lookout.jpg",
+    "card_image": "/images/cheam-lookout.jpg",
+    "card_blurb": "Boston Bar / Nahatlatch route with a more technical off-road feel, good for planning a local trip with friends.",
+    "access_type": "access-point",
+    "difficulty": "hard",
+    "best_for": [
+      "views",
+      "day-run",
+      "shareable"
+    ],
+    "vehicle_recommendation": "High-clearance 4x4 recommended; off-road tires are a strong plus.",
+    "route_condition_note": "Expect typical FSR conditions: gravel, potholes, mud after rain, and changing access through the season.",
+    "members_only_view": true,
+    "members_only_plan_trip": true,
+    "plan_trip_enabled": true,
+    "referral_sharing_enabled": true
   },
   {
     "id": "chipmunk-creek-fsr",
@@ -237,7 +492,24 @@
     "notes": "FB public post + Trailforks trailhead coordinates",
     "verification_level": "double-verified",
     "source_type": "facebook-public-post-plus-secondary-public-source",
-    "featured_candidate": true
+    "featured_candidate": true,
+    "location_label": "Chilliwack",
+    "hero_image": "/images/g63-water.jpg",
+    "card_image": "/images/g63-water.jpg",
+    "card_blurb": "Chilliwack route with a more technical off-road feel, good for planning a local trip with friends.",
+    "access_type": "trailhead",
+    "difficulty": "hard",
+    "best_for": [
+      "exploring",
+      "group-run",
+      "forest-road"
+    ],
+    "vehicle_recommendation": "High-clearance 4x4 recommended; off-road tires are a strong plus.",
+    "route_condition_note": "Expect typical FSR conditions: gravel, potholes, mud after rain, and changing access through the season.",
+    "members_only_view": true,
+    "members_only_plan_trip": true,
+    "plan_trip_enabled": true,
+    "referral_sharing_enabled": true
   },
   {
     "id": "mount-cheam-fsr-access",
@@ -252,7 +524,24 @@
     "notes": "FB public post + Trailforks route description and access point",
     "verification_level": "double-verified",
     "source_type": "facebook-public-post-plus-secondary-public-source",
-    "featured_candidate": true
+    "featured_candidate": true,
+    "location_label": "Chilliwack",
+    "hero_image": "/images/cheam-lookout.jpg",
+    "card_image": "/images/cheam-lookout.jpg",
+    "card_blurb": "Chilliwack route with a balanced off-road feel, good for planning a local trip with friends.",
+    "access_type": "access-point",
+    "difficulty": "medium",
+    "best_for": [
+      "views",
+      "day-run",
+      "shareable"
+    ],
+    "vehicle_recommendation": "AWD or 4x4 recommended; avoid low-clearance vehicles.",
+    "route_condition_note": "Expect typical FSR conditions: gravel, potholes, mud after rain, and changing access through the season.",
+    "members_only_view": true,
+    "members_only_plan_trip": true,
+    "plan_trip_enabled": true,
+    "referral_sharing_enabled": true
   },
   {
     "id": "bridal-falls-fsr",
@@ -267,7 +556,24 @@
     "notes": "FB public post + Trailforks trailhead coordinates",
     "verification_level": "double-verified",
     "source_type": "facebook-public-post-plus-secondary-public-source",
-    "featured_candidate": true
+    "featured_candidate": true,
+    "location_label": "Chilliwack",
+    "hero_image": "/images/g63-water.jpg",
+    "card_image": "/images/g63-water.jpg",
+    "card_blurb": "Chilliwack route with a balanced off-road feel, good for planning a local trip with friends.",
+    "access_type": "trailhead",
+    "difficulty": "medium",
+    "best_for": [
+      "views",
+      "day-run",
+      "shareable"
+    ],
+    "vehicle_recommendation": "AWD or 4x4 recommended; avoid low-clearance vehicles.",
+    "route_condition_note": "Expect typical FSR conditions: gravel, potholes, mud after rain, and changing access through the season.",
+    "members_only_view": true,
+    "members_only_plan_trip": true,
+    "plan_trip_enabled": true,
+    "referral_sharing_enabled": true
   },
   {
     "id": "statlu-lake-north-side-trailhead-via-mystery-creek-north-chehalis",
@@ -282,7 +588,24 @@
     "notes": "FB public post + route guide trailhead coordinates",
     "verification_level": "double-verified",
     "source_type": "facebook-public-post-plus-secondary-public-source",
-    "featured_candidate": true
+    "featured_candidate": true,
+    "location_label": "Harrison / North Chehalis",
+    "hero_image": "/images/g63-water.jpg",
+    "card_image": "/images/g63-water.jpg",
+    "card_blurb": "Harrison / North Chehalis route with a more technical off-road feel, good for planning a local trip with friends.",
+    "access_type": "trailhead",
+    "difficulty": "hard",
+    "best_for": [
+      "views",
+      "day-run",
+      "shareable"
+    ],
+    "vehicle_recommendation": "High-clearance 4x4 recommended; off-road tires are a strong plus.",
+    "route_condition_note": "Access can change because of gates, washouts, or maintenance, so plan conservatively.",
+    "members_only_view": true,
+    "members_only_plan_trip": true,
+    "plan_trip_enabled": true,
+    "referral_sharing_enabled": true
   },
   {
     "id": "mount-woodside-forest-service-road",
@@ -297,7 +620,24 @@
     "notes": "FB public post from provided group + Trailforks trailhead coordinates",
     "verification_level": "double-verified",
     "source_type": "facebook-public-post-plus-secondary-public-source",
-    "featured_candidate": true
+    "featured_candidate": true,
+    "location_label": "Harrison Hot Springs",
+    "hero_image": "/images/cheam-lookout.jpg",
+    "card_image": "/images/cheam-lookout.jpg",
+    "card_blurb": "Harrison Hot Springs route with a balanced off-road feel, good for planning a local trip with friends.",
+    "access_type": "trailhead",
+    "difficulty": "medium",
+    "best_for": [
+      "views",
+      "day-run",
+      "shareable"
+    ],
+    "vehicle_recommendation": "AWD or 4x4 recommended; avoid low-clearance vehicles.",
+    "route_condition_note": "Expect typical FSR conditions: gravel, potholes, mud after rain, and changing access through the season.",
+    "members_only_view": true,
+    "members_only_plan_trip": true,
+    "plan_trip_enabled": true,
+    "referral_sharing_enabled": true
   },
   {
     "id": "whipsaw-creek-forest-service-road",
@@ -312,7 +652,24 @@
     "notes": "FB public post from provided group + Trailforks trailhead coordinates",
     "verification_level": "double-verified",
     "source_type": "facebook-public-post-plus-secondary-public-source",
-    "featured_candidate": true
+    "featured_candidate": true,
+    "location_label": "Princeton / Manning area",
+    "hero_image": "/images/cheam-lookout.jpg",
+    "card_image": "/images/cheam-lookout.jpg",
+    "card_blurb": "Princeton / Manning area route with a more technical off-road feel, good for planning a local trip with friends.",
+    "access_type": "trailhead",
+    "difficulty": "hard",
+    "best_for": [
+      "exploring",
+      "group-run",
+      "forest-road"
+    ],
+    "vehicle_recommendation": "High-clearance 4x4 recommended; off-road tires are a strong plus.",
+    "route_condition_note": "Expect typical FSR conditions: gravel, potholes, mud after rain, and changing access through the season.",
+    "members_only_view": true,
+    "members_only_plan_trip": true,
+    "plan_trip_enabled": true,
+    "referral_sharing_enabled": true
   },
   {
     "id": "owl-creek-fsr",
@@ -327,7 +684,24 @@
     "notes": "FB public post from provided group + Trailforks trailhead coordinates",
     "verification_level": "double-verified",
     "source_type": "facebook-public-post-plus-secondary-public-source",
-    "featured_candidate": true
+    "featured_candidate": true,
+    "location_label": "Pemberton / Mosquito Lake",
+    "hero_image": "/images/g63-water.jpg",
+    "card_image": "/images/g63-water.jpg",
+    "card_blurb": "Pemberton / Mosquito Lake route with a more technical off-road feel, good for planning a local trip with friends.",
+    "access_type": "trailhead",
+    "difficulty": "hard",
+    "best_for": [
+      "views",
+      "day-run",
+      "shareable"
+    ],
+    "vehicle_recommendation": "High-clearance 4x4 recommended; off-road tires are a strong plus.",
+    "route_condition_note": "Access can change because of gates, washouts, or maintenance, so plan conservatively.",
+    "members_only_view": true,
+    "members_only_plan_trip": true,
+    "plan_trip_enabled": true,
+    "referral_sharing_enabled": true
   },
   {
     "id": "ford-mountain-fsr",
@@ -342,7 +716,24 @@
     "notes": "FB public post from provided group + Trailforks trailhead coordinates",
     "verification_level": "double-verified",
     "source_type": "facebook-public-post-plus-secondary-public-source",
-    "featured_candidate": true
+    "featured_candidate": true,
+    "location_label": "Tamihi / Chilliwack River",
+    "hero_image": "/images/cheam-lookout.jpg",
+    "card_image": "/images/cheam-lookout.jpg",
+    "card_blurb": "Tamihi / Chilliwack River route with a more technical off-road feel, good for planning a local trip with friends.",
+    "access_type": "trailhead",
+    "difficulty": "hard",
+    "best_for": [
+      "views",
+      "day-run",
+      "shareable"
+    ],
+    "vehicle_recommendation": "High-clearance 4x4 recommended; off-road tires are a strong plus.",
+    "route_condition_note": "Expect typical FSR conditions: gravel, potholes, mud after rain, and changing access through the season.",
+    "members_only_view": true,
+    "members_only_plan_trip": true,
+    "plan_trip_enabled": true,
+    "referral_sharing_enabled": true
   },
   {
     "id": "hale-creek-easy-way-access-area",
@@ -357,7 +748,24 @@
     "notes": "FB public post + public route overview / km-based location reference",
     "verification_level": "double-verified",
     "source_type": "facebook-public-post-plus-secondary-public-source",
-    "featured_candidate": true
+    "featured_candidate": true,
+    "location_label": "West Harrison",
+    "hero_image": "/images/g63-water.jpg",
+    "card_image": "/images/g63-water.jpg",
+    "card_blurb": "West Harrison route with a easier-going off-road feel, good for planning a local trip with friends.",
+    "access_type": "access-point",
+    "difficulty": "easy",
+    "best_for": [
+      "exploring",
+      "group-run",
+      "forest-road"
+    ],
+    "vehicle_recommendation": "AWD or 4x4 recommended; avoid low-clearance vehicles.",
+    "route_condition_note": "Expect typical FSR conditions: gravel, potholes, mud after rain, and changing access through the season.",
+    "members_only_view": true,
+    "members_only_plan_trip": true,
+    "plan_trip_enabled": true,
+    "referral_sharing_enabled": true
   },
   {
     "id": "francis-lake-recreation-site-approach",
@@ -372,7 +780,24 @@
     "notes": "FB public post + public map coordinates",
     "verification_level": "double-verified",
     "source_type": "facebook-public-post-plus-secondary-public-source",
-    "featured_candidate": true
+    "featured_candidate": true,
+    "location_label": "West Harrison / Weaver side",
+    "hero_image": "/images/g63-water.jpg",
+    "card_image": "/images/g63-water.jpg",
+    "card_blurb": "West Harrison / Weaver side route with a balanced off-road feel, good for planning a local trip with friends.",
+    "access_type": "approach",
+    "difficulty": "medium",
+    "best_for": [
+      "views",
+      "day-run",
+      "shareable"
+    ],
+    "vehicle_recommendation": "AWD or 4x4 recommended; avoid low-clearance vehicles.",
+    "route_condition_note": "Expect typical FSR conditions: gravel, potholes, mud after rain, and changing access through the season.",
+    "members_only_view": true,
+    "members_only_plan_trip": true,
+    "plan_trip_enabled": true,
+    "referral_sharing_enabled": true
   },
   {
     "id": "borden-creek-fsr",
@@ -387,6 +812,23 @@
     "notes": "FB public post from provided group + Trailforks/public access references",
     "verification_level": "double-verified",
     "source_type": "facebook-public-post-plus-secondary-public-source",
-    "featured_candidate": true
+    "featured_candidate": true,
+    "location_label": "Tamihi / Chilliwack River",
+    "hero_image": "/images/g63-water.jpg",
+    "card_image": "/images/g63-water.jpg",
+    "card_blurb": "Tamihi / Chilliwack River route with a balanced off-road feel, good for planning a local trip with friends.",
+    "access_type": "trailhead",
+    "difficulty": "medium",
+    "best_for": [
+      "exploring",
+      "group-run",
+      "forest-road"
+    ],
+    "vehicle_recommendation": "AWD or 4x4 recommended; avoid low-clearance vehicles.",
+    "route_condition_note": "Expect typical FSR conditions: gravel, potholes, mud after rain, and changing access through the season.",
+    "members_only_view": true,
+    "members_only_plan_trip": true,
+    "plan_trip_enabled": true,
+    "referral_sharing_enabled": true
   }
 ]

@@ -24,6 +24,16 @@ create table if not exists public.users (
   email text not null,
   phone text,
   display_name text not null,
+  bio text,
+  avatar_image text,
+  rig_name text,
+  rig_photo text,
+  rig_mods text[],
+  experience_since integer,
+  areas_driven text[],
+  pet_name text,
+  pet_note text,
+  share_vibe text,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
@@ -31,6 +41,16 @@ create table if not exists public.users (
 alter table public.users add column if not exists email text;
 alter table public.users add column if not exists phone text;
 alter table public.users add column if not exists display_name text;
+alter table public.users add column if not exists bio text;
+alter table public.users add column if not exists avatar_image text;
+alter table public.users add column if not exists rig_name text;
+alter table public.users add column if not exists rig_photo text;
+alter table public.users add column if not exists rig_mods text[];
+alter table public.users add column if not exists experience_since integer;
+alter table public.users add column if not exists areas_driven text[];
+alter table public.users add column if not exists pet_name text;
+alter table public.users add column if not exists pet_note text;
+alter table public.users add column if not exists share_vibe text;
 alter table public.users add column if not exists created_at timestamptz not null default now();
 alter table public.users add column if not exists updated_at timestamptz not null default now();
 
@@ -57,6 +77,17 @@ create table if not exists public.trails (
   facebook_post_url text,
   notes text,
   difficulty text check (difficulty in ('easy', 'medium', 'hard')),
+  hero_image text,
+  card_image text,
+  card_blurb text,
+  access_type text,
+  best_for text[],
+  vehicle_recommendation text,
+  route_condition_note text,
+  members_only_view boolean not null default true,
+  members_only_plan_trip boolean not null default true,
+  plan_trip_enabled boolean not null default true,
+  referral_sharing_enabled boolean not null default true,
   source_type text,
   verification_level text,
   featured_candidate boolean not null default true,
@@ -78,6 +109,17 @@ alter table public.trails add column if not exists coordinate_source text;
 alter table public.trails add column if not exists facebook_post_url text;
 alter table public.trails add column if not exists notes text;
 alter table public.trails add column if not exists difficulty text;
+alter table public.trails add column if not exists hero_image text;
+alter table public.trails add column if not exists card_image text;
+alter table public.trails add column if not exists card_blurb text;
+alter table public.trails add column if not exists access_type text;
+alter table public.trails add column if not exists best_for text[];
+alter table public.trails add column if not exists vehicle_recommendation text;
+alter table public.trails add column if not exists route_condition_note text;
+alter table public.trails add column if not exists members_only_view boolean not null default true;
+alter table public.trails add column if not exists members_only_plan_trip boolean not null default true;
+alter table public.trails add column if not exists plan_trip_enabled boolean not null default true;
+alter table public.trails add column if not exists referral_sharing_enabled boolean not null default true;
 alter table public.trails add column if not exists source_type text;
 alter table public.trails add column if not exists verification_level text;
 alter table public.trails add column if not exists featured_candidate boolean not null default true;

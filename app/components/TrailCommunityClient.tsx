@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import type { CommunitySnapshot } from '@/lib/offroady/community';
+import type { LocalTrail } from '@/lib/offroady/trails';
 
 type Identity = {
   displayName: string;
@@ -13,6 +14,7 @@ type Props = {
   trailSlug: string;
   trailTitle: string;
   initialSnapshot: CommunitySnapshot;
+  moreTrails: LocalTrail[];
 };
 
 const emptyIdentity: Identity = {
@@ -30,10 +32,11 @@ function formatDate(value: string) {
   });
 }
 
-export default function TrailCommunityClient({ trailSlug, trailTitle, initialSnapshot }: Props) {
+export default function TrailCommunityClient({ trailSlug, trailTitle, initialSnapshot, moreTrails }: Props) {
   const [identity, setIdentity] = useState<Identity>(emptyIdentity);
   const [signupStatus, setSignupStatus] = useState('');
   const [community, setCommunity] = useState(initialSnapshot);
+  const [hasUnlockedTrails, setHasUnlockedTrails] = useState(false);
   const [joinLoading, setJoinLoading] = useState(false);
   const [crewLoading, setCrewLoading] = useState(false);
   const [commentLoading, setCommentLoading] = useState(false);
@@ -49,6 +52,11 @@ export default function TrailCommunityClient({ trailSlug, trailTitle, initialSna
       try {
         setIdentity(JSON.parse(saved));
       } catch {}
+    }
+
+    const trailsUnlocked = window.localStorage.getItem('offroady.trailsUnlocked');
+    if (trailsUnlocked === 'true') {
+      setHasUnlockedTrails(true);
     }
   }, []);
 
@@ -82,6 +90,8 @@ export default function TrailCommunityClient({ trailSlug, trailTitle, initialSna
       const payload = await response.json();
       if (!response.ok) throw new Error(payload.error || 'Signup failed');
       setSignupStatus('You are on the list. We will keep you posted.');
+      setHasUnlockedTrails(true);
+      window.localStorage.setItem('offroady.trailsUnlocked', 'true');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Signup failed');
     } finally {
@@ -187,9 +197,81 @@ export default function TrailCommunityClient({ trailSlug, trailTitle, initialSna
         <div className="mb-6 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</div>
       ) : null}
 
+      <div className="mb-6 rounded-2xl border border-black/8 bg-white p-6 shadow-sm">
+        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+          <div>
+            <p className="text-sm font-semibold uppercase tracking-[0.16em] text-[#5d7d61]">More trails</p>
+            <h3 className="mt-2 text-2xl font-bold text-[#243126]">Want to see more than this week's pick?</h3>
+            <p className="mt-3 max-w-2xl text-sm leading-6 text-gray-600">
+              Offroady already has 26 verified BC trail entries in the backend. Full trail browsing and Plan a Trip tools unlock after a quick member sign up.
+            </p>
+          </div>
+          {hasUnlockedTrails ? (
+            <div className="rounded-xl bg-[#eef5ee] px-4 py-3 text-sm font-medium text-[#2f5d3a]">
+              Full trail list unlocked
+            </div>
+          ) : (
+            <a
+              href="#signup"
+              className="inline-flex rounded-lg bg-[#2f5d3a] px-5 py-3 font-semibold text-white transition hover:bg-[#264d30]"
+            >
+              Sign up to unlock more trails
+            </a>
+          )}
+        </div>
+
+        {hasUnlockedTrails ? (
+          <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+            {moreTrails.map((item) => (
+              <article key={item.slug} className="overflow-hidden rounded-2xl border border-black/8 bg-[#f8faf8] shadow-sm">
+                <img src={item.card_image} alt={item.title} className="h-48 w-full object-cover" />
+                <div className="p-4">
+                  <div className="flex items-start justify-between gap-3">
+                    <h4 className="text-lg font-bold text-[#243126]">{item.title}</h4>
+                    {item.region ? (
+                      <span className="rounded-full bg-white px-2.5 py-1 text-xs text-gray-500">{item.region}</span>
+                    ) : null}
+                  </div>
+                  <p className="mt-3 text-sm leading-6 text-gray-600">{item.card_blurb}</p>
+                  <div className="mt-3 flex flex-wrap gap-2 text-xs text-gray-500">
+                    <span className="rounded-full bg-white px-2.5 py-1 capitalize">{item.difficulty}</span>
+                    {item.best_for.slice(0, 2).map((tag) => (
+                      <span key={tag} className="rounded-full bg-white px-2.5 py-1">{tag}</span>
+                    ))}
+                  </div>
+                  <a
+                    href={`/plan/${item.slug}`}
+                    className="mt-4 inline-flex rounded-lg bg-[#2f5d3a] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#264d30]"
+                  >
+                    Plan a Trip
+                  </a>
+                </div>
+              </article>
+            ))}
+          </div>
+        ) : (
+          <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+            {moreTrails.slice(0, 3).map((item) => (
+              <article key={item.slug} className="overflow-hidden rounded-2xl border border-black/8 bg-[#f8faf8] shadow-sm">
+                <div className="relative">
+                  <img src={item.card_image} alt={item.title} className="h-48 w-full object-cover blur-[2px]" />
+                  <div className="absolute inset-0 flex items-center justify-center bg-black/35">
+                    <div className="rounded-full bg-white px-4 py-2 text-sm font-semibold text-[#243126]">Members only</div>
+                  </div>
+                </div>
+                <div className="p-4">
+                  <h4 className="text-lg font-bold text-[#243126]">{item.title}</h4>
+                  <p className="mt-3 text-sm leading-6 text-gray-600">Unlock the full trail list and planning tools after sign up.</p>
+                </div>
+              </article>
+            ))}
+          </div>
+        )}
+      </div>
+
       <div className="grid gap-6 lg:grid-cols-[0.9fr_1.1fr]">
         <div className="space-y-6">
-          <div className="rounded-2xl border border-black/8 bg-white p-6 shadow-sm">
+          <div id="signup" className="rounded-2xl border border-black/8 bg-white p-6 shadow-sm">
             <p className="text-sm font-semibold uppercase tracking-[0.16em] text-[#5d7d61]">Sign up</p>
             <h3 className="mt-2 text-2xl font-bold text-[#243126]">Stay in the loop</h3>
             <p className="mt-3 text-sm leading-6 text-gray-600">

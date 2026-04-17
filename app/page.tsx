@@ -1,6 +1,6 @@
 import TrailCommunityClient from './components/TrailCommunityClient';
 import { getCommunitySnapshot } from '@/lib/offroady/community';
-import { getLocalFeaturedTrail } from '@/lib/offroady/trails';
+import { getLocalFeaturedTrail, localTrails } from '@/lib/offroady/trails';
 
 export const revalidate = 3600;
 
@@ -242,7 +242,7 @@ export default async function Home() {
         </section>
 
         <div id="community">
-          <TrailCommunityClient trailSlug={trail.slug} trailTitle={trail.title} initialSnapshot={snapshot} />
+          <TrailCommunityClient trailSlug={trail.slug} trailTitle={featuredTrail.title} initialSnapshot={snapshot} moreTrails={localTrails} />
         </div>
 
         <section id="about" className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">

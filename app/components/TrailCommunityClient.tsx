@@ -209,7 +209,7 @@ export default function TrailCommunityClient({ trailSlug, trailTitle, initialSna
         <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div>
             <p className="text-sm font-semibold uppercase tracking-[0.16em] text-[#5d7d61]">More trails</p>
-            <h3 className="mt-2 text-2xl font-bold text-[#243126]">Want to see more than this week's pick?</h3>
+            <h3 className="mt-2 text-2xl font-bold text-[#243126]">Want to see more than this week&apos;s pick?</h3>
             <p className="mt-3 max-w-2xl text-sm leading-6 text-gray-600">
               Offroady already has 26 verified BC trail entries in the backend. Full trail browsing and Plan a Trip tools unlock after a quick member sign up.
             </p>

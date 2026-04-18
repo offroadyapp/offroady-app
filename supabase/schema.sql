@@ -245,6 +245,83 @@ create unique index if not exists idx_user_sessions_token_hash on public.user_se
 create index if not exists idx_user_sessions_user_id on public.user_sessions (user_id);
 create index if not exists idx_user_sessions_expires_at on public.user_sessions (expires_at);
 
+-- TRIP PLANS
+create table if not exists public.trip_plans (
+  id uuid primary key default gen_random_uuid(),
+  created_by_user_id uuid not null references public.users(id) on delete cascade,
+  trail_slug text not null,
+  trail_title text not null,
+  trail_region text,
+  trail_location_label text,
+  trail_latitude double precision,
+  trail_longitude double precision,
+  date date not null,
+  meetup_area text not null,
+  departure_time text not null,
+  trip_note text,
+  share_name text not null,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+alter table public.trip_plans add column if not exists created_by_user_id uuid;
+alter table public.trip_plans add column if not exists trail_slug text;
+alter table public.trip_plans add column if not exists trail_title text;
+alter table public.trip_plans add column if not exists trail_region text;
+alter table public.trip_plans add column if not exists trail_location_label text;
+alter table public.trip_plans add column if not exists trail_latitude double precision;
+alter table public.trip_plans add column if not exists trail_longitude double precision;
+alter table public.trip_plans add column if not exists date date;
+alter table public.trip_plans add column if not exists meetup_area text;
+alter table public.trip_plans add column if not exists departure_time text;
+alter table public.trip_plans add column if not exists trip_note text;
+alter table public.trip_plans add column if not exists share_name text;
+alter table public.trip_plans add column if not exists created_at timestamptz not null default now();
+alter table public.trip_plans add column if not exists updated_at timestamptz not null default now();
+
+create index if not exists idx_trip_plans_created_by_user_id on public.trip_plans (created_by_user_id);
+create index if not exists idx_trip_plans_trail_slug on public.trip_plans (trail_slug);
+create index if not exists idx_trip_plans_date on public.trip_plans (date);
+
+drop trigger if exists trg_trip_plans_updated_at on public.trip_plans;
+create trigger trg_trip_plans_updated_at
+before update on public.trip_plans
+for each row execute function public.set_updated_at();
+
+-- TRIP INVITES
+create table if not exists public.trip_invites (
+  id uuid primary key default gen_random_uuid(),
+  trip_plan_id uuid not null references public.trip_plans(id) on delete cascade,
+  invited_by_user_id uuid not null references public.users(id) on delete cascade,
+  invited_email text not null,
+  invite_token text not null unique,
+  status text not null default 'pending' check (status in ('pending', 'claimed')),
+  claimed_by_user_id uuid references public.users(id) on delete set null,
+  claimed_at timestamptz,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+alter table public.trip_invites add column if not exists trip_plan_id uuid;
+alter table public.trip_invites add column if not exists invited_by_user_id uuid;
+alter table public.trip_invites add column if not exists invited_email text;
+alter table public.trip_invites add column if not exists invite_token text;
+alter table public.trip_invites add column if not exists status text;
+alter table public.trip_invites add column if not exists claimed_by_user_id uuid;
+alter table public.trip_invites add column if not exists claimed_at timestamptz;
+alter table public.trip_invites add column if not exists created_at timestamptz not null default now();
+alter table public.trip_invites add column if not exists updated_at timestamptz not null default now();
+
+create unique index if not exists idx_trip_invites_token_unique on public.trip_invites (invite_token);
+create index if not exists idx_trip_invites_trip_plan_id on public.trip_invites (trip_plan_id);
+create index if not exists idx_trip_invites_invited_email on public.trip_invites (invited_email);
+create index if not exists idx_trip_invites_status on public.trip_invites (status);
+
+drop trigger if exists trg_trip_invites_updated_at on public.trip_invites;
+create trigger trg_trip_invites_updated_at
+before update on public.trip_invites
+for each row execute function public.set_updated_at();
+
 -- COMMENTS
 create table if not exists public.comments (
   id uuid primary key default gen_random_uuid(),
@@ -319,6 +396,8 @@ alter table public.crew_members enable row level security;
 alter table public.comments enable row level security;
 alter table public.favorite_trails enable row level security;
 alter table public.user_sessions enable row level security;
+alter table public.trip_plans enable row level security;
+alter table public.trip_invites enable row level security;
 
 -- Minimal read-only public policies.
 -- Public writes are intentionally NOT enabled here.

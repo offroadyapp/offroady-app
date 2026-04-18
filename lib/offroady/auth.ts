@@ -2,6 +2,7 @@ import { randomBytes, scryptSync, timingSafeEqual, createHash } from 'crypto';
 import { cookies } from 'next/headers';
 import { getServiceSupabase } from '@/lib/supabase/server';
 import { slugifyProfile } from '@/lib/offroady/members';
+import { claimInvitesForEmail } from '@/lib/offroady/invites';
 
 const SESSION_COOKIE = 'offroady_session';
 const SESSION_TTL_DAYS = 30;
@@ -165,6 +166,7 @@ export async function createAccount(input: AuthIdentityInput) {
     user = data;
   }
 
+  await claimInvitesForEmail(email, user.id);
   const session = await createSession(user.id);
   return { user: mapUser(user), session };
 }
@@ -185,6 +187,7 @@ export async function loginAccount(emailInput: string, passwordInput: string) {
     throw new Error('Invalid email or password');
   }
 
+  await claimInvitesForEmail(user.email, user.id);
   const session = await createSession(user.id);
   return {
     user: mapUser(user),

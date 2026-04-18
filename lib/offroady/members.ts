@@ -43,7 +43,21 @@ function trailScoutFallback(): MemberProfile {
   };
 }
 
-function mapUser(data: any): MemberProfile {
+function mapUser(data: {
+  display_name: string;
+  email: string;
+  profile_slug?: string | null;
+  bio?: string | null;
+  avatar_image?: string | null;
+  rig_name?: string | null;
+  rig_photo?: string | null;
+  rig_mods?: string[] | null;
+  experience_since?: number | null;
+  areas_driven?: string[] | null;
+  pet_name?: string | null;
+  pet_note?: string | null;
+  share_vibe?: string | null;
+}): MemberProfile {
   return {
     displayName: data.display_name,
     email: data.email,

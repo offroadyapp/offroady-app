@@ -1,5 +1,6 @@
 "use client";
 
+import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import type { LocalTrail } from '@/lib/offroady/trails';
@@ -10,6 +11,20 @@ type Forecast = {
   tempMin: number | null;
   tempMax: number | null;
   rainChance: number | null;
+};
+
+type SavedInvite = {
+  id: string;
+  email: string;
+  inviteUrl: string;
+  status: 'pending' | 'claimed';
+  message: string;
+};
+
+type SavedPlan = {
+  planId: string;
+  shareText: string;
+  invites: SavedInvite[];
 };
 
 type Props = {
@@ -60,6 +75,10 @@ export default function PlanTripClient({ trail }: Props) {
   const [meetupArea, setMeetupArea] = useState('North Vancouver');
   const [departureTime, setDepartureTime] = useState('08:00');
   const [tripNote, setTripNote] = useState('Easy pace, scenic focus, and happy to coordinate in a group chat.');
+  const [inviteEmails, setInviteEmails] = useState('');
+  const [savingInvitePlan, setSavingInvitePlan] = useState(false);
+  const [saveError, setSaveError] = useState('');
+  const [savedPlan, setSavedPlan] = useState<SavedPlan | null>(null);
 
   useEffect(() => {
     const unlocked = window.localStorage.getItem('offroady.trailsUnlocked');
@@ -124,6 +143,38 @@ export default function PlanTripClient({ trail }: Props) {
 
   const referredBy = searchParams.get('ref');
 
+  async function handleCreateTrackedInvites() {
+    setSavingInvitePlan(true);
+    setSaveError('');
+
+    try {
+      const response = await fetch('/api/trip-plans', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          trailSlug: trail.slug,
+          date,
+          meetupArea,
+          departureTime,
+          tripNote,
+          shareName,
+          inviteEmails: inviteEmails
+            .split(/[\n,;]+/)
+            .map((value) => value.trim())
+            .filter(Boolean),
+        }),
+      });
+
+      const payload = await response.json();
+      if (!response.ok) throw new Error(payload.error || 'Failed to create tracked invites');
+      setSavedPlan(payload);
+    } catch (error) {
+      setSaveError(error instanceof Error ? error.message : 'Failed to create tracked invites');
+    } finally {
+      setSavingInvitePlan(false);
+    }
+  }
+
   if (!hasMembership) {
     return (
       <section className="mx-auto max-w-5xl px-4 py-16 sm:px-6 lg:px-8">
@@ -133,12 +184,12 @@ export default function PlanTripClient({ trail }: Props) {
           <p className="mt-4 max-w-2xl leading-7 text-gray-600">
             We keep detailed trail planning tools for members. Sign up on the homepage first, then come back to plan your date, check forecast, and generate a shareable invite.
           </p>
-          <a
+          <Link
             href="/#signup"
             className="mt-6 inline-flex rounded-lg bg-[#2f5d3a] px-5 py-3 font-semibold text-white transition hover:bg-[#264d30]"
           >
             Sign up to unlock planning
-          </a>
+          </Link>
         </div>
       </section>
     );
@@ -235,7 +286,7 @@ export default function PlanTripClient({ trail }: Props) {
             <p className="text-sm font-semibold uppercase tracking-[0.16em] text-[#5d7d61]">Invite friends</p>
             <h2 className="mt-2 text-2xl font-bold text-[#243126]">Share this trip plan</h2>
             <p className="mt-3 text-sm leading-6 text-gray-600">
-              Copy this draft invite and send it to your crew chat, Signal, WhatsApp, or wherever your people coordinate. The link includes a sharer tag so you can tell who invited people in.
+              The quick copy block below still works, but now you can also create tracked invites tied to specific email addresses. If a friend signs up or logs in with that email, Offroady can auto-claim the invite.
             </p>
             <textarea
               readOnly
@@ -248,8 +299,69 @@ export default function PlanTripClient({ trail }: Props) {
               onClick={() => navigator.clipboard.writeText(shareText)}
               className="mt-4 inline-flex rounded-lg bg-[#2f5d3a] px-5 py-3 font-semibold text-white transition hover:bg-[#264d30]"
             >
-              Copy invite text
+              Copy quick invite text
             </button>
+
+            <div className="mt-6 rounded-2xl border border-black/8 bg-[#f7faf6] p-4">
+              <div className="font-semibold text-[#243126]">Create tracked email invites</div>
+              <p className="mt-2 text-sm leading-6 text-gray-600">
+                Add one or more emails, separated by commas or line breaks. Each person gets their own invite link and can be auto-matched later on sign up or log in.
+              </p>
+              <textarea
+                value={inviteEmails}
+                onChange={(event) => setInviteEmails(event.target.value)}
+                rows={4}
+                placeholder="friend1@example.com\nfriend2@example.com"
+                className="mt-4 w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm outline-none transition focus:border-[#2f5d3a]"
+              />
+              {saveError ? (
+                <div className="mt-3 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+                  {saveError}
+                </div>
+              ) : null}
+              <button
+                type="button"
+                onClick={handleCreateTrackedInvites}
+                disabled={savingInvitePlan}
+                className="mt-4 inline-flex rounded-lg border border-[#2f5d3a] px-5 py-3 font-semibold text-[#2f5d3a] transition hover:bg-[#eef5ee] disabled:cursor-not-allowed disabled:opacity-70"
+              >
+                {savingInvitePlan ? 'Saving tracked invites...' : 'Save tracked invites'}
+              </button>
+            </div>
+
+            {savedPlan ? (
+              <div className="mt-6 space-y-4 rounded-2xl border border-black/8 bg-white">
+                <div className="px-4 pt-4">
+                  <div className="font-semibold text-[#243126]">Tracked invites ready</div>
+                  <p className="mt-2 text-sm leading-6 text-gray-600">
+                    These invite links are saved. If the invited person signs up or logs in with the matching email, Offroady can auto-claim the invite and connect it back to this trail plan.
+                  </p>
+                </div>
+                <div className="space-y-3 px-4 pb-4">
+                  {savedPlan.invites.map((invite) => (
+                    <div key={invite.id} className="rounded-2xl border border-black/8 bg-[#f9faf9] p-4">
+                      <div className="flex flex-wrap items-center justify-between gap-3">
+                        <div>
+                          <div className="font-semibold text-[#243126]">{invite.email}</div>
+                          <div className="text-xs uppercase tracking-[0.16em] text-[#5d7d61]">{invite.status}</div>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => navigator.clipboard.writeText(invite.message)}
+                          className="rounded-lg bg-[#2f5d3a] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#264d30]"
+                        >
+                          Copy tracked invite
+                        </button>
+                      </div>
+                      <div className="mt-3 rounded-xl bg-white px-3 py-3 text-sm leading-6 text-gray-700">
+                        <div className="font-medium text-[#243126]">Invite link</div>
+                        <div className="mt-1 break-all">{invite.inviteUrl}</div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ) : null}
           </div>
         </div>
       </div>

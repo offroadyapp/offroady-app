@@ -468,3 +468,133 @@ using (
 );
 
 -- users table remains server-write/server-read for now, no public select policy
+
+-- APPEND PATCH: trip_plans hardening / retry-safe append
+create table if not exists public.trip_plans (
+  id uuid primary key default gen_random_uuid(),
+  created_by_user_id uuid not null references public.users(id) on delete cascade,
+  trail_slug text not null,
+  trail_title text not null,
+  trail_region text,
+  trail_location_label text,
+  trail_latitude double precision,
+  trail_longitude double precision,
+  date date not null,
+  meetup_area text not null,
+  departure_time text not null,
+  trip_note text,
+  share_name text not null,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+alter table public.trip_plans add column if not exists created_by_user_id uuid;
+alter table public.trip_plans add column if not exists trail_slug text;
+alter table public.trip_plans add column if not exists trail_title text;
+alter table public.trip_plans add column if not exists trail_region text;
+alter table public.trip_plans add column if not exists trail_location_label text;
+alter table public.trip_plans add column if not exists trail_latitude double precision;
+alter table public.trip_plans add column if not exists trail_longitude double precision;
+alter table public.trip_plans add column if not exists date date;
+alter table public.trip_plans add column if not exists meetup_area text;
+alter table public.trip_plans add column if not exists departure_time text;
+alter table public.trip_plans add column if not exists trip_note text;
+alter table public.trip_plans add column if not exists share_name text;
+alter table public.trip_plans add column if not exists created_at timestamptz not null default now();
+alter table public.trip_plans add column if not exists updated_at timestamptz not null default now();
+
+create index if not exists idx_trip_plans_created_by_user_id on public.trip_plans (created_by_user_id);
+create index if not exists idx_trip_plans_trail_slug on public.trip_plans (trail_slug);
+create index if not exists idx_trip_plans_date on public.trip_plans (date);
+
+drop trigger if exists trg_trip_plans_updated_at on public.trip_plans;
+create trigger trg_trip_plans_updated_at
+before update on public.trip_plans
+for each row execute function public.set_updated_at();
+
+alter table public.trip_plans enable row level security;
+
+-- APPEND PATCH: trail proposal flow
+create table if not exists public.trail_proposals (
+  id uuid primary key default gen_random_uuid(),
+  proposal_slug text not null unique,
+  submitted_by_user_id uuid not null references public.users(id) on delete cascade,
+  title text not null,
+  region text,
+  location_label text,
+  latitude double precision not null,
+  longitude double precision not null,
+  notes text,
+  route_condition_note text,
+  supporting_links text[] not null default '{}',
+  has_visited boolean not null default false,
+  knows_others_visited boolean not null default false,
+  source_type text not null default 'user_proposal',
+  status text not null default 'proposed' check (status in ('proposed', 'reviewing', 'approved', 'rejected')),
+  is_visible boolean not null default true,
+  is_confirmed boolean not null default false,
+  cover_image_url text,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+alter table public.trail_proposals add column if not exists proposal_slug text;
+alter table public.trail_proposals add column if not exists submitted_by_user_id uuid;
+alter table public.trail_proposals add column if not exists title text;
+alter table public.trail_proposals add column if not exists region text;
+alter table public.trail_proposals add column if not exists location_label text;
+alter table public.trail_proposals add column if not exists latitude double precision;
+alter table public.trail_proposals add column if not exists longitude double precision;
+alter table public.trail_proposals add column if not exists notes text;
+alter table public.trail_proposals add column if not exists route_condition_note text;
+alter table public.trail_proposals add column if not exists supporting_links text[] not null default '{}';
+alter table public.trail_proposals add column if not exists has_visited boolean not null default false;
+alter table public.trail_proposals add column if not exists knows_others_visited boolean not null default false;
+alter table public.trail_proposals add column if not exists source_type text not null default 'user_proposal';
+alter table public.trail_proposals add column if not exists status text not null default 'proposed';
+alter table public.trail_proposals add column if not exists is_visible boolean not null default true;
+alter table public.trail_proposals add column if not exists is_confirmed boolean not null default false;
+alter table public.trail_proposals add column if not exists cover_image_url text;
+alter table public.trail_proposals add column if not exists created_at timestamptz not null default now();
+alter table public.trail_proposals add column if not exists updated_at timestamptz not null default now();
+
+create unique index if not exists idx_trail_proposals_slug_unique on public.trail_proposals (proposal_slug);
+create index if not exists idx_trail_proposals_submitted_by on public.trail_proposals (submitted_by_user_id);
+create index if not exists idx_trail_proposals_status on public.trail_proposals (status);
+create index if not exists idx_trail_proposals_visible on public.trail_proposals (is_visible);
+
+drop trigger if exists trg_trail_proposals_updated_at on public.trail_proposals;
+create trigger trg_trail_proposals_updated_at
+before update on public.trail_proposals
+for each row execute function public.set_updated_at();
+
+create table if not exists public.trail_proposal_images (
+  id uuid primary key default gen_random_uuid(),
+  proposal_id uuid not null references public.trail_proposals(id) on delete cascade,
+  source text not null default 'member_upload' check (source in ('member_upload', 'fallback')),
+  storage_path text,
+  public_url text,
+  width integer,
+  height integer,
+  byte_size integer,
+  caption text,
+  sort_order integer not null default 0,
+  created_at timestamptz not null default now()
+);
+
+alter table public.trail_proposal_images add column if not exists proposal_id uuid;
+alter table public.trail_proposal_images add column if not exists source text not null default 'member_upload';
+alter table public.trail_proposal_images add column if not exists storage_path text;
+alter table public.trail_proposal_images add column if not exists public_url text;
+alter table public.trail_proposal_images add column if not exists width integer;
+alter table public.trail_proposal_images add column if not exists height integer;
+alter table public.trail_proposal_images add column if not exists byte_size integer;
+alter table public.trail_proposal_images add column if not exists caption text;
+alter table public.trail_proposal_images add column if not exists sort_order integer not null default 0;
+alter table public.trail_proposal_images add column if not exists created_at timestamptz not null default now();
+
+create index if not exists idx_trail_proposal_images_proposal_id on public.trail_proposal_images (proposal_id);
+create index if not exists idx_trail_proposal_images_sort_order on public.trail_proposal_images (proposal_id, sort_order);
+
+alter table public.trail_proposals enable row level security;
+alter table public.trail_proposal_images enable row level security;

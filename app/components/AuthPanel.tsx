@@ -1,8 +1,9 @@
 "use client";
 
+import Link from 'next/link';
 import { useState } from 'react';
 
-type Mode = 'login' | 'signup';
+type Mode = 'login' | 'signup' | 'reset';
 
 type Props = {
   initialMode?: Mode;
@@ -16,14 +17,20 @@ export default function AuthPanel({ initialMode = 'signup' }: Props) {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [message, setMessage] = useState('');
 
   async function handleSubmit(event: React.FormEvent) {
     event.preventDefault();
     setLoading(true);
     setError('');
+    setMessage('');
 
     try {
-      const endpoint = mode === 'signup' ? '/api/auth/signup' : '/api/auth/login';
+      const endpoint = mode === 'signup'
+        ? '/api/auth/signup'
+        : mode === 'reset'
+          ? '/api/auth/reset-password'
+          : '/api/auth/login';
       const response = await fetch(endpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -31,6 +38,9 @@ export default function AuthPanel({ initialMode = 'signup' }: Props) {
       });
       const payload = await response.json();
       if (!response.ok) throw new Error(payload.error || 'Authentication failed');
+      if (mode === 'reset') {
+        setMessage('Password updated. You are now signed in.');
+      }
       window.location.reload();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Authentication failed');
@@ -39,14 +49,21 @@ export default function AuthPanel({ initialMode = 'signup' }: Props) {
     }
   }
 
+  const title = mode === 'signup' ? 'Create your account' : mode === 'reset' ? 'Reset your password' : 'Welcome back';
+  const intro = mode === 'signup'
+    ? 'Use your display name, email, and password to create a member account.'
+    : mode === 'reset'
+      ? 'Enter your email and choose a new password to get back in.'
+      : 'Log in with your email and password.';
+
   return (
     <section id="member-access" className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
       <div className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
         <div className="rounded-3xl border border-black/8 bg-white p-8 shadow-sm">
           <p className="text-sm font-semibold uppercase tracking-[0.16em] text-[#5d7d61]">Member access</p>
-          <h2 className="mt-2 text-3xl font-bold tracking-tight text-[#243126]">Join Offroady and keep your place</h2>
+          <h2 className="mt-2 text-3xl font-bold tracking-tight text-[#243126]">Join Offroady when you want more than browsing</h2>
           <p className="mt-4 max-w-2xl text-sm leading-7 text-gray-600">
-            Create an account to unlock more trails, save favorites, remember your profile, and make it easier to join future trips without starting from zero every time.
+            Browse the featured trail first, then create an account when you want to unlock more trails, save favorites, join trips, comment, or manage your trail identity.
           </p>
           <div className="mt-6 flex flex-wrap gap-3">
             <button
@@ -63,16 +80,19 @@ export default function AuthPanel({ initialMode = 'signup' }: Props) {
             >
               Log In
             </button>
+            <button
+              type="button"
+              onClick={() => setMode('reset')}
+              className={`rounded-lg px-4 py-2 text-sm font-semibold transition ${mode === 'reset' ? 'bg-[#dbe9dc] text-[#243126]' : 'border border-gray-300 text-gray-700 hover:bg-gray-50'}`}
+            >
+              Reset Password
+            </button>
           </div>
         </div>
 
         <div className="rounded-3xl border border-black/8 bg-white p-8 shadow-sm">
-          <h3 className="text-2xl font-bold text-[#243126]">{mode === 'signup' ? 'Create your account' : 'Welcome back'}</h3>
-          <p className="mt-2 text-sm leading-6 text-gray-600">
-            {mode === 'signup'
-              ? 'Use your display name, email, and password to create a member account.'
-              : 'Log in with your email and password.'}
-          </p>
+          <h3 className="text-2xl font-bold text-[#243126]">{title}</h3>
+          <p className="mt-2 text-sm leading-6 text-gray-600">{intro}</p>
 
           <form onSubmit={handleSubmit} className="mt-6 space-y-3">
             {mode === 'signup' ? (
@@ -102,19 +122,28 @@ export default function AuthPanel({ initialMode = 'signup' }: Props) {
             <input
               value={password}
               onChange={(event) => setPassword(event.target.value)}
-              placeholder="Password"
+              placeholder={mode === 'reset' ? 'New password' : 'Password'}
               type="password"
               className="w-full rounded-lg border border-gray-300 px-4 py-3 outline-none transition focus:border-[#2f5d3a]"
             />
 
+            {mode === 'login' ? (
+              <div className="text-right text-sm">
+                <Link href="/reset-password" className="font-medium text-[#2f5d3a] hover:text-[#264d30]">
+                  Forgot password?
+                </Link>
+              </div>
+            ) : null}
+
             {error ? <div className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">{error}</div> : null}
+            {message ? <div className="rounded-lg border border-green-200 bg-green-50 px-3 py-2 text-sm text-green-700">{message}</div> : null}
 
             <button
               type="submit"
               disabled={loading}
               className="w-full rounded-lg bg-[#2f5d3a] py-3 font-semibold text-white transition hover:bg-[#264d30] disabled:cursor-not-allowed disabled:opacity-70"
             >
-              {loading ? 'Working...' : mode === 'signup' ? 'Create account' : 'Log in'}
+              {loading ? 'Working...' : mode === 'signup' ? 'Create account' : mode === 'reset' ? 'Reset password' : 'Log in'}
             </button>
           </form>
         </div>

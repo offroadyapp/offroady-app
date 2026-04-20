@@ -1,8 +1,8 @@
 import TrailCommunityClient from './components/TrailCommunityClient';
-import AuthMenu from './components/AuthMenu';
 import AuthPanel from './components/AuthPanel';
 import CopyCoordinatesButton from './components/CopyCoordinatesButton';
 import FavoriteTrailButton from './components/FavoriteTrailButton';
+import SiteHeader from './components/SiteHeader';
 import { getCommunitySnapshot } from '@/lib/offroady/community';
 import { getSessionUser } from '@/lib/offroady/auth';
 import { getFavoriteTrailSlugs } from '@/lib/offroady/account';
@@ -114,7 +114,6 @@ export default async function Home() {
   const heroImage = '/images/bc-hero.jpg';
   const featureImage = '/images/cheam-lookout.jpg';
   const darkTrailImage = '/images/4xe-dark.jpg';
-  const waterTrailImage = '/images/g63-water.jpg';
 
   let weather: Awaited<ReturnType<typeof getTrailWeather>> | null = null;
   if (featuredTrail.latitude && featuredTrail.longitude) {
@@ -127,37 +126,7 @@ export default async function Home() {
 
   return (
     <div className="min-h-screen bg-[#f4f6f3] text-[#2b2b2b]">
-      <header className="sticky top-0 z-30 border-b border-black/10 bg-white/95 backdrop-blur">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
-          <div className="flex items-center gap-3">
-            <img
-              src="/icon.png"
-              alt="Offroady logo"
-              className="h-11 w-11 rounded-xl object-cover shadow-sm"
-            />
-            <div>
-              <div className="flex items-baseline gap-2">
-                <div className="text-lg font-bold tracking-tight text-[#243126]">Offroady</div>
-                <div className="text-sm font-semibold text-[#2f5d3a]">越野搭子</div>
-              </div>
-              <div className="text-xs text-gray-500">Trail-based off-road community in BC</div>
-            </div>
-          </div>
-          <div className="flex items-center gap-4">
-            <nav className="hidden items-center gap-6 text-sm text-gray-600 md:flex">
-              <a href="#featured" className="transition hover:text-[#2f5d3a]">Trail of the Week</a>
-              <a href="#community" className="transition hover:text-[#2f5d3a]">Community</a>
-              <a href="#about" className="transition hover:text-[#2f5d3a]">About</a>
-            </nav>
-            <AuthMenu viewer={viewer ? {
-              displayName: viewer.displayName,
-              email: viewer.email,
-              profileSlug: viewer.profileSlug,
-              avatarImage: viewer.avatarImage,
-            } : null} />
-          </div>
-        </div>
-      </header>
+      <SiteHeader viewer={viewer} />
 
       <main>
         <section className="relative overflow-hidden">
@@ -180,15 +149,13 @@ export default async function Home() {
                 <a href="#featured" className="rounded-lg bg-white px-5 py-3 font-semibold text-[#2f5d3a] shadow-sm transition hover:bg-[#f2f5f1]">
                   See Trail of the Week
                 </a>
-                <a href={viewer ? '#community' : '#member-access'} className="rounded-lg border border-white/70 px-5 py-3 font-medium text-white transition hover:bg-white/10">
-                  {viewer ? 'Go to Community' : 'Join for Updates'}
+                <a href="#community" className="rounded-lg border border-white/70 px-5 py-3 font-medium text-white transition hover:bg-white/10">
+                  Explore the community
                 </a>
               </div>
             </div>
           </div>
         </section>
-
-        {!viewer ? <AuthPanel /> : null}
 
         <section id="featured" className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
           <div className="mb-6">
@@ -241,22 +208,31 @@ export default async function Home() {
                     View on Map
                   </a>
                   <a
-                    href="#join-trail"
+                    href={viewer ? '#join-trail' : '#member-access'}
                     className="rounded-lg border border-gray-300 px-4 py-2.5 font-semibold text-gray-800 transition hover:bg-gray-50"
                   >
-                    Join trail
+                    {viewer ? 'Join trail' : 'Log in to join trail'}
                   </a>
                   {viewer ? (
                     <FavoriteTrailButton
                       trailSlug={trail.slug}
                       initialFavorite={favoriteTrailSlugs.includes(trail.slug)}
                     />
-                  ) : null}
+                  ) : (
+                    <a
+                      href="#member-access"
+                      className="rounded-lg border border-gray-300 px-4 py-2.5 font-semibold text-gray-800 transition hover:bg-gray-50"
+                    >
+                      Log in to save favorites
+                    </a>
+                  )}
                 </div>
               </div>
             </div>
           </div>
         </section>
+
+        {!viewer ? <AuthPanel /> : null}
 
         <section className="mx-auto max-w-7xl px-4 pb-16 sm:px-6 lg:px-8">
           <div className="overflow-hidden rounded-2xl border border-black/8 bg-[#101412] shadow-sm">
@@ -286,24 +262,6 @@ export default async function Home() {
             } : null}
           />
         </div>
-
-        <section id="about" className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
-          <div className="grid gap-8 lg:grid-cols-[1fr_1fr]">
-            <div className="rounded-2xl border border-black/8 bg-white p-8 shadow-sm">
-              <p className="text-sm font-semibold uppercase tracking-[0.16em] text-[#5d7d61]">About Offroady</p>
-              <h2 className="mt-2 text-3xl font-bold tracking-tight text-[#243126]">Built for real local runs</h2>
-              <p className="mt-4 leading-7 text-gray-700">
-                The current MVP focuses on four things: signing up, joining a trail, starting a crew, and discussing that trail in one place.
-              </p>
-              <p className="mt-4 leading-7 text-gray-700">
-                The point is not to overwhelm people. The point is to remove just enough friction that a good trail turns into a real outing.
-              </p>
-            </div>
-            <div className="overflow-hidden rounded-2xl border border-black/8 bg-white shadow-sm">
-              <img src={waterTrailImage} alt="Off-road vehicle splashing through water" className="h-full min-h-[360px] w-full object-cover" />
-            </div>
-          </div>
-        </section>
       </main>
     </div>
   );

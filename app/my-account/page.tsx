@@ -1,5 +1,6 @@
 import { redirect } from 'next/navigation';
 import AccountProfileForm from '@/app/components/AccountProfileForm';
+import PageShell from '@/app/components/PageShell';
 import { getSessionUser } from '@/lib/offroady/auth';
 import { getAccountOverview } from '@/lib/offroady/account';
 
@@ -19,15 +20,16 @@ export default async function MyAccountPage() {
   const overview = await getAccountOverview(user.id);
 
   return (
-    <main className="min-h-screen bg-[#f4f6f3] px-4 py-12 sm:px-6 lg:px-8">
-      <div className="mx-auto max-w-6xl space-y-6">
-        <AccountProfileForm
-          initialDisplayName={user.displayName}
-          email={user.email}
-          phone={user.phone}
-        />
+    <PageShell>
+      <main className="px-4 py-12 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-6xl space-y-6">
+          <AccountProfileForm
+            initialDisplayName={user.displayName}
+            email={user.email}
+            phone={user.phone}
+          />
 
-        <div className="grid gap-6 xl:grid-cols-3">
+          <div className="grid gap-6 xl:grid-cols-3">
           <section className="rounded-3xl border border-black/8 bg-white p-6 shadow-sm xl:col-span-1">
             <p className="text-sm font-semibold uppercase tracking-[0.16em] text-[#5d7d61]">Favorite trails</p>
             <h2 className="mt-2 text-2xl font-bold text-[#243126]">Saved for later</h2>
@@ -83,8 +85,9 @@ export default async function MyAccountPage() {
               )}
             </div>
           </section>
+          </div>
         </div>
-      </div>
-    </main>
+      </main>
+    </PageShell>
   );
 }

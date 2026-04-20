@@ -1,4 +1,5 @@
 import { redirect } from 'next/navigation';
+import PageShell from '@/app/components/PageShell';
 import ProfileEditor from '@/app/components/ProfileEditor';
 import { getSessionUser } from '@/lib/offroady/auth';
 import { getMemberByEmail } from '@/lib/offroady/members';
@@ -11,10 +12,11 @@ export default async function MyProfilePage() {
   if (!profile) redirect('/my-account');
 
   return (
-    <main className="min-h-screen bg-[#f4f6f3] px-4 py-12 sm:px-6 lg:px-8">
-      <div className="mx-auto max-w-5xl space-y-6">
-        <section className="rounded-3xl border border-black/8 bg-white p-8 shadow-sm">
-          <div className="flex flex-col gap-6 md:flex-row md:items-start">
+    <PageShell>
+      <main className="px-4 py-12 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-5xl space-y-6">
+          <section className="rounded-3xl border border-black/8 bg-white p-8 shadow-sm">
+            <div className="flex flex-col gap-6 md:flex-row md:items-start">
             <div className="flex h-28 w-28 items-center justify-center overflow-hidden rounded-3xl bg-[#eef5ee] text-3xl font-bold text-[#2f5d3a] shadow-sm">
               {profile.avatarImage ? (
                 <img src={profile.avatarImage} alt={profile.displayName} className="h-full w-full object-cover" />
@@ -47,7 +49,7 @@ export default async function MyProfilePage() {
           </div>
         </section>
 
-        <div className="grid gap-6 lg:grid-cols-2">
+          <div className="grid gap-6 lg:grid-cols-2">
           <section className="rounded-3xl border border-black/8 bg-white p-6 shadow-sm">
             <p className="text-sm font-semibold uppercase tracking-[0.16em] text-[#5d7d61]">Rig</p>
             <h2 className="mt-2 text-2xl font-bold text-[#243126]">Vehicle setup</h2>
@@ -87,8 +89,9 @@ export default async function MyProfilePage() {
               </div>
             </div>
           </section>
+          </div>
         </div>
-      </div>
-    </main>
+      </main>
+    </PageShell>
   );
 }

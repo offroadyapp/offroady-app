@@ -1,5 +1,6 @@
 "use client";
 
+import Link from 'next/link';
 import { useMemo, useState } from 'react';
 
 type Viewer = {
@@ -12,6 +13,14 @@ type Viewer = {
 type Props = {
   viewer: Viewer | null;
 };
+
+const accountLinks = [
+  { href: '/my-account', label: 'My Account' },
+  { href: '/my-profile', label: 'Profile' },
+  { href: '/favorite-trails', label: 'Favorite Trails' },
+  { href: '/my-trips', label: 'My Trips' },
+  { href: '/my-comments', label: 'My Comments' },
+];
 
 function initials(name: string) {
   return name
@@ -32,7 +41,7 @@ export default function AuthMenu({ viewer }: Props) {
 
   async function handleLogout() {
     await fetch('/api/auth/logout', { method: 'POST' });
-    window.location.reload();
+    window.location.href = '/';
   }
 
   if (viewer) {
@@ -41,24 +50,32 @@ export default function AuthMenu({ viewer }: Props) {
         <button
           type="button"
           onClick={() => setMenuOpen((current) => !current)}
-          className="flex h-11 w-11 items-center justify-center overflow-hidden rounded-full border border-[#2f5d3a]/20 bg-[#eef5ee] text-sm font-bold text-[#2f5d3a] shadow-sm transition hover:scale-[1.02]"
+          className="flex items-center gap-3 rounded-full border border-[#2f5d3a]/20 bg-[#eef5ee] px-2 py-2 pr-4 text-sm font-semibold text-[#243126] shadow-sm transition hover:scale-[1.01]"
           aria-label="My account"
         >
-          {viewer.avatarImage ? (
-            <img src={viewer.avatarImage} alt={viewer.displayName} className="h-full w-full object-cover" />
-          ) : (
-            avatarLabel
-          )}
+          <span className="flex h-9 w-9 items-center justify-center overflow-hidden rounded-full bg-[#d8ead9] text-sm font-bold text-[#2f5d3a]">
+            {viewer.avatarImage ? (
+              <img src={viewer.avatarImage} alt={viewer.displayName} className="h-full w-full object-cover" />
+            ) : (
+              avatarLabel
+            )}
+          </span>
+          <span className="hidden sm:block">My Account</span>
         </button>
 
         {menuOpen ? (
-          <div className="absolute right-0 top-14 z-40 w-56 rounded-2xl border border-black/8 bg-white p-2 shadow-xl">
+          <div className="absolute right-0 top-14 z-40 w-64 rounded-2xl border border-black/8 bg-white p-2 shadow-xl">
             <div className="border-b border-black/6 px-3 py-3">
               <div className="font-semibold text-[#243126]">{viewer.displayName}</div>
               <div className="text-xs text-gray-500">{viewer.email}</div>
             </div>
-            <a href="/my-account" className="block rounded-xl px-3 py-2 text-sm text-gray-700 transition hover:bg-[#f4f6f3]">My account</a>
-            <a href="/my-profile" className="block rounded-xl px-3 py-2 text-sm text-gray-700 transition hover:bg-[#f4f6f3]">My profile</a>
+            <div className="py-1">
+              {accountLinks.map((item) => (
+                <Link key={item.href} href={item.href} className="block rounded-xl px-3 py-2 text-sm text-gray-700 transition hover:bg-[#f4f6f3]">
+                  {item.label}
+                </Link>
+              ))}
+            </div>
             <button
               type="button"
               onClick={handleLogout}
@@ -72,20 +89,5 @@ export default function AuthMenu({ viewer }: Props) {
     );
   }
 
-  return (
-    <div className="flex items-center gap-2">
-      <a
-        href="#member-access"
-        className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-semibold text-gray-700 transition hover:bg-gray-50"
-      >
-        Log In
-      </a>
-      <a
-        href="#member-access"
-        className="rounded-lg bg-[#2f5d3a] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#264d30]"
-      >
-        Sign Up
-      </a>
-    </div>
-  );
+  return null;
 }

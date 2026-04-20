@@ -1,5 +1,5 @@
 import { getServiceSupabase } from '@/lib/supabase/server';
-import { getLocalTrailBySlug, localTrails } from '@/lib/offroady/trails';
+import { getLocalTrailBySlug } from '@/lib/offroady/trails';
 import { slugifyProfile } from '@/lib/offroady/members';
 
 export type AccountOverview = {

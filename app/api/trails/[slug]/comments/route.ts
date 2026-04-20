@@ -24,17 +24,9 @@ export async function POST(
   try {
     const { slug } = await context.params;
     const body = await request.json();
-    const snapshot = await createComment(
-      slug,
-      {
-        displayName: body.displayName,
-        email: body.email,
-        phone: body.phone,
-      },
-      {
-        content: body.content,
-      }
-    );
+    const snapshot = await createComment(slug, {
+      content: body.content,
+    });
 
     return NextResponse.json(snapshot);
   } catch (error) {

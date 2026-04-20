@@ -332,6 +332,7 @@ create table if not exists public.comments (
   user_id uuid not null references public.users(id) on delete cascade,
   parent_comment_id uuid references public.comments(id) on delete cascade,
   content text not null,
+  author_display_name text not null,
   status text not null default 'published' check (status in ('published', 'hidden')),
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
@@ -342,9 +343,22 @@ alter table public.comments add column if not exists trail_id uuid;
 alter table public.comments add column if not exists user_id uuid;
 alter table public.comments add column if not exists parent_comment_id uuid;
 alter table public.comments add column if not exists content text;
+alter table public.comments add column if not exists author_display_name text;
 alter table public.comments add column if not exists status text;
 alter table public.comments add column if not exists created_at timestamptz not null default now();
 alter table public.comments add column if not exists updated_at timestamptz not null default now();
+
+update public.comments c
+set author_display_name = coalesce(c.author_display_name, u.display_name, 'Unknown rider')
+from public.users u
+where u.id = c.user_id
+  and c.author_display_name is null;
+
+update public.comments
+set author_display_name = coalesce(author_display_name, 'Unknown rider')
+where author_display_name is null;
+
+alter table public.comments alter column author_display_name set not null;
 
 create index if not exists idx_comments_trail_id on public.comments (trail_id);
 create index if not exists idx_comments_user_id on public.comments (user_id);
@@ -386,10 +400,8 @@ select
   c.parent_comment_id,
   c.content,
   c.created_at,
-  u.id as user_id,
-  u.display_name
+  c.author_display_name
 from public.comments c
-join public.users u on u.id = c.user_id
 where c.status = 'published'
 order by c.created_at asc;
 

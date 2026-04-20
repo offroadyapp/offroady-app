@@ -1,6 +1,7 @@
 import { slugifyProfile } from '@/lib/offroady/members';
 import { getLocalFeaturedTrail, getLocalTrailBySlug, type LocalTrail } from '@/lib/offroady/trails';
 import { getServiceSupabase } from '@/lib/supabase/server';
+import { getSessionUser } from '@/lib/offroady/auth';
 
 export type IdentityInput = {
   displayName: string;
@@ -222,20 +223,22 @@ export async function createCrew(
 
 export async function createComment(
   slug: string,
-  identity: IdentityInput,
   payload: { content: string }
 ) {
   const trail = await getTrailBySlug(slug);
   if (!trail) throw new Error('Trail not found');
 
+  const viewer = await getSessionUser();
+  if (!viewer) throw new Error('You must be signed in to comment');
+
   const content = ensureText(payload.content, 'comment', 1000);
-  const user = await upsertUser(identity);
   const supabase = getServiceSupabase();
 
   const { error } = await supabase.from('comments').insert({
     trail_id: trail.id,
-    user_id: user.id,
+    user_id: viewer.id,
     content,
+    author_display_name: viewer.displayName,
     status: 'published',
   });
 
@@ -328,29 +331,23 @@ export async function getCommunitySnapshot(slug?: string): Promise<CommunitySnap
 
     const { data: commentRows, error: commentError } = await supabase
       .from('comments')
-      .select('id, user_id, content, created_at, status')
+      .select('id, content, created_at, author_display_name')
       .eq('trail_id', dbTrail.id)
       .eq('status', 'published')
       .order('created_at', { ascending: true });
 
     if (commentError) throw commentError;
 
-    const commentUserIds = [...new Set((commentRows ?? []).map((row) => row.user_id))];
-    const { data: commentUsers, error: commentUsersError } = commentUserIds.length
-      ? await supabase.from('users').select('id, display_name, profile_slug').in('id', commentUserIds)
-      : { data: [], error: null };
-
-    if (commentUsersError) throw commentUsersError;
-
-    const commentUserMap = new Map((commentUsers ?? []).map((user) => [user.id, user]));
-
-    const comments = (commentRows ?? []).map((comment) => ({
-      id: comment.id,
-      content: comment.content,
-      createdAt: comment.created_at,
-      displayName: commentUserMap.get(comment.user_id)?.display_name ?? 'Unknown rider',
-      profileSlug: commentUserMap.get(comment.user_id)?.profile_slug ?? 'unknown-rider',
-    }));
+    const comments = (commentRows ?? []).map((comment) => {
+      const displayName = comment.author_display_name ?? 'Unknown rider';
+      return {
+        id: comment.id,
+        content: comment.content,
+        createdAt: comment.created_at,
+        displayName,
+        profileSlug: slugifyProfile(displayName) || 'unknown-rider',
+      };
+    });
 
     return {
       dbReady: true,

@@ -182,7 +182,6 @@ export default function TrailCommunityClient({ trailSlug, trailTitle, initialSna
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          ...identity,
           content: comment,
         }),
       });

@@ -17,7 +17,7 @@ type Props = {
 const accountLinks = [
   { href: '/my-account', label: 'My Account' },
   { href: '/my-profile', label: 'Profile' },
-  { href: '/favorite-trails', label: 'Favorite Trails' },
+  { href: '/favorite-trails', label: 'Favorites' },
   { href: '/my-trips', label: 'My Trips' },
   { href: '/my-comments', label: 'My Comments' },
 ];

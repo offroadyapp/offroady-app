@@ -146,8 +146,8 @@ export default async function Home() {
                 Discover a featured BC trail, see who else is in, and decide whether you want updates, a crew, or just a good reason to get out this weekend.
               </p>
               <div className="mt-8 flex flex-wrap gap-3">
-                <a href="#featured" className="rounded-lg bg-white px-5 py-3 font-semibold text-[#2f5d3a] shadow-sm transition hover:bg-[#f2f5f1]">
-                  See Trail of the Week
+                <a href="#featured" className="rounded-lg bg-[#f4f6f3] px-5 py-3 font-semibold text-[#1f3f27] shadow-sm ring-1 ring-white/40 transition hover:bg-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white active:bg-[#dfe8df]">
+                  Trail of the Week
                 </a>
                 <a href="#more-trails" className="rounded-lg border border-white/70 px-5 py-3 font-medium text-white transition hover:bg-white/10">
                   Explore more trails

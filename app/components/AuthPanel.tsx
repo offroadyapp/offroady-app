@@ -29,7 +29,7 @@ export default function AuthPanel({ initialMode = 'signup' }: Props) {
       const endpoint = mode === 'signup'
         ? '/api/auth/signup'
         : mode === 'reset'
-          ? '/api/auth/reset-password'
+          ? '/api/auth/forgot-password'
           : '/api/auth/login';
       const response = await fetch(endpoint, {
         method: 'POST',
@@ -39,7 +39,8 @@ export default function AuthPanel({ initialMode = 'signup' }: Props) {
       const payload = await response.json();
       if (!response.ok) throw new Error(payload.error || 'Authentication failed');
       if (mode === 'reset') {
-        setMessage('Password updated. You are now signed in.');
+        setMessage(payload.message || 'If that email exists, a password reset link has been sent.');
+        return;
       }
       window.location.reload();
     } catch (err) {
@@ -49,11 +50,11 @@ export default function AuthPanel({ initialMode = 'signup' }: Props) {
     }
   }
 
-  const title = mode === 'signup' ? 'Create your account' : mode === 'reset' ? 'Reset your password' : 'Welcome back';
+  const title = mode === 'signup' ? 'Create your account' : mode === 'reset' ? 'Forgot your password?' : 'Welcome back';
   const intro = mode === 'signup'
     ? 'Use your display name, email, and password to create a member account.'
     : mode === 'reset'
-      ? 'Enter your email and choose a new password to get back in.'
+      ? 'Enter your email and we will send you a secure password reset link.'
       : 'Log in with your email and password.';
 
   return (
@@ -85,7 +86,7 @@ export default function AuthPanel({ initialMode = 'signup' }: Props) {
               onClick={() => setMode('reset')}
               className={`rounded-lg px-4 py-2 text-sm font-semibold transition ${mode === 'reset' ? 'bg-[#dbe9dc] text-[#243126]' : 'border border-gray-300 text-gray-700 hover:bg-gray-50'}`}
             >
-              Reset Password
+              Forgot Password
             </button>
           </div>
         </div>
@@ -119,13 +120,15 @@ export default function AuthPanel({ initialMode = 'signup' }: Props) {
                 className="w-full rounded-lg border border-gray-300 px-4 py-3 outline-none transition focus:border-[#2f5d3a]"
               />
             ) : null}
-            <input
-              value={password}
-              onChange={(event) => setPassword(event.target.value)}
-              placeholder={mode === 'reset' ? 'New password' : 'Password'}
-              type="password"
-              className="w-full rounded-lg border border-gray-300 px-4 py-3 outline-none transition focus:border-[#2f5d3a]"
-            />
+            {mode !== 'reset' ? (
+              <input
+                value={password}
+                onChange={(event) => setPassword(event.target.value)}
+                placeholder="Password"
+                type="password"
+                className="w-full rounded-lg border border-gray-300 px-4 py-3 outline-none transition focus:border-[#2f5d3a]"
+              />
+            ) : null}
 
             {mode === 'login' ? (
               <div className="text-right text-sm">
@@ -143,7 +146,7 @@ export default function AuthPanel({ initialMode = 'signup' }: Props) {
               disabled={loading}
               className="w-full rounded-lg bg-[#2f5d3a] py-3 font-semibold text-white transition hover:bg-[#264d30] disabled:cursor-not-allowed disabled:opacity-70"
             >
-              {loading ? 'Working...' : mode === 'signup' ? 'Create account' : mode === 'reset' ? 'Reset password' : 'Log in'}
+              {loading ? 'Working...' : mode === 'signup' ? 'Create account' : mode === 'reset' ? 'Send reset link' : 'Log in'}
             </button>
           </form>
         </div>

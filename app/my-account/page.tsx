@@ -31,7 +31,7 @@ export default async function MyAccountPage() {
 
           <div className="grid gap-6 xl:grid-cols-3">
           <section className="rounded-3xl border border-black/8 bg-white p-6 shadow-sm xl:col-span-1">
-            <p className="text-sm font-semibold uppercase tracking-[0.16em] text-[#5d7d61]">Favorite trails</p>
+            <p className="text-sm font-semibold uppercase tracking-[0.16em] text-[#5d7d61]">Favorites</p>
             <h2 className="mt-2 text-2xl font-bold text-[#243126]">Saved for later</h2>
             <div className="mt-5 space-y-4">
               {overview.favorites.length ? (

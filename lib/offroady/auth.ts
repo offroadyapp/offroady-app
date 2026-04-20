@@ -23,9 +23,6 @@ export type SessionUser = {
   avatarImage: string | null;
 };
 
-function ensurePasswordReset(password: string) {
-  return ensurePassword(password);
-}
 
 type UserRow = {
   id: string;
@@ -192,31 +189,6 @@ export async function loginAccount(emailInput: string, passwordInput: string) {
   }
 
   await claimInvitesForEmail(user.email, user.id);
-  const session = await createSession(user.id);
-  return {
-    user: mapUser(user),
-    session,
-  };
-}
-
-export async function resetPassword(emailInput: string, passwordInput: string) {
-  const supabase = getServiceSupabase();
-  const email = ensureText(normalizeEmail(emailInput), 'Email', 160);
-  const passwordHash = hashPassword(ensurePasswordReset(passwordInput));
-
-  const { data: user, error } = await supabase
-    .from('users')
-    .update({
-      password_hash: passwordHash,
-      updated_at: new Date().toISOString(),
-    })
-    .ilike('email', email)
-    .select('id, display_name, email, phone, profile_slug, avatar_image')
-    .maybeSingle();
-
-  if (error) throw error;
-  if (!user) throw new Error('No account found for that email');
-
   const session = await createSession(user.id);
   return {
     user: mapUser(user),

@@ -3,7 +3,7 @@ import PageShell from '@/app/components/PageShell';
 import { getSessionUser } from '@/lib/offroady/auth';
 import { getAccountOverview } from '@/lib/offroady/account';
 
-export default async function FavoriteTrailsPage() {
+export default async function FavoritesPage() {
   const user = await getSessionUser();
   if (!user) redirect('/#member-access');
 
@@ -13,8 +13,8 @@ export default async function FavoriteTrailsPage() {
     <PageShell>
       <main className="px-4 py-12 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-5xl rounded-3xl border border-black/8 bg-white p-8 shadow-sm">
-          <p className="text-sm font-semibold uppercase tracking-[0.16em] text-[#5d7d61]">Favorite trails</p>
-          <h1 className="mt-2 text-3xl font-bold text-[#243126]">Your saved trail shortlist</h1>
+          <p className="text-sm font-semibold uppercase tracking-[0.16em] text-[#5d7d61]">Favorites</p>
+          <h1 className="mt-2 text-3xl font-bold text-[#243126]">Everything you have saved</h1>
           <div className="mt-6 grid gap-4 md:grid-cols-2">
             {overview.favorites.length ? (
               overview.favorites.map((trail) => (

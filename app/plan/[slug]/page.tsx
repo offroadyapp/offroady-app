@@ -1,7 +1,9 @@
 import { notFound } from 'next/navigation';
 import CopyCoordinatesButton from '@/app/components/CopyCoordinatesButton';
+import PageShell from '@/app/components/PageShell';
 import PlanTripClient from './PlanTripClient';
 import { getLocalTrailBySlug } from '@/lib/offroady/trails';
+import { getSessionUser } from '@/lib/offroady/auth';
 
 export default async function PlanTripPage({
   params,
@@ -10,13 +12,14 @@ export default async function PlanTripPage({
 }) {
   const { slug } = await params;
   const trail = getLocalTrailBySlug(slug);
+  const viewer = await getSessionUser();
 
   if (!trail) {
     notFound();
   }
 
   return (
-    <div className="min-h-screen bg-[#f4f6f3] text-[#2b2b2b]">
+    <PageShell>
       <section className="relative overflow-hidden">
         <img src={trail.hero_image} alt={trail.title} className="absolute inset-0 h-full w-full object-cover" />
         <div className="absolute inset-0 bg-gradient-to-r from-black/55 via-black/35 to-black/20" />
@@ -40,7 +43,7 @@ export default async function PlanTripPage({
         </div>
       </section>
 
-      <PlanTripClient trail={trail} />
-    </div>
+      <PlanTripClient trail={trail} isLoggedIn={Boolean(viewer)} />
+    </PageShell>
   );
 }

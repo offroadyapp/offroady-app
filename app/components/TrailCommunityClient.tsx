@@ -1,5 +1,6 @@
 "use client";
 
+import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
 import type { CommunitySnapshot } from '@/lib/offroady/community';
 import type { LocalTrail } from '@/lib/offroady/trails';
@@ -37,7 +38,7 @@ export default function TrailCommunityClient({ trailSlug, trailTitle, initialSna
   const [identity, setIdentity] = useState<Identity>(emptyIdentity);
   const [signupStatus, setSignupStatus] = useState('');
   const [community, setCommunity] = useState(initialSnapshot);
-  const [hasUnlockedTrails, setHasUnlockedTrails] = useState(false);
+  const [hasUnlockedTrails, setHasUnlockedTrails] = useState(Boolean(viewer));
   const [joinLoading, setJoinLoading] = useState(false);
   const [crewLoading, setCrewLoading] = useState(false);
   const [commentLoading, setCommentLoading] = useState(false);
@@ -58,13 +59,14 @@ export default function TrailCommunityClient({ trailSlug, trailTitle, initialSna
 
     if (viewer) {
       setIdentity(viewer);
+      setHasUnlockedTrails(true);
       window.localStorage.setItem('offroady.identity', JSON.stringify(viewer));
+      window.localStorage.setItem('offroady.trailsUnlocked', 'true');
+      return;
     }
 
-    const trailsUnlocked = window.localStorage.getItem('offroady.trailsUnlocked');
-    if (trailsUnlocked === 'true') {
-      setHasUnlockedTrails(true);
-    }
+    window.localStorage.removeItem('offroady.trailsUnlocked');
+    setHasUnlockedTrails(false);
   }, [viewer]);
 
   useEffect(() => {
@@ -109,6 +111,11 @@ export default function TrailCommunityClient({ trailSlug, trailTitle, initialSna
 
   async function handleJoin(event: React.FormEvent) {
     event.preventDefault();
+    if (!viewer) {
+      window.location.href = '/#member-access';
+      return;
+    }
+
     setJoinLoading(true);
     setError('');
 
@@ -130,6 +137,11 @@ export default function TrailCommunityClient({ trailSlug, trailTitle, initialSna
 
   async function handleCrew(event: React.FormEvent) {
     event.preventDefault();
+    if (!viewer) {
+      window.location.href = '/#member-access';
+      return;
+    }
+
     setCrewLoading(true);
     setError('');
 
@@ -157,6 +169,11 @@ export default function TrailCommunityClient({ trailSlug, trailTitle, initialSna
 
   async function handleComment(event: React.FormEvent) {
     event.preventDefault();
+    if (!viewer) {
+      window.location.href = '/#member-access';
+      return;
+    }
+
     setCommentLoading(true);
     setError('');
 
@@ -188,9 +205,9 @@ export default function TrailCommunityClient({ trailSlug, trailTitle, initialSna
             <p className="text-sm font-semibold uppercase tracking-[0.16em] text-[#9dc2a2]">
               Offroady MVP
             </p>
-            <h2 className="mt-2 text-2xl font-bold">Pick how you want to join in.</h2>
+            <h2 className="mt-2 text-2xl font-bold">See more trails, then unlock the rest.</h2>
             <p className="mt-2 max-w-3xl text-sm leading-6 text-white/80">
-              Want updates only? Sign up below. Want in on {trailTitle}? Join the trail. Want to lead a smaller group? Start a crew. Have something useful to share? Leave a comment.
+              This section is really about discovering more verified BC trails. Once you sign up or log in, you can open full trail details and use Plan a Trip.
             </p>
           </div>
           {!community.dbReady ? (
@@ -209,9 +226,9 @@ export default function TrailCommunityClient({ trailSlug, trailTitle, initialSna
         <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div>
             <p className="text-sm font-semibold uppercase tracking-[0.16em] text-[#5d7d61]">More trails</p>
-            <h3 className="mt-2 text-2xl font-bold text-[#243126]">Want to see more than this week&apos;s pick?</h3>
+            <h3 className="mt-2 text-2xl font-bold text-[#243126]">Want to browse beyond this week&apos;s pick?</h3>
             <p className="mt-3 max-w-2xl text-sm leading-6 text-gray-600">
-              Offroady already has 26 verified BC trail entries in the backend. Full trail browsing and Plan a Trip tools unlock after a quick member sign up.
+              Offroady already has 26 verified BC trail entries in the backend, but full trail content and Plan a Trip are member-only. Sign up or log in to unlock them.
             </p>
           </div>
           {hasUnlockedTrails ? (
@@ -220,61 +237,51 @@ export default function TrailCommunityClient({ trailSlug, trailTitle, initialSna
             </div>
           ) : (
             <a
-              href="#signup"
+              href="#member-access"
               className="inline-flex rounded-lg bg-[#2f5d3a] px-5 py-3 font-semibold text-white transition hover:bg-[#264d30]"
             >
-              Sign up to unlock more trails
+              Sign up or log in to unlock trails
             </a>
           )}
         </div>
 
-        {hasUnlockedTrails ? (
-          <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-            {moreTrails.map((item) => (
-              <article key={item.slug} className="overflow-hidden rounded-2xl border border-black/8 bg-[#f8faf8] shadow-sm">
-                <img src={item.card_image} alt={item.title} className="h-48 w-full object-cover" />
-                <div className="p-4">
-                  <div className="flex items-start justify-between gap-3">
-                    <h4 className="text-lg font-bold text-[#243126]">{item.title}</h4>
-                    {item.region ? (
-                      <span className="rounded-full bg-white px-2.5 py-1 text-xs text-gray-500">{item.region}</span>
-                    ) : null}
-                  </div>
-                  <p className="mt-3 text-sm leading-6 text-gray-600">{item.card_blurb}</p>
-                  <div className="mt-3 flex flex-wrap gap-2 text-xs text-gray-500">
-                    <span className="rounded-full bg-white px-2.5 py-1 capitalize">{item.difficulty}</span>
-                    {item.best_for.slice(0, 2).map((tag) => (
-                      <span key={tag} className="rounded-full bg-white px-2.5 py-1">{tag}</span>
-                    ))}
-                  </div>
-                  <a
-                    href={`/plan/${item.slug}`}
-                    className="mt-4 inline-flex rounded-lg bg-[#2f5d3a] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#264d30]"
-                  >
-                    Plan a Trip
-                  </a>
-                </div>
-              </article>
-            ))}
-          </div>
-        ) : (
-          <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-            {moreTrails.slice(0, 3).map((item) => (
-              <article key={item.slug} className="overflow-hidden rounded-2xl border border-black/8 bg-[#f8faf8] shadow-sm">
-                <div className="relative">
-                  <img src={item.card_image} alt={item.title} className="h-48 w-full object-cover blur-[2px]" />
+        <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+          {moreTrails.map((item) => (
+            <article key={item.slug} className="overflow-hidden rounded-2xl border border-black/8 bg-[#f8faf8] shadow-sm">
+              <div className="relative">
+                <img src={item.card_image} alt={item.title} className={`h-48 w-full object-cover ${hasUnlockedTrails ? '' : 'blur-[2px]'}`} />
+                {!hasUnlockedTrails ? (
                   <div className="absolute inset-0 flex items-center justify-center bg-black/35">
-                    <div className="rounded-full bg-white px-4 py-2 text-sm font-semibold text-[#243126]">Members only</div>
+                    <div className="rounded-full bg-white px-4 py-2 text-sm font-semibold text-[#243126]">Sign up or log in to unlock</div>
                   </div>
-                </div>
-                <div className="p-4">
+                ) : null}
+              </div>
+              <div className="p-4">
+                <div className="flex items-start justify-between gap-3">
                   <h4 className="text-lg font-bold text-[#243126]">{item.title}</h4>
-                  <p className="mt-3 text-sm leading-6 text-gray-600">Unlock the full trail list and planning tools after sign up.</p>
+                  {item.region ? (
+                    <span className="rounded-full bg-white px-2.5 py-1 text-xs text-gray-500">{item.region}</span>
+                  ) : null}
                 </div>
-              </article>
-            ))}
-          </div>
-        )}
+                <p className="mt-3 text-sm leading-6 text-gray-600">
+                  {hasUnlockedTrails ? item.card_blurb : 'Trail details and trip planning unlock after you create an account or log in.'}
+                </p>
+                <div className="mt-3 flex flex-wrap gap-2 text-xs text-gray-500">
+                  <span className="rounded-full bg-white px-2.5 py-1 capitalize">{item.difficulty}</span>
+                  {item.best_for.slice(0, 2).map((tag) => (
+                    <span key={tag} className="rounded-full bg-white px-2.5 py-1">{tag}</span>
+                  ))}
+                </div>
+                <a
+                  href={hasUnlockedTrails ? `/plan/${item.slug}` : '/#member-access'}
+                  className="mt-4 inline-flex rounded-lg bg-[#2f5d3a] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#264d30]"
+                >
+                  {hasUnlockedTrails ? 'Plan a Trip' : 'Sign up or log in to plan'}
+                </a>
+              </div>
+            </article>
+          ))}
+        </div>
       </div>
 
       <div className="grid gap-6 lg:grid-cols-[0.9fr_1.1fr]">
@@ -344,35 +351,41 @@ export default function TrailCommunityClient({ trailSlug, trailTitle, initialSna
               <p className="mt-1 text-gray-600">{joinedNames || 'Be the first one in.'}</p>
             </div>
 
-            <form onSubmit={handleJoin} className="mt-5 space-y-3">
-              <input
-                value={identity.displayName}
-                onChange={(event) => updateIdentity('displayName', event.target.value)}
-                placeholder="Display name"
-                className="w-full rounded-lg border border-gray-300 px-4 py-3 outline-none transition focus:border-[#2f5d3a]"
-              />
-              <input
-                value={identity.email}
-                onChange={(event) => updateIdentity('email', event.target.value)}
-                placeholder="Email"
-                type="email"
-                className="w-full rounded-lg border border-gray-300 px-4 py-3 outline-none transition focus:border-[#2f5d3a]"
-              />
-              <input
-                value={identity.phone}
-                onChange={(event) => updateIdentity('phone', event.target.value)}
-                placeholder="Phone (optional)"
-                type="tel"
-                className="w-full rounded-lg border border-gray-300 px-4 py-3 outline-none transition focus:border-[#2f5d3a]"
-              />
-              <button
-                type="submit"
-                disabled={joinLoading}
-                className="w-full rounded-lg bg-[#2f5d3a] py-3 font-semibold text-white transition hover:bg-[#264d30] disabled:cursor-not-allowed disabled:opacity-70"
-              >
-                {joinLoading ? 'Joining...' : 'Join this trail'}
-              </button>
-            </form>
+            {viewer ? (
+              <form onSubmit={handleJoin} className="mt-5 space-y-3">
+                <input
+                  value={identity.displayName}
+                  onChange={(event) => updateIdentity('displayName', event.target.value)}
+                  placeholder="Display name"
+                  className="w-full rounded-lg border border-gray-300 px-4 py-3 outline-none transition focus:border-[#2f5d3a]"
+                />
+                <input
+                  value={identity.email}
+                  onChange={(event) => updateIdentity('email', event.target.value)}
+                  placeholder="Email"
+                  type="email"
+                  className="w-full rounded-lg border border-gray-300 px-4 py-3 outline-none transition focus:border-[#2f5d3a]"
+                />
+                <input
+                  value={identity.phone}
+                  onChange={(event) => updateIdentity('phone', event.target.value)}
+                  placeholder="Phone (optional)"
+                  type="tel"
+                  className="w-full rounded-lg border border-gray-300 px-4 py-3 outline-none transition focus:border-[#2f5d3a]"
+                />
+                <button
+                  type="submit"
+                  disabled={joinLoading}
+                  className="w-full rounded-lg bg-[#2f5d3a] py-3 font-semibold text-white transition hover:bg-[#264d30] disabled:cursor-not-allowed disabled:opacity-70"
+                >
+                  {joinLoading ? 'Joining...' : 'Join this trail'}
+                </button>
+              </form>
+            ) : (
+              <div className="mt-5 rounded-xl border border-black/8 bg-[#f7faf6] p-4 text-sm leading-6 text-gray-600">
+                Joining a trail is member-only. <Link href="/#member-access" className="font-semibold text-[#2f5d3a]">Sign up or log in</Link> first, then come back and claim your spot.
+              </div>
+            )}
           </div>
         </div>
 
@@ -383,28 +396,34 @@ export default function TrailCommunityClient({ trailSlug, trailTitle, initialSna
             <p className="mt-3 text-sm leading-6 text-gray-600">
               Want to lead a smaller group for this trail? Name your crew, add a short plan, and let others see who is organizing.
             </p>
-            <form onSubmit={handleCrew} className="mt-5 space-y-3">
-              <input
-                value={crewName}
-                onChange={(event) => setCrewName(event.target.value)}
-                placeholder="Crew name"
-                className="w-full rounded-lg border border-gray-300 px-4 py-3 outline-none transition focus:border-[#2f5d3a]"
-              />
-              <textarea
-                value={crewDescription}
-                onChange={(event) => setCrewDescription(event.target.value)}
-                placeholder="Short plan, vibe, or meeting point"
-                rows={3}
-                className="w-full rounded-lg border border-gray-300 px-4 py-3 outline-none transition focus:border-[#2f5d3a]"
-              />
-              <button
-                type="submit"
-                disabled={crewLoading}
-                className="w-full rounded-lg border border-[#2f5d3a] px-4 py-3 font-semibold text-[#2f5d3a] transition hover:bg-[#f2f5f1] disabled:cursor-not-allowed disabled:opacity-70"
-              >
-                {crewLoading ? 'Creating crew...' : 'Start a crew'}
-              </button>
-            </form>
+            {viewer ? (
+              <form onSubmit={handleCrew} className="mt-5 space-y-3">
+                <input
+                  value={crewName}
+                  onChange={(event) => setCrewName(event.target.value)}
+                  placeholder="Crew name"
+                  className="w-full rounded-lg border border-gray-300 px-4 py-3 outline-none transition focus:border-[#2f5d3a]"
+                />
+                <textarea
+                  value={crewDescription}
+                  onChange={(event) => setCrewDescription(event.target.value)}
+                  placeholder="Short plan, vibe, or meeting point"
+                  rows={3}
+                  className="w-full rounded-lg border border-gray-300 px-4 py-3 outline-none transition focus:border-[#2f5d3a]"
+                />
+                <button
+                  type="submit"
+                  disabled={crewLoading}
+                  className="w-full rounded-lg border border-[#2f5d3a] px-4 py-3 font-semibold text-[#2f5d3a] transition hover:bg-[#f2f5f1] disabled:cursor-not-allowed disabled:opacity-70"
+                >
+                  {crewLoading ? 'Creating crew...' : 'Start a crew'}
+                </button>
+              </form>
+            ) : (
+              <div className="mt-5 rounded-xl border border-black/8 bg-[#f7faf6] p-4 text-sm leading-6 text-gray-600">
+                Crew creation is member-only. <Link href="/#member-access" className="font-semibold text-[#2f5d3a]">Sign up or log in</Link> to organize a smaller group.
+              </div>
+            )}
 
             <div className="mt-6 space-y-3">
               {community.crews.length ? (
@@ -434,22 +453,28 @@ export default function TrailCommunityClient({ trailSlug, trailTitle, initialSna
             <p className="mt-3 text-sm leading-6 text-gray-600">
               Share anything that helps the next person decide: vehicle setup, current conditions, timing, meeting spots, or whether the route is worth it this week.
             </p>
-            <form onSubmit={handleComment} className="mt-5 space-y-3">
-              <textarea
-                value={comment}
-                onChange={(event) => setComment(event.target.value)}
-                placeholder="Say something helpful about this run"
-                rows={4}
-                className="w-full rounded-lg border border-gray-300 px-4 py-3 outline-none transition focus:border-[#2f5d3a]"
-              />
-              <button
-                type="submit"
-                disabled={commentLoading}
-                className="w-full rounded-lg bg-[#2f5d3a] py-3 font-semibold text-white transition hover:bg-[#264d30] disabled:cursor-not-allowed disabled:opacity-70"
-              >
-                {commentLoading ? 'Posting...' : 'Post comment'}
-              </button>
-            </form>
+            {viewer ? (
+              <form onSubmit={handleComment} className="mt-5 space-y-3">
+                <textarea
+                  value={comment}
+                  onChange={(event) => setComment(event.target.value)}
+                  placeholder="Say something helpful about this run"
+                  rows={4}
+                  className="w-full rounded-lg border border-gray-300 px-4 py-3 outline-none transition focus:border-[#2f5d3a]"
+                />
+                <button
+                  type="submit"
+                  disabled={commentLoading}
+                  className="w-full rounded-lg bg-[#2f5d3a] py-3 font-semibold text-white transition hover:bg-[#264d30] disabled:cursor-not-allowed disabled:opacity-70"
+                >
+                  {commentLoading ? 'Posting...' : 'Post comment'}
+                </button>
+              </form>
+            ) : (
+              <div className="mt-5 rounded-xl border border-black/8 bg-[#f7faf6] p-4 text-sm leading-6 text-gray-600">
+                Commenting is member-only. <Link href="/#member-access" className="font-semibold text-[#2f5d3a]">Sign up or log in</Link> to join the discussion.
+              </div>
+            )}
 
             <div className="mt-6 space-y-3">
               {community.comments.length ? (

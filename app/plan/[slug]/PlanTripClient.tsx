@@ -29,6 +29,7 @@ type SavedPlan = {
 
 type Props = {
   trail: LocalTrail;
+  isLoggedIn: boolean;
 };
 
 function nextSaturdayInput() {
@@ -64,12 +65,11 @@ function formatDateLabel(value: string) {
   });
 }
 
-export default function PlanTripClient({ trail }: Props) {
+export default function PlanTripClient({ trail, isLoggedIn }: Props) {
   const searchParams = useSearchParams();
   const [date, setDate] = useState(nextSaturdayInput());
   const [forecast, setForecast] = useState<Forecast | null>(null);
   const [loading, setLoading] = useState(false);
-  const [hasMembership, setHasMembership] = useState(false);
   const [shareName, setShareName] = useState('TrailScout');
   const [origin, setOrigin] = useState('');
   const [meetupArea, setMeetupArea] = useState('North Vancouver');
@@ -81,8 +81,6 @@ export default function PlanTripClient({ trail }: Props) {
   const [savedPlan, setSavedPlan] = useState<SavedPlan | null>(null);
 
   useEffect(() => {
-    const unlocked = window.localStorage.getItem('offroady.trailsUnlocked');
-    setHasMembership(unlocked === 'true');
     setOrigin(window.location.origin);
 
     const saved = window.localStorage.getItem('offroady.identity');
@@ -98,7 +96,7 @@ export default function PlanTripClient({ trail }: Props) {
 
   useEffect(() => {
     async function loadForecast() {
-      if (!trail.latitude || !trail.longitude || !date) return;
+      if (!trail.latitude || !trail.longitude || !date || !isLoggedIn) return;
       setLoading(true);
       try {
         const url = new URL('https://api.open-meteo.com/v1/forecast');
@@ -124,10 +122,10 @@ export default function PlanTripClient({ trail }: Props) {
       }
     }
 
-    if (hasMembership) {
+    if (isLoggedIn) {
       void loadForecast();
     }
-  }, [date, hasMembership, trail.latitude, trail.longitude]);
+  }, [date, isLoggedIn, trail.latitude, trail.longitude]);
 
   const shareText = useMemo(() => {
     const weatherLine = forecast
@@ -144,6 +142,11 @@ export default function PlanTripClient({ trail }: Props) {
   const referredBy = searchParams.get('ref');
 
   async function handleCreateTrackedInvites() {
+    if (!isLoggedIn) {
+      window.location.href = '/#member-access';
+      return;
+    }
+
     setSavingInvitePlan(true);
     setSaveError('');
 
@@ -175,20 +178,20 @@ export default function PlanTripClient({ trail }: Props) {
     }
   }
 
-  if (!hasMembership) {
+  if (!isLoggedIn) {
     return (
       <section className="mx-auto max-w-5xl px-4 py-16 sm:px-6 lg:px-8">
         <div className="rounded-3xl border border-black/8 bg-white p-8 shadow-sm">
           <p className="text-sm font-semibold uppercase tracking-[0.16em] text-[#5d7d61]">Members only</p>
-          <h1 className="mt-2 text-3xl font-bold text-[#243126]">Plan a Trip is unlocked after sign up</h1>
+          <h1 className="mt-2 text-3xl font-bold text-[#243126]">Trail details and Plan a Trip unlock after sign up or log in</h1>
           <p className="mt-4 max-w-2xl leading-7 text-gray-600">
-            We keep detailed trail planning tools for members. Sign up on the homepage first, then come back to plan your date, check forecast, and generate a shareable invite.
+            Full trail access is not open before login. Sign up or log in on the homepage first, then come back to review the route, check the forecast, and build your trip plan.
           </p>
           <Link
-            href="/#signup"
+            href="/#member-access"
             className="mt-6 inline-flex rounded-lg bg-[#2f5d3a] px-5 py-3 font-semibold text-white transition hover:bg-[#264d30]"
           >
-            Sign up to unlock planning
+            Sign up or log in to unlock planning
           </Link>
         </div>
       </section>

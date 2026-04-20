@@ -149,8 +149,8 @@ export default async function Home() {
                 <a href="#featured" className="rounded-lg bg-white px-5 py-3 font-semibold text-[#2f5d3a] shadow-sm transition hover:bg-[#f2f5f1]">
                   See Trail of the Week
                 </a>
-                <a href="#community" className="rounded-lg border border-white/70 px-5 py-3 font-medium text-white transition hover:bg-white/10">
-                  Explore the community
+                <a href="#more-trails" className="rounded-lg border border-white/70 px-5 py-3 font-medium text-white transition hover:bg-white/10">
+                  Explore more trails
                 </a>
               </div>
             </div>
@@ -249,7 +249,7 @@ export default async function Home() {
           </div>
         </section>
 
-        <div id="community">
+        <div id="more-trails">
           <TrailCommunityClient
             trailSlug={trail.slug}
             trailTitle={featuredTrail.title}

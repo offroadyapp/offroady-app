@@ -9,7 +9,7 @@ type Props = {
 const navItems = [
   { href: '/', label: 'Home' },
   { href: '/#featured', label: 'Trail of the Week' },
-  { href: '/#community', label: 'Community' },
+  { href: '/#more-trails', label: 'More Trails' },
   { href: '/about', label: 'About' },
 ];
 

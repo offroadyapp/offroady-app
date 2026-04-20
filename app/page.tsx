@@ -1,6 +1,7 @@
 import TrailCommunityClient from './components/TrailCommunityClient';
 import AuthMenu from './components/AuthMenu';
 import AuthPanel from './components/AuthPanel';
+import CopyCoordinatesButton from './components/CopyCoordinatesButton';
 import FavoriteTrailButton from './components/FavoriteTrailButton';
 import { getCommunitySnapshot } from '@/lib/offroady/community';
 import { getSessionUser } from '@/lib/offroady/auth';
@@ -213,6 +214,7 @@ export default async function Home() {
                 <div className="mt-5 space-y-3 rounded-xl bg-[#f7faf6] p-4 text-sm text-gray-700">
                   <div>
                     <span className="font-semibold text-[#243126]">Coordinates:</span> {featuredTrail.latitude}, {featuredTrail.longitude}
+                    <CopyCoordinatesButton latitude={featuredTrail.latitude} longitude={featuredTrail.longitude} />
                   </div>
                   {weather ? (
                     <>

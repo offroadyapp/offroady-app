@@ -1,4 +1,5 @@
 import { notFound } from 'next/navigation';
+import CopyCoordinatesButton from '@/app/components/CopyCoordinatesButton';
 import PlanTripClient from './PlanTripClient';
 import { getLocalTrailBySlug } from '@/lib/offroady/trails';
 
@@ -28,6 +29,13 @@ export default async function PlanTripPage({
             <p className="mt-4 max-w-2xl text-lg leading-8 text-white/90">
               Pick a date, review the trail fit, and generate a shareable invite for the people you want on the trip.
             </p>
+            {trail.latitude && trail.longitude ? (
+              <div className="mt-5 inline-flex flex-wrap items-center rounded-full border border-white/25 bg-white/10 px-4 py-2 text-sm text-white/95 backdrop-blur">
+                <span className="font-semibold">Coordinates:</span>
+                <span className="ml-2">{trail.latitude}, {trail.longitude}</span>
+                <CopyCoordinatesButton latitude={trail.latitude} longitude={trail.longitude} />
+              </div>
+            ) : null}
           </div>
         </div>
       </section>

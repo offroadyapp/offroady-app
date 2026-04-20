@@ -1,11 +1,6 @@
-import { randomBytes, scryptSync, timingSafeEqual, createHash } from 'crypto';
-import { cookies } from 'next/headers';
-import { getServiceSupabase } from '@/lib/supabase/server';
+import { getServiceSupabase, getServerAuthSupabase, getServerSupabaseFromCookies } from '@/lib/supabase/server';
 import { slugifyProfile } from '@/lib/offroady/members';
 import { claimInvitesForEmail } from '@/lib/offroady/invites';
-
-const SESSION_COOKIE = 'offroady_session';
-const SESSION_TTL_DAYS = 30;
 
 export type AuthIdentityInput = {
   displayName: string;
@@ -23,15 +18,20 @@ export type SessionUser = {
   avatarImage: string | null;
 };
 
-
 type UserRow = {
   id: string;
+  auth_user_id: string | null;
   display_name: string;
   email: string;
   phone: string | null;
   profile_slug: string | null;
   avatar_image: string | null;
-  password_hash?: string | null;
+};
+
+type SupabaseSession = {
+  access_token: string;
+  refresh_token: string;
+  expires_in?: number;
 };
 
 type SessionCookieResponse = {
@@ -41,7 +41,8 @@ type SessionCookieResponse = {
       sameSite: 'lax';
       secure: boolean;
       path: string;
-      expires: Date;
+      expires?: Date;
+      maxAge?: number;
     }) => void;
   };
 };
@@ -64,26 +65,6 @@ function ensurePassword(password: string) {
   return value;
 }
 
-function hashPassword(password: string) {
-  const salt = randomBytes(16).toString('hex');
-  const derived = scryptSync(password, salt, 64).toString('hex');
-  return `${salt}:${derived}`;
-}
-
-function verifyPassword(password: string, storedHash: string | null | undefined) {
-  if (!storedHash) return false;
-  const [salt, originalHash] = storedHash.split(':');
-  if (!salt || !originalHash) return false;
-  const candidate = scryptSync(password, salt, 64);
-  const expected = Buffer.from(originalHash, 'hex');
-  if (candidate.length !== expected.length) return false;
-  return timingSafeEqual(candidate, expected);
-}
-
-function hashSessionToken(token: string) {
-  return createHash('sha256').update(token).digest('hex');
-}
-
 function mapUser(data: UserRow): SessionUser {
   return {
     id: data.id,
@@ -95,151 +76,273 @@ function mapUser(data: UserRow): SessionUser {
   };
 }
 
-async function createSession(userId: string) {
+async function resolveProfileSlug(input: {
+  authUserId: string;
+  displayName: string;
+  existingProfileId?: string;
+}) {
   const supabase = getServiceSupabase();
-  const token = randomBytes(32).toString('hex');
-  const tokenHash = hashSessionToken(token);
-  const expiresAt = new Date(Date.now() + SESSION_TTL_DAYS * 24 * 60 * 60 * 1000).toISOString();
+  const baseSlug = slugifyProfile(input.displayName) || `member-${input.authUserId.slice(0, 8)}`;
 
-  const { error } = await supabase.from('user_sessions').insert({
-    user_id: userId,
-    session_token_hash: tokenHash,
-    expires_at: expiresAt,
-  });
-
-  if (error) throw error;
-  return { token, expiresAt };
-}
-
-export async function createAccount(input: AuthIdentityInput) {
-  const supabase = getServiceSupabase();
-  const displayName = ensureText(input.displayName, 'Display name', 50);
-  const email = ensureText(normalizeEmail(input.email), 'Email', 160);
-  const phone = input.phone?.trim() || null;
-  const password = ensurePassword(input.password);
-  const profileSlug = slugifyProfile(displayName);
-  const passwordHash = hashPassword(password);
-
-  const { data: existing, error: existingError } = await supabase
+  const { data: conflict, error } = await supabase
     .from('users')
-    .select('id, display_name, email, phone, profile_slug, avatar_image, password_hash')
-    .ilike('email', email)
+    .select('id')
+    .eq('profile_slug', baseSlug)
     .maybeSingle();
 
-  if (existingError) throw existingError;
+  if (error) throw error;
+  if (!conflict || conflict.id === input.existingProfileId) return baseSlug;
 
-  let user;
-  if (existing) {
-    if (existing.password_hash) {
-      throw new Error('An account with this email already exists. Please log in.');
-    }
+  return `${baseSlug}-${input.authUserId.slice(0, 8)}`;
+}
+
+async function upsertProfileForAuthUser(input: {
+  authUserId: string;
+  displayName: string;
+  email: string;
+  phone?: string | null;
+}) {
+  const supabase = getServiceSupabase();
+
+  const { data: existingByAuth, error: existingByAuthError } = await supabase
+    .from('users')
+    .select('id, auth_user_id, display_name, email, phone, profile_slug, avatar_image')
+    .eq('auth_user_id', input.authUserId)
+    .maybeSingle();
+
+  if (existingByAuthError) throw existingByAuthError;
+
+  if (existingByAuth) {
+    const profileSlug = await resolveProfileSlug({
+      authUserId: input.authUserId,
+      displayName: input.displayName,
+      existingProfileId: existingByAuth.id,
+    });
 
     const { data, error } = await supabase
       .from('users')
       .update({
-        display_name: displayName,
-        email,
-        phone,
+        display_name: input.displayName,
+        email: input.email,
+        phone: input.phone || null,
         profile_slug: profileSlug,
-        password_hash: passwordHash,
         updated_at: new Date().toISOString(),
       })
-      .eq('id', existing.id)
-      .select('id, display_name, email, phone, profile_slug, avatar_image')
+      .eq('id', existingByAuth.id)
+      .select('id, auth_user_id, display_name, email, phone, profile_slug, avatar_image')
       .single();
 
     if (error) throw error;
-    user = data;
-  } else {
-    const { data, error } = await supabase
-      .from('users')
-      .insert({
-        display_name: displayName,
-        email,
-        phone,
-        profile_slug: profileSlug,
-        password_hash: passwordHash,
-      })
-      .select('id, display_name, email, phone, profile_slug, avatar_image')
-      .single();
-
-    if (error) throw error;
-    user = data;
+    return mapUser(data as UserRow);
   }
 
-  await claimInvitesForEmail(email, user.id);
-  const session = await createSession(user.id);
-  return { user: mapUser(user), session };
+  const { data: existingByEmail, error: existingByEmailError } = await supabase
+    .from('users')
+    .select('id, auth_user_id, display_name, email, phone, profile_slug, avatar_image')
+    .ilike('email', input.email)
+    .maybeSingle();
+
+  if (existingByEmailError) throw existingByEmailError;
+
+  if (existingByEmail) {
+    const profileSlug = await resolveProfileSlug({
+      authUserId: input.authUserId,
+      displayName: input.displayName,
+      existingProfileId: existingByEmail.id,
+    });
+
+    const { data, error } = await supabase
+      .from('users')
+      .update({
+        auth_user_id: input.authUserId,
+        display_name: input.displayName,
+        email: input.email,
+        phone: input.phone || null,
+        profile_slug: profileSlug,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', existingByEmail.id)
+      .select('id, auth_user_id, display_name, email, phone, profile_slug, avatar_image')
+      .single();
+
+    if (error) throw error;
+    return mapUser(data as UserRow);
+  }
+
+  const profileSlug = await resolveProfileSlug({
+    authUserId: input.authUserId,
+    displayName: input.displayName,
+  });
+
+  const { data, error } = await supabase
+    .from('users')
+    .insert({
+      auth_user_id: input.authUserId,
+      display_name: input.displayName,
+      email: input.email,
+      phone: input.phone || null,
+      profile_slug: profileSlug,
+    })
+    .select('id, auth_user_id, display_name, email, phone, profile_slug, avatar_image')
+    .single();
+
+  if (error) throw error;
+  return mapUser(data as UserRow);
 }
 
-export async function loginAccount(emailInput: string, passwordInput: string) {
+async function getProfileForAuthUser(authUserId: string, fallback?: { email?: string | null; displayName?: string | null }) {
   const supabase = getServiceSupabase();
-  const email = ensureText(normalizeEmail(emailInput), 'Email', 160);
-  const password = ensurePassword(passwordInput);
-
-  const { data: user, error } = await supabase
+  const { data: existing, error } = await supabase
     .from('users')
-    .select('id, display_name, email, phone, profile_slug, avatar_image, password_hash')
-    .ilike('email', email)
+    .select('id, auth_user_id, display_name, email, phone, profile_slug, avatar_image')
+    .eq('auth_user_id', authUserId)
     .maybeSingle();
 
   if (error) throw error;
-  if (!user || !verifyPassword(password, user.password_hash)) {
-    throw new Error('Invalid email or password');
+  if (existing) return mapUser(existing as UserRow);
+
+  if (!fallback?.email) {
+    throw new Error('No profile found for authenticated user');
   }
 
-  await claimInvitesForEmail(user.email, user.id);
-  const session = await createSession(user.id);
+  return upsertProfileForAuthUser({
+    authUserId,
+    displayName: fallback.displayName?.trim() || fallback.email.split('@')[0],
+    email: fallback.email,
+    phone: null,
+  });
+}
+
+async function createConfirmedAuthUser(input: {
+  displayName: string;
+  email: string;
+  phone: string | null;
+  password: string;
+}) {
+  const supabase = getServiceSupabase();
+
+  const { data, error } = await supabase.auth.admin.createUser({
+    email: input.email,
+    password: input.password,
+    email_confirm: true,
+    user_metadata: {
+      display_name: input.displayName,
+      phone: input.phone,
+    },
+  });
+
+  if (error) throw error;
+  if (!data.user) throw new Error('Failed to create auth user');
+  return data.user;
+}
+
+export async function createAccount(input: AuthIdentityInput) {
+  const authSupabase = getServerAuthSupabase();
+  const displayName = ensureText(input.displayName, 'Display name', 50);
+  const email = ensureText(normalizeEmail(input.email), 'Email', 160);
+  const phone = input.phone?.trim() || null;
+  const password = ensurePassword(input.password);
+
+  const authUser = await createConfirmedAuthUser({
+    displayName,
+    email,
+    phone,
+    password,
+  });
+
+  const { data: signInData, error: signInError } = await authSupabase.auth.signInWithPassword({
+    email,
+    password,
+  });
+
+  if (signInError) throw signInError;
+  if (!signInData.user || !signInData.session) throw new Error('Failed to establish session');
+
+  const profile = await upsertProfileForAuthUser({
+    authUserId: authUser.id,
+    displayName,
+    email,
+    phone,
+  });
+
+  await claimInvitesForEmail(email, profile.id);
+
+  return { user: profile, session: signInData.session };
+}
+
+export async function loginAccount(emailInput: string, passwordInput: string) {
+  const authSupabase = getServerAuthSupabase();
+  const email = ensureText(normalizeEmail(emailInput), 'Email', 160);
+  const password = ensurePassword(passwordInput);
+
+  const { data, error } = await authSupabase.auth.signInWithPassword({ email, password });
+  if (error) throw error;
+  if (!data.user || !data.session) throw new Error('Invalid email or password');
+
+  const metadata = data.user.user_metadata || {};
+  const profile = await getProfileForAuthUser(data.user.id, {
+    email: data.user.email,
+    displayName: typeof metadata.display_name === 'string' ? metadata.display_name : null,
+  });
+
+  await claimInvitesForEmail(profile.email, profile.id);
+
   return {
-    user: mapUser(user),
-    session,
+    user: profile,
+    session: data.session,
   };
 }
 
 export async function getSessionUser() {
-  const cookieStore = await cookies();
-  const token = cookieStore.get(SESSION_COOKIE)?.value;
-  if (!token) return null;
+  const supabase = await getServerSupabaseFromCookies();
+  const { data, error } = await supabase.auth.getUser();
+  if (error || !data.user) return null;
 
-  const tokenHash = hashSessionToken(token);
-  const supabase = getServiceSupabase();
-  const now = new Date().toISOString();
-
-  const { data: session, error: sessionError } = await supabase
-    .from('user_sessions')
-    .select('id, user_id, expires_at')
-    .eq('session_token_hash', tokenHash)
-    .gt('expires_at', now)
-    .maybeSingle();
-
-  if (sessionError || !session) return null;
-
-  const { data: user, error: userError } = await supabase
-    .from('users')
-    .select('id, display_name, email, phone, profile_slug, avatar_image')
-    .eq('id', session.user_id)
-    .maybeSingle();
-
-  if (userError || !user) return null;
-  return mapUser(user);
-}
-
-export function attachSessionCookie(response: SessionCookieResponse, token: string, expiresAt: string) {
-  response.cookies.set(SESSION_COOKIE, token, {
-    httpOnly: true,
-    sameSite: 'lax',
-    secure: process.env.NODE_ENV === 'production',
-    path: '/',
-    expires: new Date(expiresAt),
+  const metadata = data.user.user_metadata || {};
+  return getProfileForAuthUser(data.user.id, {
+    email: data.user.email,
+    displayName: typeof metadata.display_name === 'string' ? metadata.display_name : null,
   });
 }
 
-export async function clearSession(token?: string | null) {
-  if (!token) return;
-  const supabase = getServiceSupabase();
-  await supabase.from('user_sessions').delete().eq('session_token_hash', hashSessionToken(token));
+export function attachSessionCookie(response: SessionCookieResponse, session: SupabaseSession) {
+  const secure = process.env.NODE_ENV === 'production';
+  const maxAge = session.expires_in ?? 60 * 60;
+  response.cookies.set('sb-access-token', session.access_token, {
+    httpOnly: true,
+    sameSite: 'lax',
+    secure,
+    path: '/',
+    maxAge,
+  });
+  response.cookies.set('sb-refresh-token', session.refresh_token, {
+    httpOnly: true,
+    sameSite: 'lax',
+    secure,
+    path: '/',
+    maxAge: 60 * 60 * 24 * 30,
+  });
 }
 
-export function getSessionCookieName() {
-  return SESSION_COOKIE;
+export async function clearSession() {
+  const supabase = await getServerSupabaseFromCookies();
+  await supabase.auth.signOut();
+}
+
+export function clearAuthCookies(response: SessionCookieResponse) {
+  const secure = process.env.NODE_ENV === 'production';
+  response.cookies.set('sb-access-token', '', {
+    httpOnly: true,
+    sameSite: 'lax',
+    secure,
+    path: '/',
+    expires: new Date(0),
+  });
+  response.cookies.set('sb-refresh-token', '', {
+    httpOnly: true,
+    sameSite: 'lax',
+    secure,
+    path: '/',
+    expires: new Date(0),
+  });
 }

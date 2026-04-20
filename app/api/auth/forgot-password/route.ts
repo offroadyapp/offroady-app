@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { getServiceSupabase } from '@/lib/supabase/server';
+import { getServerAuthSupabase } from '@/lib/supabase/server';
 
 export async function POST(request: Request) {
   try {
@@ -10,13 +10,9 @@ export async function POST(request: Request) {
     }
 
     const baseUrl = new URL(request.url).origin;
-    const supabase = getServiceSupabase();
-    const { error } = await supabase.auth.admin.generateLink({
-      type: 'recovery',
-      email,
-      options: {
-        redirectTo: `${baseUrl}/reset-password/confirm`,
-      },
+    const supabase = getServerAuthSupabase();
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${baseUrl}/reset-password/confirm`,
     });
 
     if (error) throw error;

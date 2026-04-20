@@ -23,6 +23,7 @@ create table if not exists public.users (
   id uuid primary key default gen_random_uuid(),
   email text not null,
   phone text,
+  auth_user_id uuid unique,
   display_name text not null,
   profile_slug text,
   bio text,
@@ -42,6 +43,7 @@ create table if not exists public.users (
 
 alter table public.users add column if not exists email text;
 alter table public.users add column if not exists phone text;
+alter table public.users add column if not exists auth_user_id uuid;
 alter table public.users add column if not exists display_name text;
 alter table public.users add column if not exists profile_slug text;
 alter table public.users add column if not exists bio text;
@@ -59,6 +61,7 @@ alter table public.users add column if not exists created_at timestamptz not nul
 alter table public.users add column if not exists updated_at timestamptz not null default now();
 
 create unique index if not exists idx_users_email_lower_unique on public.users (lower(email));
+create unique index if not exists idx_users_auth_user_id_unique on public.users (auth_user_id) where auth_user_id is not null;
 create unique index if not exists idx_users_profile_slug_unique on public.users (profile_slug) where profile_slug is not null;
 create index if not exists idx_users_display_name on public.users (display_name);
 

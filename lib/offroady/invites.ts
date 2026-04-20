@@ -92,6 +92,14 @@ function normalizeEmail(email: string) {
   return email.trim().toLowerCase();
 }
 
+function isMissingInviteSchemaError(error: unknown) {
+  if (!error || typeof error !== 'object') return false;
+  const maybe = error as { code?: string; message?: string };
+  return maybe.code === 'PGRST205'
+    || maybe.message?.includes("public.trip_invites")
+    || maybe.message?.includes("public.trip_plans");
+}
+
 function ensureText(value: string, field: string, max = 120) {
   const trimmed = value.trim();
   if (!trimmed) throw new Error(`${field} is required`);
@@ -361,7 +369,10 @@ export async function claimInvitesForEmail(email: string, userId: string) {
     .eq('invited_email', normalizedEmail)
     .eq('status', 'pending');
 
-  if (invitesError) throw invitesError;
+  if (invitesError) {
+    if (isMissingInviteSchemaError(invitesError)) return 0;
+    throw invitesError;
+  }
   if (!invites?.length) return 0;
 
   const inviteIds = invites.map((invite) => invite.id);
@@ -372,7 +383,10 @@ export async function claimInvitesForEmail(email: string, userId: string) {
     .select('*')
     .in('id', tripPlanIds);
 
-  if (plansError) throw plansError;
+  if (plansError) {
+    if (isMissingInviteSchemaError(plansError)) return 0;
+    throw plansError;
+  }
 
   const { error: updateError } = await supabase
     .from('trip_invites')
@@ -384,7 +398,10 @@ export async function claimInvitesForEmail(email: string, userId: string) {
     })
     .in('id', inviteIds);
 
-  if (updateError) throw updateError;
+  if (updateError) {
+    if (isMissingInviteSchemaError(updateError)) return 0;
+    throw updateError;
+  }
 
   await attachClaimedTrailParticipants(invites as TripInviteRow[], (plans ?? []) as TripPlanRow[], userId);
   return inviteIds.length;

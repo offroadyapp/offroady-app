@@ -1,3 +1,4 @@
+import { cookies } from 'next/headers';
 import { createClient } from '@supabase/supabase-js';
 
 function getEnv(name: string) {
@@ -19,4 +20,38 @@ export function getServiceSupabase() {
       },
     }
   );
+}
+
+export function getServerAuthSupabase() {
+  return createClient(
+    getEnv('NEXT_PUBLIC_SUPABASE_URL'),
+    getEnv('NEXT_PUBLIC_SUPABASE_ANON_KEY'),
+    {
+      auth: {
+        autoRefreshToken: false,
+        persistSession: false,
+      },
+    }
+  );
+}
+
+export async function getServerSupabaseFromCookies() {
+  const cookieStore = await cookies();
+  const accessToken = cookieStore.get('sb-access-token')?.value;
+  const refreshToken = cookieStore.get('sb-refresh-token')?.value;
+
+  const supabase = getServerAuthSupabase();
+
+  if (accessToken && refreshToken) {
+    const { error } = await supabase.auth.setSession({
+      access_token: accessToken,
+      refresh_token: refreshToken,
+    });
+
+    if (error) {
+      return supabase;
+    }
+  }
+
+  return supabase;
 }

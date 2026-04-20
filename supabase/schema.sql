@@ -357,7 +357,8 @@ before update on public.comments
 for each row execute function public.set_updated_at();
 
 -- SIMPLE VIEWS FOR UI
-create or replace view public.trail_participant_counts as
+create or replace view public.trail_participant_counts
+with (security_invoker = on) as
 select
   t.id as trail_id,
   count(tp.id)::int as participant_count
@@ -365,7 +366,8 @@ from public.trails t
 left join public.trail_participants tp on tp.trail_id = t.id
 group by t.id;
 
-create or replace view public.trail_public_participants as
+create or replace view public.trail_public_participants
+with (security_invoker = on) as
 select
   tp.trail_id,
   u.id as user_id,
@@ -376,7 +378,8 @@ from public.trail_participants tp
 join public.users u on u.id = tp.user_id
 order by tp.joined_at asc;
 
-create or replace view public.trail_public_comments as
+create or replace view public.trail_public_comments
+with (security_invoker = on) as
 select
   c.id,
   c.trail_id,

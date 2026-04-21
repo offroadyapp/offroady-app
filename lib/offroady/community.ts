@@ -12,6 +12,15 @@ export type IdentityInput = {
 export type CommunitySnapshot = {
   dbReady: boolean;
   trail: LocalTrail | DbTrail | null;
+  trips: Array<{
+    id: string;
+    date: string;
+    meetupArea: string;
+    departureTime: string;
+    tripNote: string | null;
+    shareName: string;
+    createdAt: string;
+  }>;
   participants: Array<{ displayName: string; profileSlug: string; role: string; joinedAt: string }>;
   crews: Array<{
     id: string;
@@ -257,11 +266,33 @@ export async function getCommunitySnapshot(slug?: string): Promise<CommunitySnap
       return {
         dbReady: false,
         trail: localTrail,
+        trips: [],
         participants: [],
         crews: [],
         comments: [],
       };
     }
+
+    const today = new Date().toISOString().slice(0, 10);
+    const { data: tripRows, error: tripError } = await supabase
+      .from('trip_plans')
+      .select('id, date, meetup_area, departure_time, trip_note, share_name, created_at')
+      .eq('trail_slug', dbTrail.slug)
+      .gte('date', today)
+      .order('date', { ascending: true })
+      .order('created_at', { ascending: true });
+
+    if (tripError) throw tripError;
+
+    const trips = (tripRows ?? []).map((trip) => ({
+      id: trip.id,
+      date: trip.date,
+      meetupArea: trip.meetup_area,
+      departureTime: trip.departure_time,
+      tripNote: trip.trip_note,
+      shareName: trip.share_name,
+      createdAt: trip.created_at,
+    }));
 
     const { data: participantRows, error: participantError } = await supabase
       .from('trail_participants')
@@ -352,6 +383,7 @@ export async function getCommunitySnapshot(slug?: string): Promise<CommunitySnap
     return {
       dbReady: true,
       trail: dbTrail,
+      trips,
       participants,
       crews,
       comments,
@@ -360,6 +392,7 @@ export async function getCommunitySnapshot(slug?: string): Promise<CommunitySnap
     return {
       dbReady: false,
       trail: localTrail,
+      trips: [],
       participants: [],
       crews: [],
       comments: [],

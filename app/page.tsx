@@ -101,6 +101,7 @@ export default async function Home() {
   const favoriteTrailSlugs = viewer ? await getFavoriteTrailSlugs(viewer.id) : [];
   const snapshot = await getCommunitySnapshot(localTrail.slug);
   const trail = snapshot.trail ?? localTrail;
+  const hasPlannedTrips = snapshot.trips.length > 0;
   const featuredTrail = {
     title: 'Cheam Lookout',
     latitude: 49.15836869814306,
@@ -140,13 +141,13 @@ export default async function Home() {
               <h1 className="text-4xl font-bold leading-tight tracking-tight sm:text-5xl lg:text-6xl">
                 Pick a trail.
                 <br />
-                Build a crew.
+                Plan a trip.
               </h1>
               <p className="mt-5 max-w-xl text-lg leading-8 text-white/90">
-                Discover a featured BC trail, see who else is in, and decide whether you want updates, a crew, or just a good reason to get out this weekend.
+                Discover a featured BC trail, see whether a trip is already forming, and either join that date or put a new one on the calendar.
               </p>
               <div className="mt-8 flex flex-wrap gap-3">
-                <a href="#featured" className="rounded-lg bg-[#f4f6f3] px-5 py-3 font-semibold text-[#1f3f27] shadow-sm ring-1 ring-white/40 transition hover:bg-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white active:bg-[#dfe8df]">
+                <a href="#featured" className="rounded-lg bg-[#1f5a36] px-5 py-3 font-semibold text-white shadow-lg ring-1 ring-[#2f7a4d]/70 transition hover:bg-[#18482b] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white active:bg-[#143b23]">
                   Trail of the Week
                 </a>
                 <a href="#more-trails" className="rounded-lg border border-white/70 px-5 py-3 font-medium text-white transition hover:bg-white/10">
@@ -200,18 +201,26 @@ export default async function Home() {
 
                 <div className="mt-6 flex flex-wrap gap-3">
                   <a
+                    href={viewer ? '#trail-trips' : '#member-access'}
+                    className="rounded-lg bg-[#2f5d3a] px-4 py-2.5 font-semibold text-white transition hover:bg-[#264d30]"
+                  >
+                    {hasPlannedTrips ? (viewer ? 'Join a Trip' : 'Log in to join a trip') : (viewer ? 'Plan a Trip' : 'Log in to plan a trip')}
+                  </a>
+                  {hasPlannedTrips ? (
+                    <a
+                      href={viewer ? `/plan/${trail.slug}` : '#member-access'}
+                      className="rounded-lg border border-gray-300 px-4 py-2.5 font-semibold text-gray-800 transition hover:bg-gray-50"
+                    >
+                      {viewer ? 'Plan Another Trip' : 'Log in to plan another trip'}
+                    </a>
+                  ) : null}
+                  <a
                     href={`https://www.google.com/maps?q=${featuredTrail.latitude},${featuredTrail.longitude}`}
                     target="_blank"
                     rel="noreferrer"
-                    className="rounded-lg bg-[#2f5d3a] px-4 py-2.5 font-semibold text-white transition hover:bg-[#264d30]"
-                  >
-                    View on Map
-                  </a>
-                  <a
-                    href={viewer ? '#join-trail' : '#member-access'}
                     className="rounded-lg border border-gray-300 px-4 py-2.5 font-semibold text-gray-800 transition hover:bg-gray-50"
                   >
-                    {viewer ? 'Join trail' : 'Log in to join trail'}
+                    View on Map
                   </a>
                   {viewer ? (
                     <FavoriteTrailButton
@@ -242,7 +251,7 @@ export default async function Home() {
                 <p className="text-sm font-semibold uppercase tracking-[0.16em] text-[#9dc2a2]">How it works</p>
                 <h2 className="mt-3 text-3xl font-bold tracking-tight">Make weekend trail plans without the forum mess.</h2>
                 <p className="mt-4 max-w-xl leading-7 text-white/80">
-                  Offroady keeps it simple: find a trail, see who is interested, start a small crew if you want, and leave useful notes under the route.
+                  Offroady keeps it simple: find a trail, join an upcoming trip or plan one, and only spin up a crew later if the same people keep riding together.
                 </p>
               </div>
             </div>

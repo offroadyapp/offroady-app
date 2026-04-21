@@ -25,12 +25,20 @@ const emptyIdentity: Identity = {
   phone: '',
 };
 
-function formatDate(value: string) {
+function formatTimestamp(value: string) {
   return new Date(value).toLocaleString('en-CA', {
     month: 'short',
     day: 'numeric',
     hour: 'numeric',
     minute: '2-digit',
+  });
+}
+
+function formatTripDate(value: string) {
+  return new Date(`${value}T12:00:00`).toLocaleDateString('en-CA', {
+    weekday: 'short',
+    month: 'short',
+    day: 'numeric',
   });
 }
 
@@ -79,6 +87,7 @@ export default function TrailCommunityClient({ trailSlug, trailTitle, initialSna
     () => community.participants.map((participant) => participant.displayName).join(' · '),
     [community.participants]
   );
+  const hasPlannedTrips = community.trips.length > 0;
 
   function updateIdentity<K extends keyof Identity>(key: K, value: Identity[K]) {
     setIdentity((current) => ({ ...current, [key]: value }));
@@ -336,22 +345,85 @@ export default function TrailCommunityClient({ trailSlug, trailTitle, initialSna
             )}
           </div>
 
-          <div id="join-trail" className="rounded-2xl border border-black/8 bg-white p-6 shadow-sm">
-            <p className="text-sm font-semibold uppercase tracking-[0.16em] text-[#5d7d61]">Join trail</p>
-            <h3 className="mt-2 text-2xl font-bold text-[#243126]">Join {trailTitle}</h3>
+          <div id="trail-trips" className="rounded-2xl border border-black/8 bg-white p-6 shadow-sm">
+            <p className="text-sm font-semibold uppercase tracking-[0.16em] text-[#5d7d61]">Trips</p>
+            <h3 className="mt-2 text-2xl font-bold text-[#243126]">
+              {hasPlannedTrips ? `Join a trip on ${trailTitle}` : `Be the first to plan ${trailTitle}`}
+            </h3>
             <p className="mt-3 text-sm leading-6 text-gray-600">
-              Want to go on this run? Add your name here so others can see who is interested. Your display name is public; your email and phone stay private.
+              {hasPlannedTrips
+                ? 'Pick an upcoming date if one already works for you, or add a new outing if you want a different plan.'
+                : 'No upcoming trips are on the board yet, so the clearest next step is to plan one.'}
             </p>
 
-            <div className="mt-5 rounded-xl bg-[#f7faf6] p-4 text-sm text-gray-700">
-              <div className="text-base font-semibold text-[#243126]">
-                {community.participants.length} people joined
+            {hasPlannedTrips ? (
+              <div className="mt-5 space-y-3">
+                {community.trips.map((trip) => (
+                  <div key={trip.id} className="rounded-xl border border-black/8 bg-[#f8faf8] p-4">
+                    <div className="flex flex-wrap items-start justify-between gap-3">
+                      <div>
+                        <div className="text-base font-semibold text-[#243126]">{formatTripDate(trip.date)}</div>
+                        <div className="mt-1 text-sm text-gray-600">
+                          Meetup: {trip.meetupArea} · Depart {trip.departureTime}
+                        </div>
+                        <div className="mt-1 text-sm text-gray-500">Planned by {trip.shareName}</div>
+                      </div>
+                      <Link
+                        href={viewer ? `/plan/${trailSlug}` : '/#member-access'}
+                        className="inline-flex rounded-lg bg-[#2f5d3a] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#264d30]"
+                      >
+                        {viewer ? 'Join a Trip' : 'Log in to join a trip'}
+                      </Link>
+                    </div>
+                    {trip.tripNote ? <p className="mt-3 text-sm leading-6 text-gray-600">{trip.tripNote}</p> : null}
+                  </div>
+                ))}
               </div>
-              <p className="mt-1 text-gray-600">{joinedNames || 'Be the first one in.'}</p>
+            ) : (
+              <div className="mt-5 rounded-xl border border-dashed border-[#b8cbb8] bg-[#f7faf6] p-4 text-sm leading-6 text-gray-600">
+                No upcoming trips yet. Once somebody puts a date on the calendar, this section flips to a trip-join flow.
+              </div>
+            )}
+
+            <div className="mt-5 flex flex-wrap gap-3">
+              <Link
+                href={viewer ? `/plan/${trailSlug}` : '/#member-access'}
+                className="inline-flex rounded-lg bg-[#2f5d3a] px-5 py-3 font-semibold text-white transition hover:bg-[#264d30]"
+              >
+                {hasPlannedTrips
+                  ? viewer
+                    ? 'Plan Another Trip'
+                    : 'Log in to plan another trip'
+                  : viewer
+                    ? 'Plan a Trip'
+                    : 'Log in to plan a trip'}
+              </Link>
+              {hasPlannedTrips ? (
+                <a
+                  href="#trip-interest"
+                  className="inline-flex rounded-lg border border-gray-300 px-5 py-3 font-semibold text-gray-800 transition hover:bg-gray-50"
+                >
+                  Raise your hand for these dates
+                </a>
+              ) : null}
+            </div>
+
+            <div id="trip-interest" className="mt-5 rounded-xl bg-[#f7faf6] p-4 text-sm text-gray-700">
+              <div className="text-base font-semibold text-[#243126]">
+                {community.participants.length} rider{community.participants.length === 1 ? '' : 's'} interested
+              </div>
+              <p className="mt-1 text-gray-600">
+                {joinedNames || 'No one has raised a hand yet.'}
+              </p>
             </div>
 
             {viewer ? (
               <form onSubmit={handleJoin} className="mt-5 space-y-3">
+                <div className="text-sm leading-6 text-gray-600">
+                  {hasPlannedTrips
+                    ? 'See a date you like? Add yourself to the ride list so organizers can spot demand while the deeper trip-member flow catches up.'
+                    : 'Not ready to host yet? Add yourself to the ride list so others can see there is interest.'}
+                </div>
                 <input
                   value={identity.displayName}
                   onChange={(event) => updateIdentity('displayName', event.target.value)}
@@ -375,14 +447,14 @@ export default function TrailCommunityClient({ trailSlug, trailTitle, initialSna
                 <button
                   type="submit"
                   disabled={joinLoading}
-                  className="w-full rounded-lg bg-[#2f5d3a] py-3 font-semibold text-white transition hover:bg-[#264d30] disabled:cursor-not-allowed disabled:opacity-70"
+                  className="w-full rounded-lg border border-[#2f5d3a] px-4 py-3 font-semibold text-[#2f5d3a] transition hover:bg-[#f2f5f1] disabled:cursor-not-allowed disabled:opacity-70"
                 >
-                  {joinLoading ? 'Joining...' : 'Join this trail'}
+                  {joinLoading ? 'Saving...' : hasPlannedTrips ? 'I am interested in joining' : 'I want to go if someone plans it'}
                 </button>
               </form>
             ) : (
               <div className="mt-5 rounded-xl border border-black/8 bg-[#f7faf6] p-4 text-sm leading-6 text-gray-600">
-                Joining a trail is member-only. <Link href="/#member-access" className="font-semibold text-[#2f5d3a]">Sign up or log in</Link> first, then come back and claim your spot.
+                Trip planning and trip interest are member-only. <Link href="/#member-access" className="font-semibold text-[#2f5d3a]">Sign up or log in</Link> first, then come back to join a trip or plan one.
               </div>
             )}
           </div>
@@ -391,10 +463,14 @@ export default function TrailCommunityClient({ trailSlug, trailTitle, initialSna
         <div className="space-y-6">
           <div className="rounded-2xl border border-black/8 bg-white p-6 shadow-sm">
             <p className="text-sm font-semibold uppercase tracking-[0.16em] text-[#5d7d61]">Crews</p>
-            <h3 className="mt-2 text-2xl font-bold text-[#243126]">Start a crew</h3>
+            <h3 className="mt-2 text-2xl font-bold text-[#243126]">Ride often with the same people?</h3>
             <p className="mt-3 text-sm leading-6 text-gray-600">
-              Want to lead a smaller group for this trail? Name your crew, add a short plan, and let others see who is organizing.
+              Crews live one layer below trips. Use them for recurring riding circles after you already know who you like heading out with.
             </p>
+            <div className="mt-5 rounded-xl border border-[#d7e4d7] bg-[#f7faf6] p-4 text-sm leading-6 text-gray-600">
+              Best moment to start one: after a few trips together, or when your usual group wants a shared home base.
+            </div>
+            <div className="mt-5 text-sm font-semibold text-[#2f5d3a]">Start a crew only if this is becoming a repeat group.</div>
             {viewer ? (
               <form onSubmit={handleCrew} className="mt-5 space-y-3">
                 <input
@@ -435,7 +511,7 @@ export default function TrailCommunityClient({ trailSlug, trailTitle, initialSna
                           Started by {crew.createdByDisplayName} · {crew.memberCount} member{crew.memberCount === 1 ? '' : 's'}
                         </div>
                       </div>
-                      <div className="text-xs text-gray-500">{formatDate(crew.createdAt)}</div>
+                      <div className="text-xs text-gray-500">{formatTimestamp(crew.createdAt)}</div>
                     </div>
                     {crew.description ? <p className="mt-2 text-sm text-gray-600">{crew.description}</p> : null}
                   </div>
@@ -481,7 +557,7 @@ export default function TrailCommunityClient({ trailSlug, trailTitle, initialSna
                   <div key={item.id} className="rounded-xl border border-black/8 bg-[#f8faf8] p-4">
                     <div className="flex items-center justify-between gap-3">
                       <div className="font-semibold text-[#243126]">{item.displayName}</div>
-                      <div className="text-xs text-gray-500">{formatDate(item.createdAt)}</div>
+                      <div className="text-xs text-gray-500">{formatTimestamp(item.createdAt)}</div>
                     </div>
                     <p className="mt-2 text-sm leading-6 text-gray-700">{item.content}</p>
                   </div>

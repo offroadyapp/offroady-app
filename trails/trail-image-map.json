@@ -1,0 +1,184 @@
+{
+  "mamquam-river-fsr": {
+    "cardImage": "/images/trails/mamquam-river-fsr.webp",
+    "imageKind": "trail-context",
+    "locationContext": "Mamquam River valley, Squamish",
+    "notes": "Stored generated image based on the specific trail corridor and region context.",
+    "needsBetterSource": false
+  },
+  "indian-river-fsr-turnoff-from-mamquam": {
+    "cardImage": "/images/trails/indian-river-fsr-turnoff-from-mamquam.webp",
+    "imageKind": "trail-context",
+    "locationContext": "Indian River turnoff, Squamish backroads",
+    "notes": "Stored generated image based on the specific trail corridor and region context.",
+    "needsBetterSource": false
+  },
+  "squamish-valley-fsr": {
+    "cardImage": "/images/trails/squamish-valley-fsr.webp",
+    "imageKind": "trail-context",
+    "locationContext": "Squamish Valley FSR",
+    "notes": "Stored generated image based on the specific trail corridor and region context.",
+    "needsBetterSource": false
+  },
+  "ashlu-river-fsr": {
+    "cardImage": "/images/trails/ashlu-river-fsr.webp",
+    "imageKind": "trail-context",
+    "locationContext": "Ashlu River corridor, Squamish",
+    "notes": "Stored generated image based on the specific trail corridor and region context.",
+    "needsBetterSource": false
+  },
+  "harrison-east-fsr": {
+    "cardImage": "/images/trails/harrison-east-fsr.webp",
+    "imageKind": "trail-context",
+    "locationContext": "Harrison East lakeside road",
+    "notes": "Stored generated image based on the specific trail corridor and region context.",
+    "needsBetterSource": false
+  },
+  "west-harrison-stsailes-west-fsr-approach": {
+    "cardImage": "/images/trails/west-harrison-stsailes-west-fsr-approach.webp",
+    "imageKind": "trail-context",
+    "locationContext": "West Harrison lakeshore route",
+    "notes": "Stored generated image based on the specific trail corridor and region context.",
+    "needsBetterSource": false
+  },
+  "norrish-creek-fsr": {
+    "cardImage": "/images/trails/norrish-creek-fsr.webp",
+    "imageKind": "trail-context",
+    "locationContext": "Norrish Creek valley, Mission",
+    "notes": "Stored generated image based on the specific trail corridor and region context.",
+    "needsBetterSource": false
+  },
+  "florence-lake-fsr": {
+    "cardImage": "/images/trails/florence-lake-fsr.webp",
+    "imageKind": "trail-context",
+    "locationContext": "Florence Lake and Stave area",
+    "notes": "Stored generated image based on the specific trail corridor and region context.",
+    "needsBetterSource": false
+  },
+  "eagle-mountain-access-area": {
+    "cardImage": "/images/trails/eagle-mountain-access-area.webp",
+    "imageKind": "trail-context",
+    "locationContext": "Eagle Mountain access, Coquitlam",
+    "notes": "Stored generated image based on the specific trail corridor and region context.",
+    "needsBetterSource": false
+  },
+  "jones-lake-route-waypoint": {
+    "cardImage": "/images/trails/jones-lake-route-waypoint.webp",
+    "imageKind": "trail-context",
+    "locationContext": "Jones Lake route, Fraser Valley / Hope",
+    "notes": "Stored generated image based on the specific trail corridor and region context.",
+    "needsBetterSource": false
+  },
+  "kookipi-creek-fsr": {
+    "cardImage": "/images/trails/kookipi-creek-fsr.webp",
+    "imageKind": "trail-context",
+    "locationContext": "Kookipi Creek connector country",
+    "notes": "Stored generated image based on the specific trail corridor and region context.",
+    "needsBetterSource": false
+  },
+  "chehalis-forest-service-road": {
+    "cardImage": "/images/trails/chehalis-forest-service-road.webp",
+    "imageKind": "trail-context",
+    "locationContext": "Chehalis forest valley",
+    "notes": "Stored generated image based on the specific trail corridor and region context.",
+    "needsBetterSource": false
+  },
+  "mystery-creek-fsr-approach": {
+    "cardImage": "/images/trails/mystery-creek-fsr-approach.webp",
+    "imageKind": "trail-context",
+    "locationContext": "Mystery Creek / North Chehalis",
+    "notes": "Stored generated image based on the specific trail corridor and region context.",
+    "needsBetterSource": false
+  },
+  "nahatlatch-fsr": {
+    "cardImage": "/images/trails/nahatlatch-fsr.webp",
+    "imageKind": "trail-context",
+    "locationContext": "Nahatlatch Valley near Boston Bar",
+    "notes": "Stored generated image based on the specific trail corridor and region context.",
+    "needsBetterSource": false
+  },
+  "nahatlatch-fire-lookout-access": {
+    "cardImage": "/images/trails/nahatlatch-fire-lookout-access.webp",
+    "imageKind": "trail-context",
+    "locationContext": "Nahatlatch lookout ridge",
+    "notes": "Stored generated image based on the specific trail corridor and region context.",
+    "needsBetterSource": false
+  },
+  "chipmunk-creek-fsr": {
+    "cardImage": "/images/trails/chipmunk-creek-fsr.webp",
+    "imageKind": "trail-context",
+    "locationContext": "Chipmunk Creek approach, Chilliwack",
+    "notes": "Stored generated image based on the specific trail corridor and region context.",
+    "needsBetterSource": false
+  },
+  "mount-cheam-fsr-access": {
+    "cardImage": "/images/trails/mount-cheam-fsr-access.webp",
+    "imageKind": "trail-context",
+    "locationContext": "Mount Cheam approach road",
+    "notes": "Stored generated image based on the specific trail corridor and region context.",
+    "needsBetterSource": false
+  },
+  "bridal-falls-fsr": {
+    "cardImage": "/images/trails/bridal-falls-fsr.webp",
+    "imageKind": "trail-context",
+    "locationContext": "Bridal Falls forest road area",
+    "notes": "Stored generated image based on the specific trail corridor and region context.",
+    "needsBetterSource": false
+  },
+  "statlu-lake-north-side-trailhead-via-mystery-creek-north-chehalis": {
+    "cardImage": "/images/trails/statlu-lake-north-side-trailhead-via-mystery-creek-north-chehalis.webp",
+    "imageKind": "trail-context",
+    "locationContext": "Statlu Lake north-side approach",
+    "notes": "Stored generated image based on the specific trail corridor and region context.",
+    "needsBetterSource": false
+  },
+  "mount-woodside-forest-service-road": {
+    "cardImage": "/images/trails/mount-woodside-forest-service-road.webp",
+    "imageKind": "trail-context",
+    "locationContext": "Mount Woodside ridge, Harrison Hot Springs",
+    "notes": "Stored generated image based on the specific trail corridor and region context.",
+    "needsBetterSource": false
+  },
+  "whipsaw-creek-forest-service-road": {
+    "cardImage": "/images/trails/whipsaw-creek-forest-service-road.webp",
+    "imageKind": "trail-context",
+    "locationContext": "Whipsaw Creek interior mountain route",
+    "notes": "Stored generated image based on the specific trail corridor and region context.",
+    "needsBetterSource": false
+  },
+  "owl-creek-fsr": {
+    "cardImage": "/images/trails/owl-creek-fsr.webp",
+    "imageKind": "trail-context",
+    "locationContext": "Owl Creek valley, Pemberton side",
+    "notes": "Stored generated image based on the specific trail corridor and region context.",
+    "needsBetterSource": false
+  },
+  "ford-mountain-fsr": {
+    "cardImage": "/images/trails/ford-mountain-fsr.webp",
+    "imageKind": "trail-context",
+    "locationContext": "Ford Mountain, Tamihi / Chilliwack River",
+    "notes": "Stored generated image based on the specific trail corridor and region context.",
+    "needsBetterSource": false
+  },
+  "hale-creek-easy-way-access-area": {
+    "cardImage": "/images/trails/hale-creek-easy-way-access-area.webp",
+    "imageKind": "trail-context",
+    "locationContext": "Hale Creek, West Harrison",
+    "notes": "Stored generated image based on the specific trail corridor and region context.",
+    "needsBetterSource": false
+  },
+  "francis-lake-recreation-site-approach": {
+    "cardImage": "/images/trails/francis-lake-recreation-site-approach.webp",
+    "imageKind": "trail-context",
+    "locationContext": "Francis Lake recreation site approach",
+    "notes": "Stored generated image based on the specific trail corridor and region context.",
+    "needsBetterSource": false
+  },
+  "borden-creek-fsr": {
+    "cardImage": "/images/trails/borden-creek-fsr.webp",
+    "imageKind": "trail-context",
+    "locationContext": "Borden Creek, Tamihi / Chilliwack River",
+    "notes": "Stored generated image based on the specific trail corridor and region context.",
+    "needsBetterSource": false
+  }
+}

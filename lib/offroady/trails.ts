@@ -1,4 +1,5 @@
 import trailsJson from '@/trails/trails.json';
+import trailImageMapJson from '@/trails/trail-image-map.json';
 
 export type LocalTrail = {
   id: string;
@@ -29,7 +30,29 @@ export type LocalTrail = {
   referral_sharing_enabled: boolean;
 };
 
-export const localTrails = trailsJson as LocalTrail[];
+type TrailImageMeta = {
+  cardImage: string;
+  imageKind: 'trail-context' | 'region-fallback';
+  locationContext: string;
+  notes: string;
+  needsBetterSource: boolean;
+};
+
+const trailImageMap = trailImageMapJson as Record<string, TrailImageMeta>;
+
+export const localTrails = (trailsJson as LocalTrail[]).map((trail) => {
+  const imageMeta = trailImageMap[trail.slug];
+  return imageMeta
+    ? {
+        ...trail,
+        card_image: imageMeta.cardImage,
+      }
+    : trail;
+});
+
+export function getTrailImageMeta(slug: string) {
+  return trailImageMap[slug] ?? null;
+}
 export const DEFAULT_FEATURED_TRAIL_SLUG = 'mount-cheam-fsr-access';
 
 export function getLocalFeaturedTrail() {

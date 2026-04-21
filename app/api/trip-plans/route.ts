@@ -44,8 +44,14 @@ export async function POST(request: Request) {
 
     return NextResponse.json(result);
   } catch (error) {
+    const message = error instanceof Error
+      ? error.message
+      : (error && typeof error === 'object' && 'message' in error && typeof error.message === 'string')
+        ? error.message
+        : 'Failed to create trip plan';
+
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'Failed to create trip plan' },
+      { error: message },
       { status: 400 }
     );
   }

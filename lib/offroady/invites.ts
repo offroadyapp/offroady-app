@@ -20,6 +20,7 @@ type CreateTripPlanInput = {
 
 type TripPlanRow = {
   id: string;
+  trail_id?: string | null;
   trail_slug: string;
   trail_title: string;
   trail_region: string | null;
@@ -29,9 +30,21 @@ type TripPlanRow = {
   date: string;
   meetup_area: string;
   departure_time: string;
+  meeting_point_text?: string | null;
   trip_note: string | null;
   share_name: string;
   created_by_user_id: string;
+  max_participants?: number | null;
+  status?: 'open' | 'full' | 'cancelled' | 'completed';
+  created_at: string;
+};
+
+type TripMembershipRow = {
+  id: string;
+  trip_plan_id: string;
+  user_id: string;
+  role: 'organizer' | 'participant';
+  status: 'joined' | 'requested' | 'approved' | 'waitlist' | 'cancelled';
   created_at: string;
 };
 
@@ -100,6 +113,12 @@ function isMissingInviteSchemaError(error: unknown) {
     || maybe.message?.includes("public.trip_plans");
 }
 
+export function isMissingTripMembershipSchemaError(error: unknown) {
+  if (!error || typeof error !== 'object') return false;
+  const maybe = error as { code?: string; message?: string };
+  return maybe.code === 'PGRST205' || maybe.message?.includes("public.trip_memberships");
+}
+
 function ensureText(value: string, field: string, max = 120) {
   const trimmed = value.trim();
   if (!trimmed) throw new Error(`${field} is required`);
@@ -153,38 +172,78 @@ function buildInviteMessage(params: {
   return `You are invited to ${params.trailTitle} on ${formatDateLabel(params.date)}. Meetup: ${params.meetupArea}. Departure: ${params.departureTime}.${note} Shared by ${params.inviterName}. Open your invite here: ${params.inviteUrl}`;
 }
 
-async function attachClaimedTrailParticipants(rows: TripInviteRow[], planRows: TripPlanRow[], userId: string) {
-  const trailSlugs = [...new Set(planRows.map((row) => row.trail_slug).filter(Boolean))];
-  if (!trailSlugs.length) return;
+async function getPublishedTrailsBySlug(trailSlugs: string[]) {
+  const uniqueSlugs = [...new Set(trailSlugs.filter(Boolean))];
+  if (!uniqueSlugs.length) return new Map<string, { id: string; slug: string }>();
 
   const supabase = getServiceSupabase();
   const { data: trails, error: trailsError } = await supabase
     .from('trails')
     .select('id, slug')
-    .in('slug', trailSlugs);
+    .in('slug', uniqueSlugs);
 
   if (trailsError) throw trailsError;
+  return new Map((trails ?? []).map((trail) => [trail.slug, trail]));
+}
 
-  const trailIdBySlug = new Map((trails ?? []).map((trail) => [trail.slug, trail.id]));
+async function upsertTrailParticipantForPlans(planRows: TripPlanRow[], userId: string, role: 'leader' | 'participant' = 'participant') {
+  const trailIdBySlug = await getPublishedTrailsBySlug(planRows.map((row) => row.trail_slug));
   const inserts = planRows
     .map((plan) => {
-      const trailId = trailIdBySlug.get(plan.trail_slug);
-      if (!trailId) return null;
+      const trail = trailIdBySlug.get(plan.trail_slug);
+      if (!trail) return null;
       return {
-        trail_id: trailId,
+        trail_id: trail.id,
         user_id: userId,
-        role: 'participant' as const,
+        role,
       };
     })
     .filter(Boolean);
 
   if (!inserts.length) return;
 
+  const supabase = getServiceSupabase();
   const { error: participantError } = await supabase.from('trail_participants').upsert(inserts, {
     onConflict: 'trail_id,user_id',
   });
 
   if (participantError) throw participantError;
+}
+
+async function attachClaimedTrailParticipants(_rows: TripInviteRow[], planRows: TripPlanRow[], userId: string) {
+  await upsertTrailParticipantForPlans(planRows, userId, 'participant');
+}
+
+async function ensureOrganizerMembership(plan: TripPlanRow, creatorId: string) {
+  const supabase = getServiceSupabase();
+  const { error } = await supabase.from('trip_memberships').upsert(
+    {
+      trip_plan_id: plan.id,
+      user_id: creatorId,
+      role: 'organizer',
+      status: 'joined',
+    },
+    { onConflict: 'trip_plan_id,user_id' }
+  );
+
+  if (error && !isMissingTripMembershipSchemaError(error)) throw error;
+}
+
+async function getTripPlanById(tripId: string) {
+  const supabase = getServiceSupabase();
+  const { data, error } = await supabase
+    .from('trip_plans')
+    .select('*')
+    .eq('id', tripId)
+    .maybeSingle();
+
+  if (error) {
+    if (isMissingInviteSchemaError(error)) {
+      throw new Error('Trip planning tables are not live yet. Apply the updated supabase/schema.sql migration first.');
+    }
+    throw error;
+  }
+  return (data as TripPlanRow | null) ?? null;
 }
 
 export async function createTripPlanForTrail(
@@ -199,15 +258,14 @@ export async function createTripPlanForTrail(
   const tripNote = input.tripNote.trim() || null;
   const shareName = input.shareName?.trim() || creator.displayName;
   const inviteEmails = parseInviteEmails(input.inviteEmails);
-
-  if (!inviteEmails.length) {
-    throw new Error('Add at least one invite email');
-  }
+  const trailBySlug = await getPublishedTrailsBySlug([trail.slug]);
+  const dbTrail = trailBySlug.get(trail.slug) ?? null;
 
   const { data: plan, error: planError } = await supabase
     .from('trip_plans')
     .insert({
       created_by_user_id: creator.id,
+      trail_id: dbTrail?.id ?? null,
       trail_slug: trail.slug,
       trail_title: trail.title,
       trail_region: trail.region,
@@ -216,14 +274,24 @@ export async function createTripPlanForTrail(
       trail_longitude: trail.longitude,
       date,
       meetup_area: meetupArea,
+      meeting_point_text: meetupArea,
       departure_time: departureTime,
       trip_note: tripNote,
       share_name: shareName,
+      status: 'open',
     })
     .select('*')
     .single();
 
-  if (planError) throw planError;
+  if (planError) {
+    if (isMissingInviteSchemaError(planError)) {
+      throw new Error('Trip planning tables are not live yet. Apply the updated supabase/schema.sql migration first.');
+    }
+    throw planError;
+  }
+
+  await ensureOrganizerMembership(plan as TripPlanRow, creator.id);
+  await upsertTrailParticipantForPlans([plan as TripPlanRow], creator.id, 'leader');
 
   const inviteRows = inviteEmails.map((email) => ({
     trip_plan_id: plan.id,
@@ -233,10 +301,12 @@ export async function createTripPlanForTrail(
     status: 'pending' as const,
   }));
 
-  const { data: invites, error: invitesError } = await supabase
-    .from('trip_invites')
-    .insert(inviteRows)
-    .select('*');
+  const { data: invites, error: invitesError } = inviteRows.length
+    ? await supabase
+        .from('trip_invites')
+        .insert(inviteRows)
+        .select('*')
+    : { data: [], error: null };
 
   if (invitesError) throw invitesError;
 
@@ -264,6 +334,87 @@ export async function createTripPlanForTrail(
     shareText: `Planning a trip to ${plan.trail_title} on ${formatDateLabel(plan.date)}. Meetup: ${plan.meetup_area}. Departure: ${plan.departure_time}.${plan.trip_note ? ` ${plan.trip_note}` : ''} Shared by ${plan.share_name}.`,
     invites: inviteResults,
   };
+}
+
+export async function joinTripById(tripId: string, viewer: CreatorIdentity) {
+  const supabase = getServiceSupabase();
+  const plan = await getTripPlanById(tripId);
+  if (!plan) throw new Error('Trip not found');
+  if (plan.status && ['cancelled', 'completed'].includes(plan.status)) {
+    throw new Error(`This trip is ${plan.status} and can no longer be joined`);
+  }
+
+  const { data: existingMembership, error: membershipError } = await supabase
+    .from('trip_memberships')
+    .select('id, role, status')
+    .eq('trip_plan_id', tripId)
+    .eq('user_id', viewer.id)
+    .maybeSingle();
+
+  if (membershipError) {
+    if (isMissingTripMembershipSchemaError(membershipError)) {
+      throw new Error('Trip RSVP needs the latest database schema before joins can go live. Apply the updated supabase/schema.sql migration first.');
+    }
+    throw membershipError;
+  }
+
+  if (existingMembership && existingMembership.status !== 'cancelled') {
+    return plan;
+  }
+
+  const { count, error: countError } = await supabase
+    .from('trip_memberships')
+    .select('id', { count: 'exact', head: true })
+    .eq('trip_plan_id', tripId)
+    .in('status', ['joined', 'approved']);
+
+  if (countError) throw countError;
+  if (plan.max_participants && (count ?? 0) >= plan.max_participants) {
+    throw new Error('This trip is already full');
+  }
+
+  const role = plan.created_by_user_id === viewer.id ? 'organizer' : 'participant';
+  const { error: upsertError } = await supabase.from('trip_memberships').upsert(
+    {
+      trip_plan_id: tripId,
+      user_id: viewer.id,
+      role,
+      status: 'joined',
+    },
+    { onConflict: 'trip_plan_id,user_id' }
+  );
+
+  if (upsertError) throw upsertError;
+  await upsertTrailParticipantForPlans([plan], viewer.id, role === 'organizer' ? 'leader' : 'participant');
+  return plan;
+}
+
+export async function leaveTripById(tripId: string, viewer: CreatorIdentity) {
+  const supabase = getServiceSupabase();
+  const plan = await getTripPlanById(tripId);
+  if (!plan) throw new Error('Trip not found');
+  if (plan.created_by_user_id === viewer.id) {
+    throw new Error('The organizer cannot leave their own trip. Cancel or complete the trip in a later pass instead.');
+  }
+
+  const { error } = await supabase
+    .from('trip_memberships')
+    .update({
+      status: 'cancelled',
+      updated_at: new Date().toISOString(),
+    })
+    .eq('trip_plan_id', tripId)
+    .eq('user_id', viewer.id)
+    .neq('status', 'cancelled');
+
+  if (error) {
+    if (isMissingTripMembershipSchemaError(error)) {
+      throw new Error('Trip RSVP needs the latest database schema before leave/cancel can go live. Apply the updated supabase/schema.sql migration first.');
+    }
+    throw error;
+  }
+
+  return plan;
 }
 
 export async function getInvitePageData(token: string): Promise<InvitePageData | null> {
@@ -403,6 +554,25 @@ export async function claimInvitesForEmail(email: string, userId: string) {
     throw updateError;
   }
 
-  await attachClaimedTrailParticipants(invites as TripInviteRow[], (plans ?? []) as TripPlanRow[], userId);
+  const planRows = (plans ?? []) as TripPlanRow[];
+  await attachClaimedTrailParticipants(invites as TripInviteRow[], planRows, userId);
+
+  const membershipRows = planRows.map((plan) => ({
+    trip_plan_id: plan.id,
+    user_id: userId,
+    role: 'participant' as const,
+    status: 'joined' as const,
+  }));
+
+  if (membershipRows.length) {
+    const { error: membershipUpsertError } = await supabase.from('trip_memberships').upsert(membershipRows, {
+      onConflict: 'trip_plan_id,user_id',
+    });
+
+    if (membershipUpsertError && !isMissingTripMembershipSchemaError(membershipUpsertError)) {
+      throw membershipUpsertError;
+    }
+  }
+
   return inviteIds.length;
 }

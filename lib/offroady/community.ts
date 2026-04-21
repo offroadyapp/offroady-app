@@ -2,6 +2,7 @@ import { slugifyProfile } from '@/lib/offroady/members';
 import { getLocalFeaturedTrail, getLocalTrailBySlug, type LocalTrail } from '@/lib/offroady/trails';
 import { getServiceSupabase } from '@/lib/supabase/server';
 import { getSessionUser } from '@/lib/offroady/auth';
+import { isMissingTripMembershipSchemaError } from '@/lib/offroady/invites';
 
 export type IdentityInput = {
   displayName: string;
@@ -19,7 +20,12 @@ export type CommunitySnapshot = {
     departureTime: string;
     tripNote: string | null;
     shareName: string;
+    status: 'open' | 'full' | 'cancelled' | 'completed';
     participantCount: number;
+    isJoined: boolean;
+    viewerRole: 'organizer' | 'participant' | null;
+    canJoin: boolean;
+    canLeave: boolean;
     createdAt: string;
   }>;
   participants: Array<{ displayName: string; profileSlug: string; role: string; joinedAt: string }>;
@@ -274,10 +280,11 @@ export async function getCommunitySnapshot(slug?: string): Promise<CommunitySnap
       };
     }
 
+    const viewer = await getSessionUser().catch(() => null);
     const today = new Date().toISOString().slice(0, 10);
     const { data: tripRows, error: tripError } = await supabase
       .from('trip_plans')
-      .select('id, date, meetup_area, departure_time, trip_note, share_name, created_at')
+      .select('id, date, meetup_area, departure_time, trip_note, share_name, created_at, created_by_user_id, status, max_participants')
       .eq('trail_slug', dbTrail.slug)
       .gte('date', today)
       .order('date', { ascending: true })
@@ -304,16 +311,64 @@ export async function getCommunitySnapshot(slug?: string): Promise<CommunitySnap
       tripParticipantCounts.set(invite.trip_plan_id, (tripParticipantCounts.get(invite.trip_plan_id) ?? 1) + 1);
     }
 
-    const trips = (tripRows ?? []).map((trip) => ({
-      id: trip.id,
-      date: trip.date,
-      meetupArea: trip.meetup_area,
-      departureTime: trip.departure_time,
-      tripNote: trip.trip_note,
-      shareName: trip.share_name,
-      participantCount: tripParticipantCounts.get(trip.id) ?? 1,
-      createdAt: trip.created_at,
-    }));
+    let membershipRows: Array<{ trip_plan_id: string; user_id: string; role: 'organizer' | 'participant'; status: 'joined' | 'requested' | 'approved' | 'waitlist' | 'cancelled' }> = [];
+    if (tripIds.length) {
+      const { data, error } = await supabase
+        .from('trip_memberships')
+        .select('trip_plan_id, user_id, role, status')
+        .in('trip_plan_id', tripIds);
+
+      if (error) {
+        if (!isMissingTripMembershipSchemaError(error)) throw error;
+      } else {
+        membershipRows = data ?? [];
+        tripParticipantCounts.clear();
+        for (const row of membershipRows) {
+          if (!['joined', 'approved'].includes(row.status)) continue;
+          tripParticipantCounts.set(row.trip_plan_id, (tripParticipantCounts.get(row.trip_plan_id) ?? 0) + 1);
+        }
+      }
+    }
+
+    const viewerMembershipByTrip = new Map<string, { role: 'organizer' | 'participant'; status: 'joined' | 'requested' | 'approved' | 'waitlist' | 'cancelled' }>();
+    if (viewer?.id) {
+      for (const membership of membershipRows) {
+        if (membership.user_id !== viewer.id) continue;
+        viewerMembershipByTrip.set(membership.trip_plan_id, {
+          role: membership.role,
+          status: membership.status,
+        });
+      }
+    }
+
+    const trips = (tripRows ?? []).map((trip) => {
+      const viewerMembership = viewerMembershipByTrip.get(trip.id);
+      const fallbackOrganizerJoined = Boolean(viewer?.id && viewer.id === trip.created_by_user_id);
+      const isJoined = viewerMembership
+        ? ['joined', 'approved', 'requested', 'waitlist'].includes(viewerMembership.status)
+        : fallbackOrganizerJoined;
+      const viewerRole = viewerMembership?.role ?? (fallbackOrganizerJoined ? 'organizer' : null);
+      const participantCount = tripParticipantCounts.get(trip.id) ?? 1;
+      const status = (trip.status ?? 'open') as 'open' | 'full' | 'cancelled' | 'completed';
+      const canJoin = Boolean(viewer) && !isJoined && status === 'open' && (!trip.max_participants || participantCount < trip.max_participants);
+      const canLeave = Boolean(viewer) && isJoined && viewerRole !== 'organizer';
+
+      return {
+        id: trip.id,
+        date: trip.date,
+        meetupArea: trip.meetup_area,
+        departureTime: trip.departure_time,
+        tripNote: trip.trip_note,
+        shareName: trip.share_name,
+        status,
+        participantCount,
+        isJoined,
+        viewerRole,
+        canJoin,
+        canLeave,
+        createdAt: trip.created_at,
+      };
+    });
 
     const { data: participantRows, error: participantError } = await supabase
       .from('trail_participants')

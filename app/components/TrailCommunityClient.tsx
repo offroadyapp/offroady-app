@@ -48,6 +48,7 @@ export default function TrailCommunityClient({ trailSlug, trailTitle, initialSna
   const [community, setCommunity] = useState(initialSnapshot);
   const [hasUnlockedTrails, setHasUnlockedTrails] = useState(Boolean(viewer));
   const [joinLoading, setJoinLoading] = useState(false);
+  const [tripMembershipLoadingId, setTripMembershipLoadingId] = useState<string | null>(null);
   const [crewLoading, setCrewLoading] = useState(false);
   const [commentLoading, setCommentLoading] = useState(false);
   const [signupLoading, setSignupLoading] = useState(false);
@@ -141,6 +142,29 @@ export default function TrailCommunityClient({ trailSlug, trailTitle, initialSna
       setError(err instanceof Error ? err.message : 'Failed to join trail');
     } finally {
       setJoinLoading(false);
+    }
+  }
+
+  async function handleTripMembership(tripId: string, action: 'join' | 'leave') {
+    if (!viewer) {
+      window.location.href = '/#member-access';
+      return;
+    }
+
+    setTripMembershipLoadingId(tripId);
+    setError('');
+
+    try {
+      const response = await fetch(`/api/trips/${tripId}/membership`, {
+        method: action === 'join' ? 'POST' : 'DELETE',
+      });
+      const payload = await response.json();
+      if (!response.ok) throw new Error(payload.error || `Failed to ${action} trip`);
+      setCommunity(payload);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : `Failed to ${action} trip`);
+    } finally {
+      setTripMembershipLoadingId(null);
     }
   }
 
@@ -364,13 +388,48 @@ export default function TrailCommunityClient({ trailSlug, trailTitle, initialSna
                           <div className="mt-1 text-sm text-gray-600">
                             {trip.participantCount} participant{trip.participantCount === 1 ? '' : 's'} · Meetup: {trip.meetupArea} · Depart {trip.departureTime}
                           </div>
+                          <div className="mt-1 text-xs uppercase tracking-[0.14em] text-gray-500">{trip.status}</div>
                         </div>
-                        <Link
-                          href={viewer ? `/plan/${trailSlug}` : '/#member-access'}
-                          className="inline-flex rounded-lg bg-[#2f5d3a] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#264d30]"
-                        >
-                          {viewer ? 'Join this Trip' : 'Log in to join this trip'}
-                        </Link>
+                        <div className="flex flex-col items-end gap-2">
+                          {trip.isJoined ? (
+                            <>
+                              <div className="rounded-full bg-[#e7f3e8] px-3 py-1 text-sm font-semibold text-[#2f5d3a]">
+                                {trip.viewerRole === 'organizer' ? 'Organizer' : 'Joined'}
+                              </div>
+                              {trip.canLeave ? (
+                                <button
+                                  type="button"
+                                  onClick={() => handleTripMembership(trip.id, 'leave')}
+                                  disabled={tripMembershipLoadingId === trip.id}
+                                  className="inline-flex rounded-lg border border-gray-300 px-4 py-2.5 text-sm font-semibold text-gray-800 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-70"
+                                >
+                                  {tripMembershipLoadingId === trip.id ? 'Leaving...' : 'Leave trip'}
+                                </button>
+                              ) : null}
+                            </>
+                          ) : (
+                            <button
+                              type="button"
+                              onClick={() => handleTripMembership(trip.id, 'join')}
+                              disabled={!viewer ? false : !trip.canJoin || tripMembershipLoadingId === trip.id}
+                              className="inline-flex rounded-lg bg-[#2f5d3a] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#264d30] disabled:cursor-not-allowed disabled:opacity-70"
+                            >
+                              {!viewer
+                                ? 'Log in to join this trip'
+                                : tripMembershipLoadingId === trip.id
+                                  ? 'Joining...'
+                                  : trip.canJoin
+                                    ? 'Join this Trip'
+                                    : trip.status === 'full'
+                                      ? 'Trip full'
+                                      : trip.status === 'cancelled'
+                                        ? 'Trip cancelled'
+                                        : trip.status === 'completed'
+                                          ? 'Trip completed'
+                                          : 'Unavailable'}
+                            </button>
+                          )}
+                        </div>
                       </div>
                       {trip.tripNote ? <p className="mt-3 text-sm leading-6 text-gray-600">{trip.tripNote}</p> : null}
                     </div>

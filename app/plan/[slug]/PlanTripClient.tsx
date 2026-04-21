@@ -286,10 +286,10 @@ export default function PlanTripClient({ trail, isLoggedIn }: Props) {
           </div>
 
           <div className="rounded-3xl border border-black/8 bg-white p-6 shadow-sm">
-            <p className="text-sm font-semibold uppercase tracking-[0.16em] text-[#5d7d61]">Invite friends</p>
-            <h2 className="mt-2 text-2xl font-bold text-[#243126]">Share this trip plan</h2>
+            <p className="text-sm font-semibold uppercase tracking-[0.16em] text-[#5d7d61]">Create trip</p>
+            <h2 className="mt-2 text-2xl font-bold text-[#243126]">Save this trip and invite friends if you want</h2>
             <p className="mt-3 text-sm leading-6 text-gray-600">
-              The quick copy block below still works, but now you can also create tracked invites tied to specific email addresses. If a friend signs up or logs in with that email, Offroady can auto-claim the invite.
+              Saving here creates a real trip for this trail. The quick copy block still works, and tracked email invites are optional if you want named RSVP links.
             </p>
             <textarea
               readOnly
@@ -306,9 +306,9 @@ export default function PlanTripClient({ trail, isLoggedIn }: Props) {
             </button>
 
             <div className="mt-6 rounded-2xl border border-black/8 bg-[#f7faf6] p-4">
-              <div className="font-semibold text-[#243126]">Create tracked email invites</div>
+              <div className="font-semibold text-[#243126]">Optional tracked email invites</div>
               <p className="mt-2 text-sm leading-6 text-gray-600">
-                Add one or more emails, separated by commas or line breaks. Each person gets their own invite link and can be auto-matched later on sign up or log in.
+                Add emails if you want tracked invite links. You can also leave this blank and just save the trip for open RSVP on the trail page.
               </p>
               <textarea
                 value={inviteEmails}
@@ -328,16 +328,16 @@ export default function PlanTripClient({ trail, isLoggedIn }: Props) {
                 disabled={savingInvitePlan}
                 className="mt-4 inline-flex rounded-lg border border-[#2f5d3a] px-5 py-3 font-semibold text-[#2f5d3a] transition hover:bg-[#eef5ee] disabled:cursor-not-allowed disabled:opacity-70"
               >
-                {savingInvitePlan ? 'Saving tracked invites...' : 'Save tracked invites'}
+                {savingInvitePlan ? 'Saving trip...' : 'Save trip'}
               </button>
             </div>
 
             {savedPlan ? (
               <div className="mt-6 space-y-4 rounded-2xl border border-black/8 bg-white">
                 <div className="px-4 pt-4">
-                  <div className="font-semibold text-[#243126]">Tracked invites ready</div>
+                  <div className="font-semibold text-[#243126]">Trip saved</div>
                   <p className="mt-2 text-sm leading-6 text-gray-600">
-                    These invite links are saved. If the invited person signs up or logs in with the matching email, Offroady can auto-claim the invite and connect it back to this trail plan.
+                    This trip is now live for trail-page RSVP. Any tracked invite links below are also saved and can be auto-claimed if the invited person signs up or logs in with the matching email.
                   </p>
                 </div>
                 <div className="space-y-3 px-4 pb-4">

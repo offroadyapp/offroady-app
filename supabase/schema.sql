@@ -616,3 +616,74 @@ create index if not exists idx_trail_proposal_images_sort_order on public.trail_
 
 alter table public.trail_proposals enable row level security;
 alter table public.trail_proposal_images enable row level security;
+
+-- APPEND PATCH: trip RSVP / membership layer
+alter table public.trip_plans add column if not exists trail_id uuid references public.trails(id) on delete set null;
+alter table public.trip_plans add column if not exists meeting_point_text text;
+alter table public.trip_plans add column if not exists max_participants integer;
+alter table public.trip_plans add column if not exists status text not null default 'open';
+
+update public.trip_plans tp
+set trail_id = t.id
+from public.trails t
+where tp.trail_id is null
+  and t.slug = tp.trail_slug;
+
+create index if not exists idx_trip_plans_trail_id on public.trip_plans (trail_id);
+create index if not exists idx_trip_plans_status on public.trip_plans (status);
+
+create table if not exists public.trip_memberships (
+  id uuid primary key default gen_random_uuid(),
+  trip_plan_id uuid not null references public.trip_plans(id) on delete cascade,
+  user_id uuid not null references public.users(id) on delete cascade,
+  role text not null default 'participant' check (role in ('organizer', 'participant')),
+  status text not null default 'joined' check (status in ('joined', 'requested', 'approved', 'waitlist', 'cancelled')),
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  constraint trip_memberships_trip_user_unique unique (trip_plan_id, user_id)
+);
+
+create index if not exists idx_trip_memberships_trip_plan_id on public.trip_memberships (trip_plan_id);
+create index if not exists idx_trip_memberships_user_id on public.trip_memberships (user_id);
+create index if not exists idx_trip_memberships_status on public.trip_memberships (status);
+
+drop trigger if exists trg_trip_memberships_updated_at on public.trip_memberships;
+create trigger trg_trip_memberships_updated_at
+before update on public.trip_memberships
+for each row execute function public.set_updated_at();
+
+insert into public.trip_memberships (trip_plan_id, user_id, role, status)
+select tp.id, tp.created_by_user_id, 'organizer', 'joined'
+from public.trip_plans tp
+where not exists (
+  select 1 from public.trip_memberships tm
+  where tm.trip_plan_id = tp.id
+    and tm.user_id = tp.created_by_user_id
+);
+
+insert into public.trip_memberships (trip_plan_id, user_id, role, status)
+select distinct ti.trip_plan_id, ti.claimed_by_user_id, 'participant', 'joined'
+from public.trip_invites ti
+where ti.status = 'claimed'
+  and ti.claimed_by_user_id is not null
+  and not exists (
+    select 1 from public.trip_memberships tm
+    where tm.trip_plan_id = ti.trip_plan_id
+      and tm.user_id = ti.claimed_by_user_id
+  );
+
+alter table public.trip_memberships enable row level security;
+
+drop policy if exists "public can read trip memberships" on public.trip_memberships;
+create policy "public can read trip memberships"
+on public.trip_memberships
+for select
+using (
+  exists (
+    select 1
+    from public.trip_plans tp
+    join public.trails t on t.slug = tp.trail_slug
+    where tp.id = trip_plan_id
+      and t.is_published = true
+  )
+);

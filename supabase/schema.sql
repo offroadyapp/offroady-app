@@ -687,3 +687,69 @@ using (
       and t.is_published = true
   )
 );
+
+-- APPEND PATCH: user control favorites + email preferences
+create table if not exists public.favorite_trips (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references public.users(id) on delete cascade,
+  trip_plan_id uuid not null references public.trip_plans(id) on delete cascade,
+  created_at timestamptz not null default now(),
+  constraint favorite_trips_unique unique (user_id, trip_plan_id)
+);
+
+create index if not exists idx_favorite_trips_user_id on public.favorite_trips (user_id);
+create index if not exists idx_favorite_trips_trip_plan_id on public.favorite_trips (trip_plan_id);
+
+create table if not exists public.favorite_crews (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references public.users(id) on delete cascade,
+  crew_id uuid not null references public.crews(id) on delete cascade,
+  created_at timestamptz not null default now(),
+  constraint favorite_crews_unique unique (user_id, crew_id)
+);
+
+create index if not exists idx_favorite_crews_user_id on public.favorite_crews (user_id);
+create index if not exists idx_favorite_crews_crew_id on public.favorite_crews (crew_id);
+
+create table if not exists public.favorite_members (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references public.users(id) on delete cascade,
+  member_user_id uuid not null references public.users(id) on delete cascade,
+  created_at timestamptz not null default now(),
+  constraint favorite_members_unique unique (user_id, member_user_id),
+  constraint favorite_members_not_self check (user_id <> member_user_id)
+);
+
+create index if not exists idx_favorite_members_user_id on public.favorite_members (user_id);
+create index if not exists idx_favorite_members_member_user_id on public.favorite_members (member_user_id);
+
+create table if not exists public.user_email_preferences (
+  email text primary key,
+  user_id uuid references public.users(id) on delete set null,
+  weekly_trail_updates boolean not null default true,
+  trip_notifications boolean not null default true,
+  crew_notifications boolean not null default true,
+  comment_reply_notifications boolean not null default true,
+  marketing_promotional_emails boolean not null default true,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+create index if not exists idx_user_email_preferences_user_id on public.user_email_preferences (user_id);
+
+drop trigger if exists trg_user_email_preferences_updated_at on public.user_email_preferences;
+create trigger trg_user_email_preferences_updated_at
+before update on public.user_email_preferences
+for each row execute function public.set_updated_at();
+
+create table if not exists public.email_preference_tokens (
+  id uuid primary key default gen_random_uuid(),
+  email text not null,
+  token text not null unique,
+  created_at timestamptz not null default now(),
+  expires_at timestamptz,
+  last_used_at timestamptz
+);
+
+create index if not exists idx_email_preference_tokens_email on public.email_preference_tokens (email);
+create index if not exists idx_email_preference_tokens_expires_at on public.email_preference_tokens (expires_at);

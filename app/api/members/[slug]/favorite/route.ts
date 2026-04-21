@@ -1,18 +1,18 @@
 import { NextResponse } from 'next/server';
 import { getSessionUser } from '@/lib/offroady/auth';
-import { toggleFavoriteTrail, unfavoriteTrail } from '@/lib/offroady/account';
+import { toggleFavoriteMember, unfavoriteMember } from '@/lib/offroady/account';
 
-async function handleFavorite(method: 'POST' | 'DELETE', paramsPromise: Promise<{ slug: string }>) {
+async function handleFavorite(method: 'POST' | 'DELETE', context: { params: Promise<{ slug: string }> }) {
   try {
     const user = await getSessionUser();
     if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { slug } = await paramsPromise;
+    const { slug } = await context.params;
     const result = method === 'DELETE'
-      ? await unfavoriteTrail(user.id, slug)
-      : await toggleFavoriteTrail(user.id, slug);
+      ? await unfavoriteMember(user.id, slug)
+      : await toggleFavoriteMember(user.id, slug);
 
     return NextResponse.json({ ok: true, ...result });
   } catch (error) {
@@ -25,14 +25,14 @@ async function handleFavorite(method: 'POST' | 'DELETE', paramsPromise: Promise<
 
 export async function POST(
   _request: Request,
-  { params }: { params: Promise<{ slug: string }> }
+  context: { params: Promise<{ slug: string }> }
 ) {
-  return handleFavorite('POST', params);
+  return handleFavorite('POST', context);
 }
 
 export async function DELETE(
   _request: Request,
-  { params }: { params: Promise<{ slug: string }> }
+  context: { params: Promise<{ slug: string }> }
 ) {
-  return handleFavorite('DELETE', params);
+  return handleFavorite('DELETE', context);
 }

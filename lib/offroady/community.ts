@@ -36,6 +36,8 @@ export type CommunitySnapshot = {
     createdAt: string;
     createdByDisplayName: string;
     memberCount: number;
+    viewerRole: 'owner' | 'member' | null;
+    canLeave: boolean;
   }>;
   comments: Array<{
     id: string;
@@ -237,6 +239,87 @@ export async function createCrew(
   return getCommunitySnapshot(slug);
 }
 
+async function cleanupTrailParticipantIfUnused(trailId: string, userId: string) {
+  const supabase = getServiceSupabase();
+
+  const { data: tripPlans, error: tripPlansError } = await supabase
+    .from('trip_plans')
+    .select('id')
+    .eq('trail_id', trailId);
+
+  if (tripPlansError) throw tripPlansError;
+
+  const tripIds = (tripPlans ?? []).map((row) => row.id);
+  const { data: activeTripMemberships, error: membershipsError } = tripIds.length
+    ? await supabase
+        .from('trip_memberships')
+        .select('id')
+        .eq('user_id', userId)
+        .in('trip_plan_id', tripIds)
+        .in('status', ['joined', 'approved', 'requested', 'waitlist'])
+    : { data: [], error: null };
+
+  if (membershipsError) throw membershipsError;
+  if ((activeTripMemberships ?? []).length) return;
+
+  const { data: crews, error: crewsError } = await supabase.from('crews').select('id').eq('trail_id', trailId);
+  if (crewsError) throw crewsError;
+
+  const crewIds = (crews ?? []).map((row) => row.id);
+  const { data: activeCrewMemberships, error: crewMembershipsError } = crewIds.length
+    ? await supabase.from('crew_members').select('id').eq('user_id', userId).in('crew_id', crewIds)
+    : { data: [], error: null };
+
+  if (crewMembershipsError) throw crewMembershipsError;
+  if ((activeCrewMemberships ?? []).length) return;
+
+  await supabase.from('trail_participants').delete().eq('trail_id', trailId).eq('user_id', userId);
+}
+
+export async function leaveCrew(crewId: string, userId: string) {
+  const supabase = getServiceSupabase();
+  const { data: crew, error: crewError } = await supabase
+    .from('crews')
+    .select('id, trail_id')
+    .eq('id', crewId)
+    .maybeSingle();
+
+  if (crewError) throw crewError;
+  if (!crew) throw new Error('Crew not found');
+
+  const { data: membership, error: membershipError } = await supabase
+    .from('crew_members')
+    .select('role')
+    .eq('crew_id', crewId)
+    .eq('user_id', userId)
+    .maybeSingle();
+
+  if (membershipError) throw membershipError;
+
+  if (membership?.role === 'owner') {
+    const { count, error: ownersError } = await supabase
+      .from('crew_members')
+      .select('id', { count: 'exact', head: true })
+      .eq('crew_id', crewId)
+      .eq('role', 'owner');
+
+    if (ownersError) throw ownersError;
+    if ((count ?? 0) <= 1) {
+      throw new Error('The crew owner cannot leave without transferring ownership or dissolving the crew.');
+    }
+  }
+
+  if (membership) {
+    const { error: deleteError } = await supabase.from('crew_members').delete().eq('crew_id', crewId).eq('user_id', userId);
+    if (deleteError) throw deleteError;
+    await cleanupTrailParticipantIfUnused(crew.trail_id, userId);
+  }
+
+  const { data: trail, error: trailError } = await supabase.from('trails').select('slug').eq('id', crew.trail_id).single();
+  if (trailError) throw trailError;
+  return getCommunitySnapshot(trail.slug);
+}
+
 export async function createComment(
   slug: string,
   payload: { content: string }
@@ -417,24 +500,38 @@ export async function getCommunitySnapshot(slug?: string): Promise<CommunitySnap
     const ownerMap = new Map((crewOwners ?? []).map((user) => [user.id, user.display_name]));
 
     const { data: crewMemberRows, error: crewMembersError } = crewIds.length
-      ? await supabase.from('crew_members').select('crew_id, user_id').in('crew_id', crewIds)
+      ? await supabase.from('crew_members').select('crew_id, user_id, role').in('crew_id', crewIds)
       : { data: [], error: null };
 
     if (crewMembersError) throw crewMembersError;
 
     const crewCounts = new Map<string, number>();
+    const ownerCounts = new Map<string, number>();
+    const viewerCrewRole = new Map<string, 'owner' | 'member'>();
     for (const row of crewMemberRows ?? []) {
       crewCounts.set(row.crew_id, (crewCounts.get(row.crew_id) ?? 0) + 1);
+      if (row.role === 'owner') {
+        ownerCounts.set(row.crew_id, (ownerCounts.get(row.crew_id) ?? 0) + 1);
+      }
+      if (viewer?.id && row.user_id === viewer.id) {
+        viewerCrewRole.set(row.crew_id, row.role);
+      }
     }
 
-    const crews = (crewRows ?? []).map((crew) => ({
-      id: crew.id,
-      crewName: crew.crew_name,
-      description: crew.description,
-      createdAt: crew.created_at,
-      createdByDisplayName: ownerMap.get(crew.created_by_user_id) ?? 'Unknown rider',
-      memberCount: crewCounts.get(crew.id) ?? 0,
-    }));
+    const crews = (crewRows ?? []).map((crew) => {
+      const role = viewerCrewRole.get(crew.id) ?? null;
+      const canLeave = Boolean(role && (role !== 'owner' || (ownerCounts.get(crew.id) ?? 0) > 1));
+      return {
+        id: crew.id,
+        crewName: crew.crew_name,
+        description: crew.description,
+        createdAt: crew.created_at,
+        createdByDisplayName: ownerMap.get(crew.created_by_user_id) ?? 'Unknown rider',
+        memberCount: crewCounts.get(crew.id) ?? 0,
+        viewerRole: role,
+        canLeave,
+      };
+    });
 
     const { data: commentRows, error: commentError } = await supabase
       .from('comments')

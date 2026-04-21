@@ -1,6 +1,7 @@
 import { randomBytes } from 'crypto';
 import { getLocalTrailBySlug, type LocalTrail } from '@/lib/offroady/trails';
 import { getServiceSupabase } from '@/lib/supabase/server';
+import { buildEmailFooter } from '@/lib/offroady/email-preferences';
 
 type CreatorIdentity = {
   id: string;
@@ -159,7 +160,7 @@ function parseInviteEmails(values: string[]) {
   return [...deduped.values()].slice(0, 20);
 }
 
-function buildInviteMessage(params: {
+async function buildInviteMessage(params: {
   trailTitle: string;
   date: string;
   meetupArea: string;
@@ -167,9 +168,12 @@ function buildInviteMessage(params: {
   tripNote: string | null;
   inviterName: string;
   inviteUrl: string;
+  invitedEmail: string;
+  origin?: string;
 }) {
   const note = params.tripNote?.trim() ? ` ${params.tripNote.trim()}` : '';
-  return `You are invited to ${params.trailTitle} on ${formatDateLabel(params.date)}. Meetup: ${params.meetupArea}. Departure: ${params.departureTime}.${note} Shared by ${params.inviterName}. Open your invite here: ${params.inviteUrl}`;
+  const footer = await buildEmailFooter(params.invitedEmail, 'tripNotifications', params.origin);
+  return `You are invited to ${params.trailTitle} on ${formatDateLabel(params.date)}. Meetup: ${params.meetupArea}. Departure: ${params.departureTime}.${note} Shared by ${params.inviterName}. Open your invite here: ${params.inviteUrl}${footer}`;
 }
 
 async function getPublishedTrailsBySlug(trailSlugs: string[]) {
@@ -212,6 +216,44 @@ async function upsertTrailParticipantForPlans(planRows: TripPlanRow[], userId: s
 
 async function attachClaimedTrailParticipants(_rows: TripInviteRow[], planRows: TripPlanRow[], userId: string) {
   await upsertTrailParticipantForPlans(planRows, userId, 'participant');
+}
+
+async function cleanupTrailParticipantIfUnused(plan: TripPlanRow, userId: string) {
+  if (!plan.trail_id) return;
+
+  const supabase = getServiceSupabase();
+  const { data: tripPlans, error: tripPlansError } = await supabase
+    .from('trip_plans')
+    .select('id')
+    .eq('trail_id', plan.trail_id);
+
+  if (tripPlansError) throw tripPlansError;
+
+  const tripIds = (tripPlans ?? []).map((row) => row.id);
+  const { data: activeTripMemberships, error: membershipsError } = tripIds.length
+    ? await supabase
+        .from('trip_memberships')
+        .select('id')
+        .eq('user_id', userId)
+        .in('trip_plan_id', tripIds)
+        .in('status', ['joined', 'approved', 'requested', 'waitlist'])
+    : { data: [], error: null };
+
+  if (membershipsError) throw membershipsError;
+  if ((activeTripMemberships ?? []).length) return;
+
+  const { data: crews, error: crewsError } = await supabase.from('crews').select('id').eq('trail_id', plan.trail_id);
+  if (crewsError) throw crewsError;
+
+  const crewIds = (crews ?? []).map((row) => row.id);
+  const { data: crewMemberships, error: crewMembershipsError } = crewIds.length
+    ? await supabase.from('crew_members').select('id').eq('user_id', userId).in('crew_id', crewIds)
+    : { data: [], error: null };
+
+  if (crewMembershipsError) throw crewMembershipsError;
+  if ((crewMemberships ?? []).length) return;
+
+  await supabase.from('trail_participants').delete().eq('trail_id', plan.trail_id).eq('user_id', userId);
 }
 
 async function ensureOrganizerMembership(plan: TripPlanRow, creatorId: string) {
@@ -310,14 +352,14 @@ export async function createTripPlanForTrail(
 
   if (invitesError) throw invitesError;
 
-  const inviteResults = (invites as TripInviteRow[]).map((invite) => {
+  const inviteResults = await Promise.all((invites as TripInviteRow[]).map(async (invite) => {
     const inviteUrl = buildInviteUrl(invite.invite_token, input.origin);
     return {
       id: invite.id,
       email: invite.invited_email,
       inviteUrl,
       status: invite.status,
-      message: buildInviteMessage({
+      message: await buildInviteMessage({
         trailTitle: plan.trail_title,
         date: plan.date,
         meetupArea: plan.meetup_area,
@@ -325,9 +367,11 @@ export async function createTripPlanForTrail(
         tripNote: plan.trip_note,
         inviterName: plan.share_name,
         inviteUrl,
+        invitedEmail: invite.invited_email,
+        origin: input.origin,
       }),
     };
-  });
+  }));
 
   return {
     planId: plan.id,
@@ -414,6 +458,7 @@ export async function leaveTripById(tripId: string, viewer: CreatorIdentity) {
     throw error;
   }
 
+  await cleanupTrailParticipantIfUnused(plan, viewer.id);
   return plan;
 }
 

@@ -17,9 +17,14 @@ type Props = {
 const accountLinks = [
   { href: '/my-account', label: 'My Account' },
   { href: '/my-profile', label: 'Profile' },
-  { href: '/favorite-trails', label: 'Favorites' },
+  { href: '/favorite-trails', label: 'Favorite Trails' },
+  { href: '/favorite-trips', label: 'Favorite Trips' },
+  { href: '/favorite-members', label: 'Favorite Members' },
+  { href: '/favorite-crews', label: 'Favorite Crews' },
   { href: '/my-trips', label: 'My Trips' },
-  { href: '/my-comments', label: 'My Comments' },
+  { href: '/my-crews', label: 'My Crews' },
+  { href: '/notifications', label: 'Notifications' },
+  { href: '/my-account/email-preferences', label: 'Email Preferences' },
 ];
 
 function initials(name: string) {
@@ -64,7 +69,7 @@ export default function AuthMenu({ viewer }: Props) {
         </button>
 
         {menuOpen ? (
-          <div className="absolute right-0 top-14 z-40 w-64 rounded-2xl border border-black/8 bg-white p-2 shadow-xl">
+          <div className="absolute right-0 top-14 z-40 max-h-[70vh] w-64 overflow-y-auto rounded-2xl border border-black/8 bg-white p-2 shadow-xl">
             <div className="border-b border-black/6 px-3 py-3">
               <div className="font-semibold text-[#243126]">{viewer.displayName}</div>
               <div className="text-xs text-gray-500">{viewer.email}</div>

@@ -4,6 +4,8 @@ import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
 import type { CommunitySnapshot } from '@/lib/offroady/community';
 import type { LocalTrail } from '@/lib/offroady/trails';
+import ConfirmModal from './ConfirmModal';
+import ActionToast from './ActionToast';
 
 type Identity = {
   displayName: string;
@@ -53,6 +55,9 @@ export default function TrailCommunityClient({ trailSlug, trailTitle, initialSna
   const [commentLoading, setCommentLoading] = useState(false);
   const [signupLoading, setSignupLoading] = useState(false);
   const [error, setError] = useState('');
+  const [toast, setToast] = useState('');
+  const [tripToLeave, setTripToLeave] = useState<string | null>(null);
+  const [crewToLeave, setCrewToLeave] = useState<string | null>(null);
   const [crewName, setCrewName] = useState('');
   const [crewDescription, setCrewDescription] = useState('');
   const [comment, setComment] = useState('');
@@ -89,6 +94,8 @@ export default function TrailCommunityClient({ trailSlug, trailTitle, initialSna
     [community.participants]
   );
   const hasPlannedTrips = community.trips.length > 0;
+  const leavingTrip = community.trips.find((trip) => trip.id === tripToLeave) || null;
+  const leavingCrew = community.crews.find((crew) => crew.id === crewToLeave) || null;
 
   function updateIdentity<K extends keyof Identity>(key: K, value: Identity[K]) {
     setIdentity((current) => ({ ...current, [key]: value }));
@@ -145,6 +152,12 @@ export default function TrailCommunityClient({ trailSlug, trailTitle, initialSna
     }
   }
 
+  useEffect(() => {
+    if (!toast) return;
+    const timeout = window.setTimeout(() => setToast(''), 2200);
+    return () => window.clearTimeout(timeout);
+  }, [toast]);
+
   async function handleTripMembership(tripId: string, action: 'join' | 'leave') {
     if (!viewer) {
       window.location.href = '/#member-access';
@@ -161,10 +174,32 @@ export default function TrailCommunityClient({ trailSlug, trailTitle, initialSna
       const payload = await response.json();
       if (!response.ok) throw new Error(payload.error || `Failed to ${action} trip`);
       setCommunity(payload);
+      setToast(action === 'leave' ? 'Left trip.' : 'Joined trip.');
     } catch (err) {
       setError(err instanceof Error ? err.message : `Failed to ${action} trip`);
     } finally {
       setTripMembershipLoadingId(null);
+    }
+  }
+
+  async function handleLeaveCrew() {
+    if (!crewToLeave) return;
+
+    setCrewLoading(true);
+    setError('');
+    try {
+      const response = await fetch(`/api/crews/${crewToLeave}/membership`, {
+        method: 'DELETE',
+      });
+      const payload = await response.json();
+      if (!response.ok) throw new Error(payload.error || 'Failed to leave crew');
+      setCommunity(payload);
+      setCrewToLeave(null);
+      setToast('Left crew.');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to leave crew');
+    } finally {
+      setCrewLoading(false);
     }
   }
 
@@ -383,7 +418,7 @@ export default function TrailCommunityClient({ trailSlug, trailTitle, initialSna
                     <div key={trip.id} className="rounded-xl border border-black/8 bg-[#f8faf8] p-4">
                       <div className="flex flex-wrap items-start justify-between gap-3">
                         <div>
-                          <div className="text-base font-semibold text-[#243126]">{formatTripDate(trip.date)}</div>
+                          <Link href={`/trips/${trip.id}`} className="text-base font-semibold text-[#243126] hover:text-[#2f5d3a]">{formatTripDate(trip.date)}</Link>
                           <div className="mt-1 text-sm text-gray-600">Planned by {trip.shareName}</div>
                           <div className="mt-1 text-sm text-gray-600">
                             {trip.participantCount} participant{trip.participantCount === 1 ? '' : 's'} · Meetup: {trip.meetupArea} · Depart {trip.departureTime}
@@ -399,11 +434,11 @@ export default function TrailCommunityClient({ trailSlug, trailTitle, initialSna
                               {trip.canLeave ? (
                                 <button
                                   type="button"
-                                  onClick={() => handleTripMembership(trip.id, 'leave')}
+                                  onClick={() => setTripToLeave(trip.id)}
                                   disabled={tripMembershipLoadingId === trip.id}
                                   className="inline-flex rounded-lg border border-gray-300 px-4 py-2.5 text-sm font-semibold text-gray-800 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-70"
                                 >
-                                  {tripMembershipLoadingId === trip.id ? 'Leaving...' : 'Leave trip'}
+                                  {tripMembershipLoadingId === trip.id ? 'Leaving...' : 'Leave Trip'}
                                 </button>
                               ) : null}
                             </>
@@ -573,7 +608,7 @@ export default function TrailCommunityClient({ trailSlug, trailTitle, initialSna
                   <div key={crew.id} className="rounded-xl border border-black/8 bg-[#f8faf8] p-4">
                     <div className="flex flex-wrap items-center justify-between gap-3">
                       <div>
-                        <div className="font-semibold text-[#243126]">{crew.crewName}</div>
+                        <Link href={`/crews/${crew.id}`} className="font-semibold text-[#243126] hover:text-[#2f5d3a]">{crew.crewName}</Link>
                         <div className="text-sm text-gray-500">
                           Started by {crew.createdByDisplayName} · {crew.memberCount} member{crew.memberCount === 1 ? '' : 's'}
                         </div>
@@ -581,6 +616,22 @@ export default function TrailCommunityClient({ trailSlug, trailTitle, initialSna
                       <div className="text-xs text-gray-500">{formatTimestamp(crew.createdAt)}</div>
                     </div>
                     {crew.description ? <p className="mt-2 text-sm text-gray-600">{crew.description}</p> : null}
+                    {crew.viewerRole ? (
+                      <div className="mt-3 flex items-center gap-3">
+                        <span className="rounded-full bg-white px-2.5 py-1 text-xs capitalize text-gray-500">{crew.viewerRole}</span>
+                        {crew.canLeave ? (
+                          <button
+                            type="button"
+                            onClick={() => setCrewToLeave(crew.id)}
+                            className="rounded-lg border border-gray-300 px-3 py-2 text-sm font-semibold text-gray-800 transition hover:bg-gray-50"
+                          >
+                            Leave Crew
+                          </button>
+                        ) : (
+                          <div className="text-xs text-amber-700">Transfer ownership or dissolve the crew before leaving.</div>
+                        )}
+                      </div>
+                    ) : null}
                   </div>
                 ))
               ) : (
@@ -623,7 +674,7 @@ export default function TrailCommunityClient({ trailSlug, trailTitle, initialSna
                 community.comments.map((item) => (
                   <div key={item.id} className="rounded-xl border border-black/8 bg-[#f8faf8] p-4">
                     <div className="flex items-center justify-between gap-3">
-                      <div className="font-semibold text-[#243126]">{item.displayName}</div>
+                      <Link href={`/members/${item.profileSlug}`} className="font-semibold text-[#243126] hover:text-[#2f5d3a]">{item.displayName}</Link>
                       <div className="text-xs text-gray-500">{formatTimestamp(item.createdAt)}</div>
                     </div>
                     <p className="mt-2 text-sm leading-6 text-gray-700">{item.content}</p>
@@ -636,6 +687,27 @@ export default function TrailCommunityClient({ trailSlug, trailTitle, initialSna
           </div>
         </div>
       </div>
+      <ConfirmModal
+        open={Boolean(leavingTrip)}
+        title="Leave this trip?"
+        body="You will be removed from the attendee list for this trip."
+        confirmLabel="Leave Trip"
+        loadingLabel="Leave Trip..."
+        busy={Boolean(leavingTrip && tripMembershipLoadingId === leavingTrip.id)}
+        onCancel={() => setTripToLeave(null)}
+        onConfirm={() => leavingTrip && handleTripMembership(leavingTrip.id, 'leave').then(() => setTripToLeave(null))}
+      />
+      <ConfirmModal
+        open={Boolean(leavingCrew)}
+        title="Leave this crew?"
+        body="You will no longer be listed as a member of this crew."
+        confirmLabel="Leave Crew"
+        loadingLabel="Leave Crew..."
+        busy={crewLoading && Boolean(leavingCrew)}
+        onCancel={() => setCrewToLeave(null)}
+        onConfirm={handleLeaveCrew}
+      />
+      <ActionToast message={toast} />
     </section>
   );
 }

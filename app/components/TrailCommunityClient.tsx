@@ -347,66 +347,74 @@ export default function TrailCommunityClient({ trailSlug, trailTitle, initialSna
 
           <div id="trail-trips" className="rounded-2xl border border-black/8 bg-white p-6 shadow-sm">
             <p className="text-sm font-semibold uppercase tracking-[0.16em] text-[#5d7d61]">Trips</p>
-            <h3 className="mt-2 text-2xl font-bold text-[#243126]">
-              {hasPlannedTrips ? `Join a trip on ${trailTitle}` : `Be the first to plan ${trailTitle}`}
-            </h3>
-            <p className="mt-3 text-sm leading-6 text-gray-600">
-              {hasPlannedTrips
-                ? 'Pick an upcoming date if one already works for you, or add a new outing if you want a different plan.'
-                : 'No upcoming trips are on the board yet, so the clearest next step is to plan one.'}
-            </p>
-
             {hasPlannedTrips ? (
-              <div className="mt-5 space-y-3">
-                {community.trips.map((trip) => (
-                  <div key={trip.id} className="rounded-xl border border-black/8 bg-[#f8faf8] p-4">
-                    <div className="flex flex-wrap items-start justify-between gap-3">
-                      <div>
-                        <div className="text-base font-semibold text-[#243126]">{formatTripDate(trip.date)}</div>
-                        <div className="mt-1 text-sm text-gray-600">
-                          Meetup: {trip.meetupArea} · Depart {trip.departureTime}
-                        </div>
-                        <div className="mt-1 text-sm text-gray-500">Planned by {trip.shareName}</div>
-                      </div>
-                      <Link
-                        href={viewer ? `/plan/${trailSlug}` : '/#member-access'}
-                        className="inline-flex rounded-lg bg-[#2f5d3a] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#264d30]"
-                      >
-                        {viewer ? 'Join a Trip' : 'Log in to join a trip'}
-                      </Link>
-                    </div>
-                    {trip.tripNote ? <p className="mt-3 text-sm leading-6 text-gray-600">{trip.tripNote}</p> : null}
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="mt-5 rounded-xl border border-dashed border-[#b8cbb8] bg-[#f7faf6] p-4 text-sm leading-6 text-gray-600">
-                No upcoming trips yet. Once somebody puts a date on the calendar, this section flips to a trip-join flow.
-              </div>
-            )}
+              <>
+                <h3 className="mt-2 text-2xl font-bold text-[#243126]">Upcoming trips for this trail</h3>
+                <p className="mt-3 text-sm leading-6 text-gray-600">
+                  See what’s already planned, or create a new trip that fits your own date and group.
+                </p>
 
-            <div className="mt-5 flex flex-wrap gap-3">
-              <Link
-                href={viewer ? `/plan/${trailSlug}` : '/#member-access'}
-                className="inline-flex rounded-lg bg-[#2f5d3a] px-5 py-3 font-semibold text-white transition hover:bg-[#264d30]"
-              >
-                {hasPlannedTrips
-                  ? viewer
-                    ? 'Plan Another Trip'
-                    : 'Log in to plan another trip'
-                  : viewer
-                    ? 'Plan a Trip'
-                    : 'Log in to plan a trip'}
-              </Link>
-              {hasPlannedTrips ? (
-                <a
-                  href="#trip-interest"
-                  className="inline-flex rounded-lg border border-gray-300 px-5 py-3 font-semibold text-gray-800 transition hover:bg-gray-50"
-                >
-                  Raise your hand for these dates
-                </a>
-              ) : null}
-            </div>
+                <div className="mt-5 space-y-3">
+                  {community.trips.map((trip) => (
+                    <div key={trip.id} className="rounded-xl border border-black/8 bg-[#f8faf8] p-4">
+                      <div className="flex flex-wrap items-start justify-between gap-3">
+                        <div>
+                          <div className="text-base font-semibold text-[#243126]">{formatTripDate(trip.date)}</div>
+                          <div className="mt-1 text-sm text-gray-600">Planned by {trip.shareName}</div>
+                          <div className="mt-1 text-sm text-gray-600">
+                            {trip.participantCount} participant{trip.participantCount === 1 ? '' : 's'} · Meetup: {trip.meetupArea} · Depart {trip.departureTime}
+                          </div>
+                        </div>
+                        <Link
+                          href={viewer ? `/plan/${trailSlug}` : '/#member-access'}
+                          className="inline-flex rounded-lg bg-[#2f5d3a] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#264d30]"
+                        >
+                          {viewer ? 'Join this Trip' : 'Log in to join this trip'}
+                        </Link>
+                      </div>
+                      {trip.tripNote ? <p className="mt-3 text-sm leading-6 text-gray-600">{trip.tripNote}</p> : null}
+                    </div>
+                  ))}
+                </div>
+
+                <div className="mt-5 rounded-xl border border-[#d7e4d7] bg-[#f7faf6] p-4">
+                  <div className="text-base font-semibold text-[#243126]">Want a different date or a different group?</div>
+                  <p className="mt-2 text-sm leading-6 text-gray-600">Plan your own trip for this trail.</p>
+                  <div className="mt-4 flex flex-wrap gap-3">
+                    <Link
+                      href={viewer ? `/plan/${trailSlug}` : '/#member-access'}
+                      className="inline-flex rounded-lg border border-[#2f5d3a] px-5 py-3 font-semibold text-[#2f5d3a] transition hover:bg-[#f2f5f1]"
+                    >
+                      {viewer ? 'Plan Another Trip' : 'Log in to plan another trip'}
+                    </Link>
+                    <a
+                      href="#trip-interest"
+                      className="inline-flex rounded-lg border border-gray-300 px-5 py-3 font-semibold text-gray-800 transition hover:bg-gray-50"
+                    >
+                      Raise your hand for these dates
+                    </a>
+                  </div>
+                </div>
+              </>
+            ) : (
+              <>
+                <h3 className="mt-2 text-2xl font-bold text-[#243126]">No trip planned yet for this trail</h3>
+                <p className="mt-3 text-sm leading-6 text-gray-600">
+                  Be the first to put a date on the calendar, then others can decide whether to join you.
+                </p>
+                <div className="mt-5 rounded-xl border border-dashed border-[#b8cbb8] bg-[#f7faf6] p-4 text-sm leading-6 text-gray-600">
+                  No upcoming trips yet. Once someone plans one, this area turns into an upcoming-trip board instead of a blank state.
+                </div>
+                <div className="mt-5">
+                  <Link
+                    href={viewer ? `/plan/${trailSlug}` : '/#member-access'}
+                    className="inline-flex rounded-lg bg-[#2f5d3a] px-5 py-3 font-semibold text-white transition hover:bg-[#264d30]"
+                  >
+                    {viewer ? 'Plan a Trip' : 'Log in to plan a trip'}
+                  </Link>
+                </div>
+              </>
+            )}
 
             <div id="trip-interest" className="mt-5 rounded-xl bg-[#f7faf6] p-4 text-sm text-gray-700">
               <div className="text-base font-semibold text-[#243126]">
@@ -421,7 +429,7 @@ export default function TrailCommunityClient({ trailSlug, trailTitle, initialSna
               <form onSubmit={handleJoin} className="mt-5 space-y-3">
                 <div className="text-sm leading-6 text-gray-600">
                   {hasPlannedTrips
-                    ? 'See a date you like? Add yourself to the ride list so organizers can spot demand while the deeper trip-member flow catches up.'
+                    ? 'If one of the listed trips is close to what you want, add your name so the organizer can spot real demand.'
                     : 'Not ready to host yet? Add yourself to the ride list so others can see there is interest.'}
                 </div>
                 <input
@@ -449,7 +457,7 @@ export default function TrailCommunityClient({ trailSlug, trailTitle, initialSna
                   disabled={joinLoading}
                   className="w-full rounded-lg border border-[#2f5d3a] px-4 py-3 font-semibold text-[#2f5d3a] transition hover:bg-[#f2f5f1] disabled:cursor-not-allowed disabled:opacity-70"
                 >
-                  {joinLoading ? 'Saving...' : hasPlannedTrips ? 'I am interested in joining' : 'I want to go if someone plans it'}
+                  {joinLoading ? 'Saving...' : hasPlannedTrips ? 'I am interested in one of these trips' : 'I want to go if someone plans it'}
                 </button>
               </form>
             ) : (

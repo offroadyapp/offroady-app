@@ -199,42 +199,51 @@ export default async function Home() {
                   </div>
                 </div>
 
-                <div className="mt-6 flex flex-wrap gap-3">
-                  <a
-                    href={viewer ? '#trail-trips' : '#member-access'}
-                    className="rounded-lg bg-[#2f5d3a] px-4 py-2.5 font-semibold text-white transition hover:bg-[#264d30]"
-                  >
-                    {hasPlannedTrips ? (viewer ? 'Join a Trip' : 'Log in to join a trip') : (viewer ? 'Plan a Trip' : 'Log in to plan a trip')}
-                  </a>
-                  {hasPlannedTrips ? (
+                <div className="mt-6 rounded-2xl border border-[#d7e4d7] bg-[#f7faf6] p-4">
+                  <p className="text-sm font-medium text-[#2f5d3a]">
+                    {hasPlannedTrips
+                      ? 'There’s already a trip planned for this trail. Join one, or start another on a different date.'
+                      : 'No trip planned yet for this trail. Be the first to start one.'}
+                  </p>
+                  <div className="mt-4 flex flex-wrap gap-3">
                     <a
-                      href={viewer ? `/plan/${trail.slug}` : '#member-access'}
+                      href={viewer ? '#trail-trips' : '#member-access'}
+                      className="rounded-lg bg-[#2f5d3a] px-4 py-2.5 font-semibold text-white transition hover:bg-[#264d30]"
+                    >
+                      {hasPlannedTrips ? (viewer ? 'Join a Trip' : 'Log in to join a trip') : (viewer ? 'Plan a Trip' : 'Log in to plan a trip')}
+                    </a>
+                    <a
+                      href={hasPlannedTrips ? (viewer ? `/plan/${trail.slug}` : '#member-access') : `https://www.google.com/maps?q=${featuredTrail.latitude},${featuredTrail.longitude}`}
+                      target={hasPlannedTrips ? undefined : '_blank'}
+                      rel={hasPlannedTrips ? undefined : 'noreferrer'}
                       className="rounded-lg border border-gray-300 px-4 py-2.5 font-semibold text-gray-800 transition hover:bg-gray-50"
                     >
-                      {viewer ? 'Plan Another Trip' : 'Log in to plan another trip'}
+                      {hasPlannedTrips ? (viewer ? 'Plan Another Trip' : 'Log in to plan another trip') : 'View on Map'}
                     </a>
-                  ) : null}
-                  <a
-                    href={`https://www.google.com/maps?q=${featuredTrail.latitude},${featuredTrail.longitude}`}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="rounded-lg border border-gray-300 px-4 py-2.5 font-semibold text-gray-800 transition hover:bg-gray-50"
-                  >
-                    View on Map
-                  </a>
-                  {viewer ? (
-                    <FavoriteTrailButton
-                      trailSlug={trail.slug}
-                      initialFavorite={favoriteTrailSlugs.includes(trail.slug)}
-                    />
-                  ) : (
-                    <a
-                      href="#member-access"
-                      className="rounded-lg border border-gray-300 px-4 py-2.5 font-semibold text-gray-800 transition hover:bg-gray-50"
-                    >
-                      Log in to save favorites
-                    </a>
-                  )}
+                    {hasPlannedTrips ? (
+                      <a
+                        href={`https://www.google.com/maps?q=${featuredTrail.latitude},${featuredTrail.longitude}`}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="rounded-lg border border-gray-300 px-4 py-2.5 font-semibold text-gray-800 transition hover:bg-gray-50"
+                      >
+                        View on Map
+                      </a>
+                    ) : null}
+                    {viewer ? (
+                      <FavoriteTrailButton
+                        trailSlug={trail.slug}
+                        initialFavorite={favoriteTrailSlugs.includes(trail.slug)}
+                      />
+                    ) : (
+                      <a
+                        href="#member-access"
+                        className="rounded-lg border border-gray-300 px-4 py-2.5 font-semibold text-gray-800 transition hover:bg-gray-50"
+                      >
+                        Log in to save favorites
+                      </a>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>

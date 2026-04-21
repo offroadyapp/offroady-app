@@ -19,6 +19,7 @@ export type CommunitySnapshot = {
     departureTime: string;
     tripNote: string | null;
     shareName: string;
+    participantCount: number;
     createdAt: string;
   }>;
   participants: Array<{ displayName: string; profileSlug: string; role: string; joinedAt: string }>;
@@ -284,6 +285,25 @@ export async function getCommunitySnapshot(slug?: string): Promise<CommunitySnap
 
     if (tripError) throw tripError;
 
+    const tripIds = (tripRows ?? []).map((trip) => trip.id);
+    const { data: tripInviteRows, error: tripInviteError } = tripIds.length
+      ? await supabase
+          .from('trip_invites')
+          .select('trip_plan_id, status')
+          .in('trip_plan_id', tripIds)
+      : { data: [], error: null };
+
+    if (tripInviteError) throw tripInviteError;
+
+    const tripParticipantCounts = new Map<string, number>();
+    for (const trip of tripRows ?? []) {
+      tripParticipantCounts.set(trip.id, 1);
+    }
+    for (const invite of tripInviteRows ?? []) {
+      if (invite.status !== 'claimed') continue;
+      tripParticipantCounts.set(invite.trip_plan_id, (tripParticipantCounts.get(invite.trip_plan_id) ?? 1) + 1);
+    }
+
     const trips = (tripRows ?? []).map((trip) => ({
       id: trip.id,
       date: trip.date,
@@ -291,6 +311,7 @@ export async function getCommunitySnapshot(slug?: string): Promise<CommunitySnap
       departureTime: trip.departure_time,
       tripNote: trip.trip_note,
       shareName: trip.share_name,
+      participantCount: tripParticipantCounts.get(trip.id) ?? 1,
       createdAt: trip.created_at,
     }));
 

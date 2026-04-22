@@ -33,6 +33,7 @@ export default async function MyProfilePage() {
                 </div>
                 <ProfileEditor
                   initialProfile={{
+                    displayName: profile.displayName,
                     bio: profile.bio || '',
                     avatarImage: profile.avatarImage || '',
                     rigName: profile.rigName || '',

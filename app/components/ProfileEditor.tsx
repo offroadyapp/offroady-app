@@ -4,6 +4,7 @@ import { useState } from 'react';
 
 type Props = {
   initialProfile: {
+    displayName: string;
     bio: string;
     avatarImage: string;
     rigName: string;
@@ -16,6 +17,16 @@ type Props = {
     shareVibe: string;
   };
 };
+
+function initialsFor(displayName: string) {
+  return displayName
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase() || '')
+    .join('') || 'U';
+}
 
 export default function ProfileEditor({ initialProfile }: Props) {
   const [editing, setEditing] = useState(false);
@@ -151,7 +162,7 @@ export default function ProfileEditor({ initialProfile }: Props) {
               {avatarPreview ? (
                 <img src={avatarPreview} alt="Profile preview" className="h-full w-full object-cover" />
               ) : (
-                'You'
+                initialsFor(initialProfile.displayName)
               )}
             </div>
             <div className="flex-1">

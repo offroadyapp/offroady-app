@@ -28,6 +28,12 @@ export type LocalTrail = {
   members_only_plan_trip: boolean;
   plan_trip_enabled: boolean;
   referral_sharing_enabled: boolean;
+  technical_rating?: number | null;
+  distance_miles?: number | null;
+  high_point_ft?: number | null;
+  low_point_ft?: number | null;
+  elevation_gain_ft?: number | null;
+  elevation_loss_ft?: number | null;
 };
 
 type TrailImageMeta = {

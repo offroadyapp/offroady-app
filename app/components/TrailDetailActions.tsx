@@ -17,6 +17,8 @@ type Props = {
     best_for: string[];
     vehicle_recommendation: string;
     route_condition_note: string;
+    technical_rating?: number | null;
+    distance_miles?: number | null;
   };
   viewerSignedIn: boolean;
   viewerDisplayName?: string | null;

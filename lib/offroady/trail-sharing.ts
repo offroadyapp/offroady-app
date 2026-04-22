@@ -1,6 +1,6 @@
 import type { LocalTrail } from '@/lib/offroady/trails';
 
-export type TrailShareFields = Pick<LocalTrail, 'slug' | 'title' | 'region' | 'location_label' | 'difficulty' | 'card_blurb' | 'best_for' | 'vehicle_recommendation' | 'route_condition_note'> & {
+export type TrailShareFields = Pick<LocalTrail, 'slug' | 'title' | 'region' | 'location_label' | 'difficulty' | 'card_blurb' | 'best_for' | 'vehicle_recommendation' | 'route_condition_note' | 'technical_rating' | 'distance_miles'> & {
   technicalRating?: number | null;
   distanceKm?: number | null;
 };
@@ -256,8 +256,9 @@ function inferCategory(trail: TrailShareFields): TrailShareCategory {
 }
 
 function inferTechnicalRating(trail: TrailShareFields, category: TrailShareCategory) {
-  if (typeof trail.technicalRating === 'number' && Number.isFinite(trail.technicalRating)) {
-    return Math.max(1, Math.min(10, Math.round(trail.technicalRating)));
+  const rawRating = trail.technicalRating ?? trail.technical_rating;
+  if (typeof rawRating === 'number' && Number.isFinite(rawRating)) {
+    return Math.max(1, Math.min(10, Math.round(rawRating)));
   }
 
   if (category === 'technical') return 8;
@@ -363,6 +364,12 @@ export function buildTrailSharePack({ trail, trailUrl, hasUpcomingTrip = false, 
   const primaryHook = buildPrimaryHook(trail, category, 'default');
   const ratingHook = buildRatingHook(trail, technicalRating, 'default');
   const tripHook = buildTripHook(trail, hasUpcomingTrip, 'default');
+  const distanceKm = trail.distanceKm ?? (typeof trail.distance_miles === 'number' ? Math.round(trail.distance_miles * 1.60934 * 10) / 10 : null);
+  const distanceHook = distanceKm && distanceKm >= 20
+    ? `It looks long enough to make a full day of it.`
+    : distanceKm && distanceKm <= 8
+      ? `Looks like a shorter run that still feels worth the drive.`
+      : null;
   const inviteTail = pickStable([
     'Want to go together?',
     'Want to do a run there sometime?',
@@ -370,7 +377,7 @@ export function buildTrailSharePack({ trail, trailUrl, hasUpcomingTrip = false, 
     'Feels like a good one to send to the group chat.',
   ], `${trail.slug}:invite:tail:${category}:${hasUpcomingTrip}`);
 
-  const defaultOptional = category === 'moderate' || category === 'technical' ? ratingHook : null;
+  const defaultOptional = category === 'moderate' || category === 'technical' ? ratingHook : distanceHook;
   const scenicOptional = category === 'technical' ? null : primaryHook;
   const technicalOptional = category === 'technical' ? ratingHook : buildRatingHook(trail, technicalRating, 'technical');
 
@@ -384,6 +391,7 @@ export function buildTrailSharePack({ trail, trailUrl, hasUpcomingTrip = false, 
   const shareTextInvite = composeShareText([
     inviteIntro,
     category === 'destination' ? primaryHook : buildHookBundle(trail, category, technicalRating, hasUpcomingTrip, 'invite'),
+    distanceHook,
     inviteTail,
     hasUpcomingTrip ? tripHook : null,
   ], trailUrl, 240);
@@ -398,6 +406,7 @@ export function buildTrailSharePack({ trail, trailUrl, hasUpcomingTrip = false, 
   const shareTextTechnical = composeShareText([
     technicalIntro,
     technicalOptional,
+    distanceKm && distanceKm >= 15 ? distanceHook : null,
     hasUpcomingTrip ? tripHook : null,
   ], trailUrl, 240);
 

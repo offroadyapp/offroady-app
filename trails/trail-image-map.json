@@ -182,45 +182,57 @@
     "needsBetterSource": false
   },
   "stirling-creek-old-joe-fsr": {
-    "cardImage": "/images/trails/stirling-creek-old-joe-fsr.png",
-    "imageKind": "trail-context",
-    "locationContext": "Princeton and Tulameen backcountry FSR ridges",
-    "notes": "Stored generated image based on the specific trail corridor and region context for the merged upload bundle.",
+    "cardImage": "/images/trails/stirling-creek-old-joe-fsr.jpg",
+    "imageKind": "real-source-photo",
+    "locationContext": "Tulameen / Otter Lake area near the Princeton backcountry approach",
+    "notes": "Sourced from the Tulameen community page to better match the Princeton-side route context.",
+    "sourcePage": "https://www.princetonbc.com/tulameen",
+    "sourceImage": "https://s.realtyninja.com/static/media/med/12842_f3797576_Otter_Lakefront.jpg",
     "needsBetterSource": false
   },
   "sloquet-hot-springs": {
-    "cardImage": "/images/trails/sloquet-hot-springs.png",
-    "imageKind": "trail-context",
-    "locationContext": "Sloquet corridor hot springs backcountry forest",
-    "notes": "Stored generated image based on the specific trail corridor and region context for the merged upload bundle.",
+    "cardImage": "/images/trails/sloquet-hot-springs.jpg",
+    "imageKind": "real-source-photo",
+    "locationContext": "Sloquet Hot Springs pools and surrounding forest",
+    "notes": "Replaced generated artwork with a real Sloquet Hot Springs photo from Wikimedia-hosted media.",
+    "sourcePage": "https://en.wikipedia.org/wiki/Sloquet_Hot_Springs",
+    "sourceImage": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b0/Sloquet_Hotsprings.jpg/1280px-Sloquet_Hotsprings.jpg",
     "needsBetterSource": false
   },
   "clear-creek-hot-springs-fsr": {
-    "cardImage": "/images/trails/clear-creek-hot-springs-fsr.png",
-    "imageKind": "trail-context",
-    "locationContext": "West Harrison forest road toward Clear Creek Hot Springs",
-    "notes": "Stored generated image based on the specific trail corridor and region context for the merged upload bundle.",
+    "cardImage": "/images/trails/clear-creek-hot-springs-fsr.webp",
+    "imageKind": "real-source-photo",
+    "locationContext": "Clear Creek Hot Springs and West Harrison forest road approach",
+    "notes": "Replaced generated artwork with a real Clear Creek Hot Springs image from the destination page.",
+    "sourcePage": "https://www.hotspringsofbc.ca/clear-creek-hot-springs/",
+    "sourceImage": "https://www.hotspringsofbc.ca/wp-content/uploads/2021/10/Clear-Creek-Hot-Springs-@emma._.ashleyy-1.webp",
     "needsBetterSource": false
   },
   "foley-forest-service-road": {
-    "cardImage": "/images/trails/foley-forest-service-road.png",
-    "imageKind": "trail-context",
-    "locationContext": "Chilliwack and Tamihi forest service road corridor",
-    "notes": "Stored generated image based on the specific trail corridor and region context for the merged upload bundle.",
+    "cardImage": "/images/trails/foley-forest-service-road.jpg",
+    "imageKind": "real-source-photo",
+    "locationContext": "Foley FSR mountain view above the Chilliwack corridor",
+    "notes": "Replaced generated artwork with a real Foley FSR trip photo showing the broader mountain-road feel.",
+    "sourcePage": "https://ihikebc.com/trips/2014/trip069ChilliwackFoleyForestServiceRoad.htm",
+    "sourceImage": "https://ihikebc.com/picsnew/2014/8804-Mountain-View--Chilliwack-Foley-Forest-Service-Road.JPG",
     "needsBetterSource": false
   },
   "hicks-lake-road": {
-    "cardImage": "/images/trails/hicks-lake-road.png",
-    "imageKind": "trail-context",
-    "locationContext": "Hicks Lake shoreline and nearby forest road",
-    "notes": "Stored generated image based on the specific trail corridor and region context for the merged upload bundle.",
+    "cardImage": "/images/trails/hicks-lake-road.jpg",
+    "imageKind": "real-source-photo",
+    "locationContext": "Hicks Lake / Sasquatch Park shoreline setting",
+    "notes": "Replaced generated artwork with a real Sasquatch Park image to match the Hicks Lake area.",
+    "sourcePage": "https://bcparks.ca/sasquatch-park/",
+    "sourceImage": "https://nrs.objectstore.gov.bc.ca/kuwyyf/RS_7782_Sasquatch_Iain_Robert_Reid_46_gal_e77a88ffd1.jpg",
     "needsBetterSource": false
   },
   "foley-forest-service-road-fsr": {
-    "cardImage": "/images/trails/foley-forest-service-road-fsr.png",
-    "imageKind": "trail-context",
-    "locationContext": "Tamihi and Chilliwack River forest road terrain",
-    "notes": "Stored generated image based on the specific trail corridor and region context for the merged upload bundle.",
+    "cardImage": "/images/trails/foley-forest-service-road-fsr.jpg",
+    "imageKind": "real-source-photo",
+    "locationContext": "Foley FSR river-view section in the Chilliwack corridor",
+    "notes": "Replaced generated artwork with a second real Foley FSR photo so the duplicate-named entry does not reuse the same image.",
+    "sourcePage": "https://ihikebc.com/trips/2014/trip069ChilliwackFoleyForestServiceRoad.htm",
+    "sourceImage": "https://ihikebc.com/picsnew/2014/8772-River-View-Chilliwack-Foley-FSR-BC-Canada.JPG",
     "needsBetterSource": false
   }
 }

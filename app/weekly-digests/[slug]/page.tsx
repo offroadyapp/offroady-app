@@ -31,7 +31,12 @@ export default async function WeeklyDigestPage({ params }: { params: Promise<{ s
           <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/40 to-black/25" />
           <div className="relative mx-auto max-w-7xl px-4 py-20 text-white sm:px-6 lg:px-8">
             <div className="max-w-3xl">
-              <div className="inline-flex rounded-full border border-white/20 bg-white/10 px-4 py-2 text-sm backdrop-blur">Weekly trail digest</div>
+              <div className="flex flex-wrap items-center gap-3">
+                <div className="inline-flex rounded-full border border-white/20 bg-white/10 px-4 py-2 text-sm backdrop-blur">Weekly trail digest</div>
+                <Link href="/#weekly-digest-signup" className="rounded-full border border-white/25 bg-white/10 px-4 py-2 text-sm font-semibold text-white backdrop-blur transition hover:bg-white/20">
+                  Subscribe
+                </Link>
+              </div>
               <h1 className="mt-5 text-4xl font-bold tracking-tight sm:text-5xl">{digest.headline}</h1>
               <p className="mt-5 text-lg leading-8 text-white/90">{digest.introText}</p>
               <div className="mt-6 flex flex-wrap gap-3 text-sm text-white/90">

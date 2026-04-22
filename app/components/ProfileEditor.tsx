@@ -2,20 +2,23 @@
 
 import { useState } from 'react';
 
+export type EditableProfile = {
+  displayName: string;
+  bio: string;
+  avatarImage: string;
+  rigName: string;
+  rigPhoto: string;
+  rigMods: string[];
+  experienceSince: number | null;
+  areasDriven: string[];
+  petName: string;
+  petNote: string;
+  shareVibe: string;
+};
+
 type Props = {
-  initialProfile: {
-    displayName: string;
-    bio: string;
-    avatarImage: string;
-    rigName: string;
-    rigPhoto: string;
-    rigMods: string[];
-    experienceSince: number | null;
-    areasDriven: string[];
-    petName: string;
-    petNote: string;
-    shareVibe: string;
-  };
+  initialProfile: EditableProfile;
+  onProfileUpdated?: (profile: EditableProfile) => void;
 };
 
 function initialsFor(displayName: string) {
@@ -28,7 +31,7 @@ function initialsFor(displayName: string) {
     .join('') || 'U';
 }
 
-export default function ProfileEditor({ initialProfile }: Props) {
+export default function ProfileEditor({ initialProfile, onProfileUpdated }: Props) {
   const [editing, setEditing] = useState(false);
   const [bio, setBio] = useState(initialProfile.bio);
   const [avatarPreview, setAvatarPreview] = useState(initialProfile.avatarImage);
@@ -44,10 +47,29 @@ export default function ProfileEditor({ initialProfile }: Props) {
   const [shareVibe, setShareVibe] = useState(initialProfile.shareVibe);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
+
+  function snapshot(overrides?: Partial<EditableProfile>): EditableProfile {
+    return {
+      displayName: initialProfile.displayName,
+      bio,
+      avatarImage: avatarPreview,
+      rigName,
+      rigPhoto: rigPreview,
+      rigMods: rigMods.split(',').map((item) => item.trim()).filter(Boolean),
+      experienceSince: experienceSince ? Number(experienceSince) : null,
+      areasDriven: areasDriven.split(',').map((item) => item.trim()).filter(Boolean),
+      petName,
+      petNote,
+      shareVibe,
+      ...overrides,
+    };
+  }
 
   async function removeImage(kind: 'avatar' | 'rig') {
     setLoading(true);
     setError('');
+    setSuccess('');
 
     try {
       const response = await fetch(`/api/account/member-profile/media?kind=${kind}`, {
@@ -59,9 +81,13 @@ export default function ProfileEditor({ initialProfile }: Props) {
       if (kind === 'avatar') {
         setAvatarFile(null);
         setAvatarPreview('');
+        onProfileUpdated?.(snapshot({ avatarImage: '' }));
+        setSuccess('Avatar removed');
       } else {
         setRigFile(null);
         setRigPreview('');
+        onProfileUpdated?.(snapshot({ rigPhoto: '' }));
+        setSuccess('Rig photo removed');
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to remove profile image');
@@ -85,7 +111,7 @@ export default function ProfileEditor({ initialProfile }: Props) {
   }
 
   async function uploadImage(kind: 'avatar' | 'rig', file: File | null) {
-    if (!file) return;
+    if (!file) return null;
 
     const formData = new FormData();
     formData.set('kind', kind);
@@ -97,16 +123,18 @@ export default function ProfileEditor({ initialProfile }: Props) {
     });
     const payload = await response.json();
     if (!response.ok) throw new Error(payload.error || 'Failed to upload profile image');
+    return payload.imageUrl as string;
   }
 
   async function handleSubmit(event: React.FormEvent) {
     event.preventDefault();
     setLoading(true);
     setError('');
+    setSuccess('');
 
     try {
-      await uploadImage('avatar', avatarFile);
-      await uploadImage('rig', rigFile);
+      const uploadedAvatarUrl = await uploadImage('avatar', avatarFile);
+      const uploadedRigUrl = await uploadImage('rig', rigFile);
 
       const response = await fetch('/api/account/member-profile', {
         method: 'PATCH',
@@ -124,7 +152,30 @@ export default function ProfileEditor({ initialProfile }: Props) {
       });
       const payload = await response.json();
       if (!response.ok) throw new Error(payload.error || 'Failed to update profile');
-      window.location.reload();
+
+      const nextProfile: EditableProfile = {
+        displayName: initialProfile.displayName,
+        bio: payload.profile.bio || '',
+        avatarImage: uploadedAvatarUrl ?? avatarPreview,
+        rigName: payload.profile.rig_name || '',
+        rigPhoto: uploadedRigUrl ?? rigPreview,
+        rigMods: payload.profile.rig_mods || [],
+        experienceSince: payload.profile.experience_since || null,
+        areasDriven: payload.profile.areas_driven || [],
+        petName: payload.profile.pet_name || '',
+        petNote: payload.profile.pet_note || '',
+        shareVibe: payload.profile.share_vibe || '',
+      };
+
+      setAvatarFile(null);
+      setRigFile(null);
+      setAvatarPreview(nextProfile.avatarImage);
+      setRigPreview(nextProfile.rigPhoto);
+      setRigMods(nextProfile.rigMods.join(', '));
+      setAreasDriven(nextProfile.areasDriven.join(', '));
+      onProfileUpdated?.(nextProfile);
+      setSuccess('Profile saved');
+      setEditing(false);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to update profile');
     } finally {
@@ -134,13 +185,16 @@ export default function ProfileEditor({ initialProfile }: Props) {
 
   if (!editing) {
     return (
-      <button
-        type="button"
-        onClick={() => setEditing(true)}
-        className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-semibold text-gray-700 transition hover:bg-gray-50"
-      >
-        Edit profile
-      </button>
+      <div className="space-y-3">
+        {success ? <div className="rounded-lg border border-green-200 bg-green-50 px-3 py-2 text-sm text-green-700">{success}</div> : null}
+        <button
+          type="button"
+          onClick={() => setEditing(true)}
+          className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-semibold text-gray-700 transition hover:bg-gray-50"
+        >
+          Edit profile
+        </button>
+      </div>
     );
   }
 
@@ -234,6 +288,7 @@ export default function ProfileEditor({ initialProfile }: Props) {
       <input value={shareVibe} onChange={(event) => setShareVibe(event.target.value)} placeholder="Trail vibe" className="w-full rounded-lg border border-gray-300 px-4 py-3 outline-none transition focus:border-[#2f5d3a]" />
 
       {error ? <div className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">{error}</div> : null}
+      {success ? <div className="rounded-lg border border-green-200 bg-green-50 px-3 py-2 text-sm text-green-700">{success}</div> : null}
 
       <button type="submit" disabled={loading} className="rounded-lg bg-[#2f5d3a] px-5 py-3 font-semibold text-white transition hover:bg-[#264d30] disabled:cursor-not-allowed disabled:opacity-70">
         {loading ? 'Saving...' : 'Save profile'}

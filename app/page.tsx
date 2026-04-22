@@ -6,7 +6,8 @@ import SiteHeader from './components/SiteHeader';
 import { getCommunitySnapshot } from '@/lib/offroady/community';
 import { getSessionUser } from '@/lib/offroady/auth';
 import { getFavoriteTrailSlugs } from '@/lib/offroady/account';
-import { getLocalFeaturedTrail, localTrails } from '@/lib/offroady/trails';
+import { getLocalFeaturedTrail, getLocalTrailBySlug, localTrails } from '@/lib/offroady/trails';
+import { getLatestWeeklyDigest } from '@/lib/offroady/weekly-digests';
 
 export const revalidate = 3600;
 
@@ -96,13 +97,27 @@ function difficultyBadge(level?: string | null) {
 }
 
 export default async function Home() {
+  let latestDigest: Awaited<ReturnType<typeof getLatestWeeklyDigest>> = null;
+  try {
+    latestDigest = await getLatestWeeklyDigest();
+  } catch {
+    latestDigest = null;
+  }
   const localTrail = getLocalFeaturedTrail();
+  const digestTrailSlug = latestDigest?.featuredTrailSlug ?? localTrail.slug;
   const viewer = await getSessionUser();
   const favoriteTrailSlugs = viewer ? await getFavoriteTrailSlugs(viewer.id) : [];
-  const snapshot = await getCommunitySnapshot(localTrail.slug);
-  const trail = snapshot.trail ?? localTrail;
-  const hasPlannedTrips = snapshot.trips.length > 0;
-  const featuredTrail = {
+  const snapshot = await getCommunitySnapshot(digestTrailSlug);
+  const trail = snapshot.trail ?? getLocalTrailBySlug(digestTrailSlug) ?? getLocalFeaturedTrail();
+  const hasPlannedTrips = latestDigest ? latestDigest.memberTrips.length > 0 : snapshot.trips.length > 0;
+  const featuredTrail = latestDigest ? {
+    title: latestDigest.featuredTrail.title,
+    latitude: latestDigest.featuredTrail.latitude,
+    longitude: latestDigest.featuredTrail.longitude,
+    locationLabel: latestDigest.featuredTrail.locationLabel ?? latestDigest.featuredTrail.region ?? 'BC',
+    summary: latestDigest.featuredTrail.summary ?? 'Featured local trail for the week.',
+    difficulty: latestDigest.featuredTrail.difficulty ?? 'medium',
+  } : {
     title: 'Cheam Lookout',
     latitude: 49.15836869814306,
     longitude: -121.7454383360047,
@@ -147,7 +162,7 @@ export default async function Home() {
                 Discover a featured BC trail, see whether a trip is already forming, and either join that date or put a new one on the calendar.
               </p>
               <div className="mt-8 flex flex-wrap gap-3">
-                <a href="#featured" className="rounded-lg bg-[#1f5a36] px-5 py-3 font-semibold text-white shadow-lg ring-1 ring-[#2f7a4d]/70 transition hover:bg-[#18482b] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white active:bg-[#143b23]">
+                <a href={latestDigest ? `/weekly-digests/${latestDigest.slug}` : '#featured'} className="rounded-lg bg-[#1f5a36] px-5 py-3 font-semibold text-white shadow-lg ring-1 ring-[#2f7a4d]/70 transition hover:bg-[#18482b] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white active:bg-[#143b23]">
                   Trail of the Week
                 </a>
                 <a href="#more-trails" className="rounded-lg border border-white/70 px-5 py-3 font-medium text-white transition hover:bg-white/10">
@@ -169,7 +184,7 @@ export default async function Home() {
               <img src={featureImage} alt={featuredTrail.title} className="h-full min-h-[320px] w-full object-cover" />
               <div className="p-6 lg:p-8">
                 <div className="inline-flex rounded-full bg-[#eef5ee] px-3 py-1 text-sm font-semibold text-[#2f5d3a]">
-                  This week&apos;s pick
+                  {latestDigest ? 'This week\'s digest pick' : 'This week\'s pick'}
                 </div>
                 <h3 className="mt-4 text-2xl font-bold">{featuredTrail.title}</h3>
                 <p className="mt-3 leading-7 text-gray-600">{featuredTrail.summary}</p>
@@ -182,7 +197,9 @@ export default async function Home() {
                 <div className="mt-5 space-y-3 rounded-xl bg-[#f7faf6] p-4 text-sm text-gray-700">
                   <div>
                     <span className="font-semibold text-[#243126]">Coordinates:</span> {featuredTrail.latitude}, {featuredTrail.longitude}
-                    <CopyCoordinatesButton latitude={featuredTrail.latitude} longitude={featuredTrail.longitude} />
+                    {featuredTrail.latitude != null && featuredTrail.longitude != null ? (
+                      <CopyCoordinatesButton latitude={featuredTrail.latitude} longitude={featuredTrail.longitude} />
+                    ) : null}
                   </div>
                   {weather ? (
                     <>
@@ -207,10 +224,10 @@ export default async function Home() {
                   </p>
                   <div className="mt-4 flex flex-wrap gap-3">
                     <a
-                      href={viewer ? '#trail-trips' : '#member-access'}
+                      href={latestDigest ? `/weekly-digests/${latestDigest.slug}` : (viewer ? '#trail-trips' : '#member-access')}
                       className="rounded-lg bg-[#2f5d3a] px-4 py-2.5 font-semibold text-white transition hover:bg-[#264d30]"
                     >
-                      {hasPlannedTrips ? (viewer ? 'Join a Trip' : 'Log in to join a trip') : (viewer ? 'Plan a Trip' : 'Log in to plan a trip')}
+                      {latestDigest ? 'Open weekly digest' : (hasPlannedTrips ? (viewer ? 'Join a Trip' : 'Log in to join a trip') : (viewer ? 'Plan a Trip' : 'Log in to plan a trip'))}
                     </a>
                     <a
                       href={hasPlannedTrips ? (viewer ? `/plan/${trail.slug}` : '#member-access') : `https://www.google.com/maps?q=${featuredTrail.latitude},${featuredTrail.longitude}`}
@@ -218,7 +235,7 @@ export default async function Home() {
                       rel={hasPlannedTrips ? undefined : 'noreferrer'}
                       className="rounded-lg border border-gray-300 px-4 py-2.5 font-semibold text-gray-800 transition hover:bg-gray-50"
                     >
-                      {hasPlannedTrips ? (viewer ? 'Plan Another Trip' : 'Log in to plan another trip') : 'View on Map'}
+                      {latestDigest ? 'See trail details' : (hasPlannedTrips ? (viewer ? 'Plan Another Trip' : 'Log in to plan another trip') : 'View on Map')}
                     </a>
                     {hasPlannedTrips ? (
                       <a

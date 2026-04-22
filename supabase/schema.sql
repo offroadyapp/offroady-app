@@ -753,3 +753,95 @@ create table if not exists public.email_preference_tokens (
 
 create index if not exists idx_email_preference_tokens_email on public.email_preference_tokens (email);
 create index if not exists idx_email_preference_tokens_expires_at on public.email_preference_tokens (expires_at);
+
+-- APPEND PATCH: weekly digest pipeline
+create table if not exists public.weekly_digests (
+  id uuid primary key default gen_random_uuid(),
+  slug text not null unique,
+  week_start date not null unique,
+  week_end date not null,
+  status text not null default 'draft' check (status in ('draft', 'published', 'archived')),
+  headline text not null,
+  intro_text text not null,
+  featured_trail_id uuid references public.trails(id) on delete set null,
+  featured_trail_slug text not null,
+  featured_trail_title text not null,
+  featured_trail_payload jsonb not null default '{}'::jsonb,
+  cta_payload jsonb not null default '{}'::jsonb,
+  created_by_user_id uuid references public.users(id) on delete set null,
+  published_at timestamptz,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+create index if not exists idx_weekly_digests_week_start on public.weekly_digests (week_start);
+create index if not exists idx_weekly_digests_status on public.weekly_digests (status);
+create index if not exists idx_weekly_digests_featured_trail_id on public.weekly_digests (featured_trail_id);
+
+drop trigger if exists trg_weekly_digests_updated_at on public.weekly_digests;
+create trigger trg_weekly_digests_updated_at
+before update on public.weekly_digests
+for each row execute function public.set_updated_at();
+
+create table if not exists public.external_events (
+  id uuid primary key default gen_random_uuid(),
+  title text not null,
+  starts_at timestamptz not null,
+  ends_at timestamptz,
+  location_name text not null,
+  region text,
+  summary text,
+  source_label text,
+  source_url text,
+  cta_label text,
+  status text not null default 'draft' check (status in ('draft', 'published', 'cancelled')),
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+create index if not exists idx_external_events_starts_at on public.external_events (starts_at);
+create index if not exists idx_external_events_status on public.external_events (status);
+
+drop trigger if exists trg_external_events_updated_at on public.external_events;
+create trigger trg_external_events_updated_at
+before update on public.external_events
+for each row execute function public.set_updated_at();
+
+create table if not exists public.weekly_digest_items (
+  id uuid primary key default gen_random_uuid(),
+  digest_id uuid not null references public.weekly_digests(id) on delete cascade,
+  item_type text not null check (item_type in ('member_trip', 'external_event')),
+  sort_order integer not null default 0,
+  trip_plan_id uuid references public.trip_plans(id) on delete set null,
+  external_event_id uuid references public.external_events(id) on delete set null,
+  title text not null,
+  starts_at timestamptz not null,
+  location_name text,
+  summary text,
+  href text,
+  payload jsonb not null default '{}'::jsonb,
+  created_at timestamptz not null default now()
+);
+
+create index if not exists idx_weekly_digest_items_digest_id on public.weekly_digest_items (digest_id, sort_order);
+create index if not exists idx_weekly_digest_items_trip_plan_id on public.weekly_digest_items (trip_plan_id);
+create index if not exists idx_weekly_digest_items_external_event_id on public.weekly_digest_items (external_event_id);
+
+create table if not exists public.weekly_digest_outputs (
+  id uuid primary key default gen_random_uuid(),
+  digest_id uuid not null references public.weekly_digests(id) on delete cascade,
+  output_type text not null check (output_type in ('web', 'email_html', 'email_text', 'share_short', 'share_medium', 'share_friendly')),
+  subject text,
+  content text not null,
+  metadata jsonb not null default '{}'::jsonb,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  constraint weekly_digest_outputs_unique unique (digest_id, output_type)
+);
+
+create index if not exists idx_weekly_digest_outputs_digest_id on public.weekly_digest_outputs (digest_id);
+
+drop trigger if exists trg_weekly_digest_outputs_updated_at on public.weekly_digest_outputs;
+create trigger trg_weekly_digest_outputs_updated_at
+before update on public.weekly_digest_outputs
+for each row execute function public.set_updated_at();

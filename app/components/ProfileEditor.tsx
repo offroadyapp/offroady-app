@@ -147,7 +147,7 @@ export default function ProfileEditor({ initialProfile }: Props) {
         <label className="block space-y-3">
           <span className="text-sm font-semibold text-[#243126]">Profile photo</span>
           <div className="flex items-center gap-4">
-            <div className="flex h-20 w-20 items-center justify-center overflow-hidden rounded-2xl bg-[#eef5ee] text-xl font-bold text-[#2f5d3a]">
+            <div className="flex h-20 w-20 items-center justify-center overflow-hidden rounded-full bg-[#eef5ee] text-xl font-bold text-[#2f5d3a]">
               {avatarPreview ? (
                 <img src={avatarPreview} alt="Profile preview" className="h-full w-full object-cover" />
               ) : (

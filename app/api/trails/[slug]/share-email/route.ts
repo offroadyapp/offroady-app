@@ -3,6 +3,7 @@ import { getSessionUser } from '@/lib/offroady/auth';
 import { getLocalTrailBySlug } from '@/lib/offroady/trails';
 import { buildTrailShareEmail, getTrailDetailUrl } from '@/lib/offroady/trail-sharing';
 import { sendTransactionalEmail } from '@/lib/offroady/email';
+import { getUpcomingTripDiscovery } from '@/lib/offroady/trip-discovery';
 
 function isValidEmail(value: string) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
@@ -35,9 +36,11 @@ export async function POST(
 
     const origin = new URL(request.url).origin;
     const viewer = await getSessionUser().catch(() => null);
+    const hasUpcomingTrip = (await getUpcomingTripDiscovery({ trailSlug: trail.slug, limit: 1 }).catch(() => [])).length > 0;
     const email = buildTrailShareEmail({
       trail,
       trailUrl: getTrailDetailUrl(trail.slug, origin),
+      hasUpcomingTrip,
       senderName: viewer?.displayName ?? null,
       personalMessage: message || null,
     });

@@ -4,15 +4,19 @@ import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import FavoriteTrailButton from './FavoriteTrailButton';
 import ActionToast from './ActionToast';
-import { buildTrailShareText } from '@/lib/offroady/trail-sharing';
+import { buildTrailSharePack } from '@/lib/offroady/trail-sharing';
 
 type Props = {
   trail: {
     slug: string;
     title: string;
     region: string | null;
+    location_label: string | null;
     difficulty: 'easy' | 'medium' | 'hard';
     card_blurb: string;
+    best_for: string[];
+    vehicle_recommendation: string;
+    route_condition_note: string;
   };
   viewerSignedIn: boolean;
   viewerDisplayName?: string | null;
@@ -55,7 +59,7 @@ export default function TrailDetailActions({
   }, [toast]);
 
   const shareUrl = useMemo(() => pageUrl || `/plan/${trail.slug}`, [pageUrl, trail.slug]);
-  const shareText = useMemo(() => buildTrailShareText({ trail, trailUrl: shareUrl }), [trail, shareUrl]);
+  const sharePack = useMemo(() => buildTrailSharePack({ trail, trailUrl: shareUrl, hasUpcomingTrip }), [trail, shareUrl, hasUpcomingTrip]);
 
   function getCurrentUrl() {
     if (typeof window !== 'undefined' && window.location.href) return window.location.href;
@@ -74,7 +78,8 @@ export default function TrailDetailActions({
   async function handleNativeShare() {
     if (!navigator.share) return;
     try {
-      await navigator.share({ title: trail.title, text: buildTrailShareText({ trail, trailUrl: getCurrentUrl() }), url: getCurrentUrl() });
+      const currentPack = buildTrailSharePack({ trail, trailUrl: getCurrentUrl(), hasUpcomingTrip });
+      await navigator.share({ title: trail.title, text: currentPack.shareTextDefault, url: getCurrentUrl() });
       setToast('Shared');
     } catch {}
   }
@@ -245,13 +250,14 @@ export default function TrailDetailActions({
                   </div>
                   <button
                     type="button"
-                    onClick={() => handleCopy(buildTrailShareText({ trail, trailUrl: getCurrentUrl() }), 'Share text copied')}
+                    onClick={() => handleCopy(buildTrailSharePack({ trail, trailUrl: getCurrentUrl(), hasUpcomingTrip }).shareTextDefault, 'Share text copied')}
                     className="rounded-lg bg-[#2f5d3a] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#264d30]"
                   >
                     Copy share text with link
                   </button>
                 </div>
-                <div className="mt-3 rounded-xl bg-white p-3 text-sm leading-6 text-gray-700">{shareText}</div>
+                <div className="mt-3 rounded-xl bg-white p-3 text-sm leading-6 text-gray-700">{sharePack.shareTextDefault}</div>
+                <div className="mt-2 text-xs leading-5 text-gray-500">Short version: {sharePack.shareTextShort}</div>
               </div>
 
               <form onSubmit={handleEmailShare} className="rounded-2xl border border-black/8 bg-[#f8faf8] p-4">

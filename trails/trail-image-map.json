@@ -180,5 +180,47 @@
     "locationContext": "Borden Creek, Tamihi / Chilliwack River",
     "notes": "Stored generated image based on the specific trail corridor and region context.",
     "needsBetterSource": false
+  },
+  "stirling-creek-old-joe-fsr": {
+    "cardImage": "/images/trails/stirling-creek-old-joe-fsr.png",
+    "imageKind": "trail-context",
+    "locationContext": "Princeton and Tulameen backcountry FSR ridges",
+    "notes": "Stored generated image based on the specific trail corridor and region context for the merged upload bundle.",
+    "needsBetterSource": false
+  },
+  "sloquet-hot-springs": {
+    "cardImage": "/images/trails/sloquet-hot-springs.png",
+    "imageKind": "trail-context",
+    "locationContext": "Sloquet corridor hot springs backcountry forest",
+    "notes": "Stored generated image based on the specific trail corridor and region context for the merged upload bundle.",
+    "needsBetterSource": false
+  },
+  "clear-creek-hot-springs-fsr": {
+    "cardImage": "/images/trails/clear-creek-hot-springs-fsr.png",
+    "imageKind": "trail-context",
+    "locationContext": "West Harrison forest road toward Clear Creek Hot Springs",
+    "notes": "Stored generated image based on the specific trail corridor and region context for the merged upload bundle.",
+    "needsBetterSource": false
+  },
+  "foley-forest-service-road": {
+    "cardImage": "/images/trails/foley-forest-service-road.png",
+    "imageKind": "trail-context",
+    "locationContext": "Chilliwack and Tamihi forest service road corridor",
+    "notes": "Stored generated image based on the specific trail corridor and region context for the merged upload bundle.",
+    "needsBetterSource": false
+  },
+  "hicks-lake-road": {
+    "cardImage": "/images/trails/hicks-lake-road.png",
+    "imageKind": "trail-context",
+    "locationContext": "Hicks Lake shoreline and nearby forest road",
+    "notes": "Stored generated image based on the specific trail corridor and region context for the merged upload bundle.",
+    "needsBetterSource": false
+  },
+  "foley-forest-service-road-fsr": {
+    "cardImage": "/images/trails/foley-forest-service-road-fsr.png",
+    "imageKind": "trail-context",
+    "locationContext": "Tamihi and Chilliwack River forest road terrain",
+    "notes": "Stored generated image based on the specific trail corridor and region context for the merged upload bundle.",
+    "needsBetterSource": false
   }
 }

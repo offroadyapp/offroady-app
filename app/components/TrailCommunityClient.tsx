@@ -356,10 +356,16 @@ export default function TrailCommunityClient({ trailSlug, trailTitle, initialSna
                 </div>
                 <div className="mt-4 flex flex-wrap gap-3">
                   <a
+                    href={`/plan/${item.slug}`}
+                    className="inline-flex rounded-lg border border-gray-300 px-4 py-2.5 text-sm font-semibold text-gray-800 transition hover:bg-gray-50"
+                  >
+                    View Details
+                  </a>
+                  <a
                     href={upcomingTrips ? `/join-a-trip?trail=${encodeURIComponent(item.slug)}` : (hasUnlockedTrails ? `/plan/${item.slug}` : '/#member-access')}
                     className="inline-flex rounded-lg bg-[#2f5d3a] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#264d30]"
                   >
-                    {upcomingTrips ? 'View Trips' : (hasUnlockedTrails ? 'Plan a Trip' : 'Sign up or log in to plan')}
+                    {upcomingTrips ? 'Join Trip' : (hasUnlockedTrails ? 'Plan a Trip' : 'Sign up or log in to plan')}
                   </a>
                   {upcomingTrips ? (
                     <a

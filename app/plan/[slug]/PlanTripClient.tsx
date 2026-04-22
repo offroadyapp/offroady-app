@@ -188,7 +188,7 @@ export default function PlanTripClient({ trail, isLoggedIn }: Props) {
 
   if (!isLoggedIn) {
     return (
-      <section className="mx-auto max-w-5xl px-4 py-16 sm:px-6 lg:px-8">
+      <section id="member-access" className="mx-auto max-w-5xl px-4 py-16 sm:px-6 lg:px-8">
         <div className="rounded-3xl border border-black/8 bg-white p-8 shadow-sm">
           <p className="text-sm font-semibold uppercase tracking-[0.16em] text-[#5d7d61]">Members only</p>
           <h1 className="mt-2 text-3xl font-bold text-[#243126]">Trail details and Plan a Trip unlock after sign up or log in</h1>

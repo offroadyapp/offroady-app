@@ -11,9 +11,11 @@ type Props = {
   activeClassName?: string;
   inactiveClassName?: string;
   refreshOnSuccess?: boolean;
+  activeLabel?: string;
+  inactiveLabel?: string;
 };
 
-export default function FavoriteToggleButton({ apiPath, initialFavorite, className = '', activeClassName = 'bg-[#eef5ee] text-[#2f5d3a] hover:bg-[#e4efe4]', inactiveClassName = 'border border-gray-300 text-gray-700 hover:bg-gray-50', refreshOnSuccess = true }: Props) {
+export default function FavoriteToggleButton({ apiPath, initialFavorite, className = '', activeClassName = 'bg-[#eef5ee] text-[#2f5d3a] hover:bg-[#e4efe4]', inactiveClassName = 'border border-gray-300 text-gray-700 hover:bg-gray-50', refreshOnSuccess = true, activeLabel = 'Unfavorite', inactiveLabel = 'Favorite' }: Props) {
   const router = useRouter();
   const [isFavorite, setIsFavorite] = useState(initialFavorite);
   const [loading, setLoading] = useState(false);
@@ -55,7 +57,7 @@ export default function FavoriteToggleButton({ apiPath, initialFavorite, classNa
         disabled={loading}
         className={`rounded-lg px-4 py-2.5 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-70 ${className} ${isFavorite ? activeClassName : inactiveClassName}`}
       >
-        {loading ? 'Saving...' : isFavorite ? 'Unfavorite' : 'Favorite'}
+        {loading ? 'Saving...' : isFavorite ? activeLabel : inactiveLabel}
       </button>
       {error ? <div className="text-xs text-red-600">{error}</div> : null}
       <ActionToast message={toast} />

@@ -3,6 +3,8 @@ import { getLocalFeaturedTrail, getLocalTrailBySlug, type LocalTrail } from '@/l
 import { getServiceSupabase } from '@/lib/supabase/server';
 import { getSessionUser } from '@/lib/offroady/auth';
 import { isMissingTripMembershipSchemaError } from '@/lib/offroady/invites';
+import { buildEmailFooter, getEmailPreferencesByEmail } from '@/lib/offroady/email-preferences';
+import { sendTransactionalEmail } from '@/lib/offroady/email';
 
 export type IdentityInput = {
   displayName: string;
@@ -73,6 +75,21 @@ function normalizeEmail(email: string) {
   return email.trim().toLowerCase();
 }
 
+async function resolveProfileSlug(displayName: string, existingUserId?: string) {
+  const supabase = getServiceSupabase();
+  const baseSlug = slugifyProfile(displayName) || `member-${crypto.randomUUID().slice(0, 8)}`;
+
+  const { data: conflict, error } = await supabase
+    .from('users')
+    .select('id')
+    .eq('profile_slug', baseSlug)
+    .maybeSingle();
+
+  if (error) throw error;
+  if (!conflict || conflict.id === existingUserId) return baseSlug;
+  return `${baseSlug}-${crypto.randomUUID().slice(0, 8)}`;
+}
+
 function normalizeIdentity(input: IdentityInput) {
   return {
     displayName: input.displayName.trim(),
@@ -122,11 +139,12 @@ async function upsertUser(identity: IdentityInput) {
   if (existingError) throw existingError;
 
   if (existing) {
+    const profileSlug = await resolveProfileSlug(normalized.displayName, existing.id);
     const { data, error } = await supabase
       .from('users')
       .update({
         display_name: normalized.displayName,
-        profile_slug: normalized.profileSlug,
+        profile_slug: profileSlug,
         phone: normalized.phone,
         updated_at: new Date().toISOString(),
       })
@@ -138,13 +156,14 @@ async function upsertUser(identity: IdentityInput) {
     return data;
   }
 
+  const profileSlug = await resolveProfileSlug(normalized.displayName);
   const { data, error } = await supabase
     .from('users')
     .insert({
       email: normalized.email,
       phone: normalized.phone,
       display_name: normalized.displayName,
-      profile_slug: normalized.profileSlug,
+      profile_slug: profileSlug,
     })
     .select('id, email, display_name, profile_slug, phone')
     .single();
@@ -191,7 +210,7 @@ export async function joinTrail(slug: string, identity: IdentityInput) {
 export async function createCrew(
   slug: string,
   identity: IdentityInput,
-  payload: { crewName: string; description?: string }
+  payload: { crewName: string; description?: string; origin?: string }
 ) {
   const trail = await getTrailBySlug(slug);
   if (!trail) throw new Error('Trail not found');
@@ -235,6 +254,17 @@ export async function createCrew(
   );
 
   if (participantError) throw participantError;
+
+  const preferences = await getEmailPreferencesByEmail(user.email, user.id).catch(() => null);
+  if (preferences?.crewNotifications) {
+    const crewUrl = payload.origin ? `${payload.origin}/crews/${crew.id}` : `/crews/${crew.id}`;
+    const footer = await buildEmailFooter(user.email, 'crewNotifications', payload.origin);
+    await sendTransactionalEmail({
+      to: user.email,
+      subject: `Crew created: ${crewName}`,
+      text: `Your crew ${crewName} is live for ${trail.title}. Open it here: ${crewUrl}${footer}`,
+    });
+  }
 
   return getCommunitySnapshot(slug);
 }

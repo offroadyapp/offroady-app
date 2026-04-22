@@ -24,6 +24,14 @@ export async function POST(
   try {
     const { slug } = await context.params;
     const body = await request.json();
+    const origin = (() => {
+      try {
+        return new URL(request.url).origin;
+      } catch {
+        return undefined;
+      }
+    })();
+
     const snapshot = await createCrew(
       slug,
       {
@@ -34,13 +42,20 @@ export async function POST(
       {
         crewName: body.crewName,
         description: body.description,
+        origin,
       }
     );
 
     return NextResponse.json(snapshot);
   } catch (error) {
+    const message = error instanceof Error
+      ? error.message
+      : (error && typeof error === 'object' && 'message' in error && typeof error.message === 'string')
+        ? error.message
+        : 'Failed to create crew';
+
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'Failed to create crew' },
+      { error: message },
       { status: 400 }
     );
   }

@@ -6,8 +6,15 @@ export async function POST(request: Request, context: { params: Promise<{ digest
   try {
     await requireInternalAccess(request);
     const { digestId } = await context.params;
-    const digest = await publishWeeklyDigest(digestId);
-    return NextResponse.json({ ok: true, digest });
+    const origin = (() => {
+      try {
+        return new URL(request.url).origin;
+      } catch {
+        return undefined;
+      }
+    })();
+    const result = await publishWeeklyDigest(digestId, { origin });
+    return NextResponse.json({ ok: true, digest: result.digest, delivery: result.delivery });
   } catch (error) {
     return NextResponse.json(
       { error: error instanceof Error ? error.message : 'Failed to publish weekly digest.' },

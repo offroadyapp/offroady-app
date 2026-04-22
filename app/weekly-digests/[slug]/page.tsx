@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import PageShell from '@/app/components/PageShell';
 
@@ -140,9 +141,9 @@ export default async function WeeklyDigestPage({ params }: { params: Promise<{ s
             <p className="mt-4 max-w-3xl text-base leading-7 text-white/80">{digest.cta.body}</p>
             <p className="mt-3 text-sm text-white/75">Know a good trail? Propose it here.</p>
             <div className="mt-6 flex flex-wrap gap-3">
-              {digest.memberTrips.length ? <a href="/join-a-trip" className="rounded-lg bg-[#2f7a4d] px-5 py-3 font-semibold text-white transition hover:bg-[#286742]">Join a Trip</a> : <a href={digest.cta.href} className="rounded-lg bg-[#2f7a4d] px-5 py-3 font-semibold text-white transition hover:bg-[#286742]">Plan from this trail</a>}
-              <a href="/propose-a-trail" className="rounded-lg border border-white/20 px-5 py-3 font-semibold text-white/90 transition hover:bg-white/10">Propose a Trail</a>
-              <a href="/" className="rounded-lg border border-white/20 px-5 py-3 font-semibold text-white/90 transition hover:bg-white/10">Back to home</a>
+              {digest.memberTrips.length ? <Link href="/join-a-trip" className="rounded-lg bg-[#2f7a4d] px-5 py-3 font-semibold text-white transition hover:bg-[#286742]">Join a Trip</Link> : <Link href={digest.cta.href} className="rounded-lg bg-[#2f7a4d] px-5 py-3 font-semibold text-white transition hover:bg-[#286742]">Plan from this trail</Link>}
+              <Link href="/propose-a-trail" className="rounded-lg border border-white/20 px-5 py-3 font-semibold text-white/90 transition hover:bg-white/10">Propose a Trail</Link>
+              <Link href="/" className="rounded-lg border border-white/20 px-5 py-3 font-semibold text-white/90 transition hover:bg-white/10">Back to home</Link>
             </div>
           </div>
         </section>

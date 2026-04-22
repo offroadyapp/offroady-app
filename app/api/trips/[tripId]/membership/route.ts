@@ -14,17 +14,31 @@ export async function POST(
     }
 
     const { tripId } = await context.params;
+    const origin = (() => {
+      try {
+        return new URL(_request.url).origin;
+      } catch {
+        return undefined;
+      }
+    })();
+
     const plan = await joinTripById(tripId, {
       id: viewer.id,
       displayName: viewer.displayName,
       email: viewer.email,
-    });
+    }, origin);
 
     const snapshot = await getCommunitySnapshot(plan.trail_slug);
     return NextResponse.json(snapshot);
   } catch (error) {
+    const message = error instanceof Error
+      ? error.message
+      : (error && typeof error === 'object' && 'message' in error && typeof error.message === 'string')
+        ? error.message
+        : 'Failed to join trip';
+
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'Failed to join trip' },
+      { error: message },
       { status: 400 }
     );
   }
@@ -50,8 +64,14 @@ export async function DELETE(
     const snapshot = await getCommunitySnapshot(plan.trail_slug);
     return NextResponse.json(snapshot);
   } catch (error) {
+    const message = error instanceof Error
+      ? error.message
+      : (error && typeof error === 'object' && 'message' in error && typeof error.message === 'string')
+        ? error.message
+        : 'Failed to leave trip';
+
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'Failed to leave trip' },
+      { error: message },
       { status: 400 }
     );
   }

@@ -1,6 +1,7 @@
 import { getServiceSupabase, getServerAuthSupabase, getServerSupabaseFromCookies } from '@/lib/supabase/server';
 import { slugifyProfile } from '@/lib/offroady/members';
 import { claimInvitesForEmail } from '@/lib/offroady/invites';
+import { ensureEmailPreferencesForUser } from '@/lib/offroady/email-preferences';
 
 export type AuthIdentityInput = {
   displayName: string;
@@ -265,6 +266,7 @@ export async function createAccount(input: AuthIdentityInput) {
     phone,
   });
 
+  await ensureEmailPreferencesForUser(email, profile.id);
   await claimInvitesForEmail(email, profile.id);
 
   return { user: profile, session: signInData.session };
@@ -285,6 +287,7 @@ export async function loginAccount(emailInput: string, passwordInput: string) {
     displayName: typeof metadata.display_name === 'string' ? metadata.display_name : null,
   });
 
+  await ensureEmailPreferencesForUser(profile.email, profile.id);
   await claimInvitesForEmail(profile.email, profile.id);
 
   return {

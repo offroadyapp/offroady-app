@@ -3,6 +3,7 @@ import AuthPanel from './components/AuthPanel';
 import CopyCoordinatesButton from './components/CopyCoordinatesButton';
 import FavoriteTrailButton from './components/FavoriteTrailButton';
 import SiteHeader from './components/SiteHeader';
+import WeeklyDigestSignupForm from './components/WeeklyDigestSignupForm';
 import { getCommunitySnapshot } from '@/lib/offroady/community';
 import { getSessionUser } from '@/lib/offroady/auth';
 import { getFavoriteTrailSlugs } from '@/lib/offroady/account';
@@ -283,6 +284,10 @@ export default async function Home() {
         </section>
 
         {!viewer ? <AuthPanel /> : null}
+
+        <section className="mx-auto max-w-7xl px-4 pb-16 sm:px-6 lg:px-8">
+          <WeeklyDigestSignupForm initialEmail={viewer?.email ?? ''} />
+        </section>
 
         <section className="mx-auto max-w-7xl px-4 pb-16 sm:px-6 lg:px-8">
           <div className="overflow-hidden rounded-2xl border border-black/8 bg-[#101412] shadow-sm">

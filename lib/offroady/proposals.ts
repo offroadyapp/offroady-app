@@ -1,5 +1,7 @@
 import { randomBytes } from 'crypto';
 import { getServiceSupabase } from '@/lib/supabase/server';
+import { buildEmailFooter, getEmailPreferencesByEmail } from '@/lib/offroady/email-preferences';
+import { sendTransactionalEmail } from '@/lib/offroady/email';
 
 type SessionIdentity = {
   id: string;
@@ -30,6 +32,7 @@ export type CreateTrailProposalInput = {
   knowsOthersVisited?: boolean;
   coverImageUrl?: string | null;
   images?: ProposalImageInput[];
+  origin?: string;
 };
 
 export type TrailProposalRecord = {
@@ -258,6 +261,17 @@ export async function createTrailProposal(submitter: SessionIdentity, input: Cre
 
     if (error) throw error;
     insertedImages = data ?? [];
+  }
+
+  const preferences = await getEmailPreferencesByEmail(submitter.email, submitter.id).catch(() => null);
+  if (preferences?.weeklyTrailUpdates) {
+    const proposalUrl = input.origin ? `${input.origin}/trail-proposals/${proposalSlug}` : `/trail-proposals/${proposalSlug}`;
+    const footer = await buildEmailFooter(submitter.email, 'weeklyTrailUpdates', input.origin);
+    await sendTransactionalEmail({
+      to: submitter.email,
+      subject: `Trail proposed: ${title}`,
+      text: `Your trail proposal for ${title} is live. Review it here: ${proposalUrl}${footer}`,
+    });
   }
 
   return mapProposal(proposal, submitter, insertedImages);

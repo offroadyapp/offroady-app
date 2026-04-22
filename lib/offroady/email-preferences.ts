@@ -80,7 +80,7 @@ function toRowPatch(input: Partial<Omit<EmailPreferences, 'email'>>) {
   return patch;
 }
 
-export async function getEmailPreferencesByEmail(email: string, userId?: string | null) {
+async function getOrCreateEmailPreferencesRow(email: string, userId?: string | null) {
   const normalizedEmail = normalizeEmail(email);
   if (!normalizedEmail) throw new Error('Email is required');
 
@@ -94,18 +94,79 @@ export async function getEmailPreferencesByEmail(email: string, userId?: string 
   if (error) throw error;
 
   if (!data) {
-    await supabase.from('user_email_preferences').upsert({
+    const { error: upsertError } = await supabase.from('user_email_preferences').upsert({
       email: normalizedEmail,
       user_id: userId ?? null,
     });
-    return { email: normalizedEmail, ...defaultPreferences } satisfies EmailPreferences;
+    if (upsertError) throw upsertError;
+    return {
+      email: normalizedEmail,
+      row: null,
+      created: true,
+    };
   }
 
   if (userId && data.user_id !== userId) {
-    await supabase.from('user_email_preferences').update({ user_id: userId }).eq('email', normalizedEmail);
+    const { error: updateError } = await supabase.from('user_email_preferences').update({ user_id: userId }).eq('email', normalizedEmail);
+    if (updateError) throw updateError;
   }
 
-  return mapRow(data, normalizedEmail);
+  return {
+    email: normalizedEmail,
+    row: data,
+    created: false,
+  };
+}
+
+export async function getEmailPreferencesByEmail(email: string, userId?: string | null) {
+  const result = await getOrCreateEmailPreferencesRow(email, userId);
+  return result.created
+    ? ({ email: result.email, ...defaultPreferences } satisfies EmailPreferences)
+    : mapRow(result.row, result.email);
+}
+
+export async function ensureEmailPreferencesForUser(email: string, userId?: string | null) {
+  return getEmailPreferencesByEmail(email, userId);
+}
+
+export async function subscribeToWeeklyDigest(email: string, userId?: string | null) {
+  const current = await getOrCreateEmailPreferencesRow(email, userId);
+  const currentPreferences = current.created
+    ? ({ email: current.email, ...defaultPreferences } satisfies EmailPreferences)
+    : mapRow(current.row, current.email);
+
+  if (!current.created && currentPreferences.weeklyTrailUpdates && (!userId || currentPreferences.email === normalizeEmail(email))) {
+    return {
+      preferences: currentPreferences,
+      alreadySubscribed: true,
+    };
+  }
+
+  const preferences = await updateEmailPreferencesByEmail(
+    email,
+    { weeklyTrailUpdates: true },
+    userId ?? null
+  );
+
+  return {
+    preferences,
+    alreadySubscribed: false,
+  };
+}
+
+export async function listWeeklyDigestSubscribers() {
+  const supabase = getServiceSupabase();
+  const { data, error } = await supabase
+    .from('user_email_preferences')
+    .select('email, user_id, weekly_trail_updates')
+    .eq('weekly_trail_updates', true)
+    .order('email', { ascending: true });
+
+  if (error) throw error;
+  return (data ?? []).map((row) => ({
+    email: normalizeEmail(String(row.email ?? '')),
+    userId: typeof row.user_id === 'string' ? row.user_id : null,
+  })).filter((row) => row.email);
 }
 
 export async function updateEmailPreferencesByEmail(email: string, patch: Partial<Omit<EmailPreferences, 'email'>>, userId?: string | null) {

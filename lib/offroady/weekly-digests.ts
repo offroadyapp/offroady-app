@@ -1,5 +1,7 @@
 import { getLocalTrailBySlug } from '@/lib/offroady/trails';
 import { getServiceSupabase } from '@/lib/supabase/server';
+import { buildEmailFooter, listWeeklyDigestSubscribers } from '@/lib/offroady/email-preferences';
+import { sendTransactionalEmail } from '@/lib/offroady/email';
 
 export type DigestStatus = 'draft' | 'published' | 'archived';
 export type ExternalEventStatus = 'draft' | 'published' | 'cancelled';
@@ -69,6 +71,20 @@ export type WeeklyDigestRecord = {
 export type AdminDigestSummary = Omit<WeeklyDigestRecord, 'memberTrips' | 'externalEvents' | 'outputs'> & {
   memberTripCount: number;
   externalEventCount: number;
+};
+
+export type WeeklyDigestDeliveryRecord = {
+  email: string;
+  status: 'sent' | 'skipped';
+  reason: string;
+  unsubscribeUrl: string;
+};
+
+export type WeeklyDigestDeliverySummary = {
+  totalSubscribers: number;
+  sent: number;
+  skipped: number;
+  records: WeeklyDigestDeliveryRecord[];
 };
 
 export type ExternalEventRecord = {
@@ -540,6 +556,65 @@ function buildEmailOutputs(digest: {
   return { subject, html, text };
 }
 
+export async function buildPersonalizedDigestEmail(
+  digest: WeeklyDigestRecord,
+  email: string,
+  origin?: string
+) {
+  const base = digest.outputs.email_text?.content
+    ? {
+        subject: digest.outputs.email_text.subject ?? digest.headline,
+        text: digest.outputs.email_text.content,
+        html: digest.outputs.email_html?.content ?? null,
+      }
+    : buildEmailOutputs({
+        headline: digest.headline,
+        introText: digest.introText,
+        featuredTrail: digest.featuredTrail,
+        memberTrips: digest.memberTrips,
+        externalEvents: digest.externalEvents,
+        cta: digest.cta,
+      });
+
+  const footer = await buildEmailFooter(email, 'weeklyTrailUpdates', origin);
+  const unsubscribeMatch = footer.match(/Unsubscribe:\s*(.+)/);
+  return {
+    subject: base.subject,
+    text: `${base.text}${footer}`,
+    html: base.html ? `${base.html}<p>${footer.trim().replace(/\n/g, '<br />')}</p>` : undefined,
+    unsubscribeUrl: unsubscribeMatch?.[1]?.trim() ?? '',
+  };
+}
+
+export async function deliverWeeklyDigestEmails(digest: WeeklyDigestRecord, origin?: string): Promise<WeeklyDigestDeliverySummary> {
+  const subscribers = await listWeeklyDigestSubscribers();
+  const records: WeeklyDigestDeliveryRecord[] = [];
+
+  for (const subscriber of subscribers) {
+    const email = await buildPersonalizedDigestEmail(digest, subscriber.email, origin);
+    const result = await sendTransactionalEmail({
+      to: subscriber.email,
+      subject: email.subject,
+      text: email.text,
+      html: email.html,
+    });
+
+    records.push({
+      email: subscriber.email,
+      status: result.ok ? 'sent' : 'skipped',
+      reason: result.ok ? 'sent' : result.reason,
+      unsubscribeUrl: email.unsubscribeUrl,
+    });
+  }
+
+  return {
+    totalSubscribers: subscribers.length,
+    sent: records.filter((record) => record.status === 'sent').length,
+    skipped: records.filter((record) => record.status === 'skipped').length,
+    records,
+  };
+}
+
 function buildWebOutput(digest: {
   headline: string;
   introText: string;
@@ -825,7 +900,7 @@ export async function refreshWeeklyDigestById(digestId: string) {
   });
 }
 
-export async function publishWeeklyDigest(digestId: string) {
+export async function publishWeeklyDigest(digestId: string, options?: { origin?: string }) {
   const supabase = getServiceSupabase();
   const { error } = await supabase
     .from('weekly_digests')
@@ -835,7 +910,8 @@ export async function publishWeeklyDigest(digestId: string) {
   if (error) throw error;
   const digest = await getWeeklyDigestById(digestId);
   if (!digest) throw new Error('Weekly digest not found after publish.');
-  return digest;
+  const delivery = await deliverWeeklyDigestEmails(digest, options?.origin);
+  return { digest, delivery };
 }
 
 export async function getWeeklyDigestBySlug(slug: string) {

@@ -241,8 +241,10 @@ async function notifyTripJoin(params: {
   plan: TripPlanRow;
   participant: CreatorIdentity;
   membership: TripMembershipRow;
+  origin?: string;
 }) {
   const href = `/trips/${params.plan.id}`;
+  const tripUrl = params.origin ? `${params.origin}${href}` : href;
   const eventKeyBase = params.membership.id;
   const planner = await getUserContact(params.plan.created_by_user_id);
 
@@ -268,22 +270,22 @@ async function notifyTripJoin(params: {
 
   const participantPrefs = await getEmailPreferencesByEmail(params.participant.email, params.participant.id).catch(() => null);
   if (participantPrefs?.tripJoinParticipantEmail) {
-    const footer = await buildEmailFooter(params.participant.email, 'tripJoinParticipantEmail');
+    const footer = await buildEmailFooter(params.participant.email, 'tripJoinParticipantEmail', params.origin);
     await sendTransactionalEmail({
       to: params.participant.email,
       subject: `Trip join confirmed: ${params.plan.trail_title}`,
-      text: `You joined ${params.plan.trail_title} on ${formatDateLabel(params.plan.date)}. Organizer: ${params.plan.share_name}. Meetup: ${params.plan.meetup_area}. Departure: ${params.plan.departure_time}. View the trip here: ${href}${footer}`,
+      text: `You joined ${params.plan.trail_title} on ${formatDateLabel(params.plan.date)}. Organizer: ${params.plan.share_name}. Meetup: ${params.plan.meetup_area}. Departure: ${params.plan.departure_time}. View the trip here: ${tripUrl}${footer}`,
     });
   }
 
   if (planner.id !== params.participant.id) {
     const plannerPrefs = await getEmailPreferencesByEmail(planner.email, planner.id).catch(() => null);
     if (plannerPrefs?.tripJoinPlannerEmail) {
-      const footer = await buildEmailFooter(planner.email, 'tripJoinPlannerEmail');
+      const footer = await buildEmailFooter(planner.email, 'tripJoinPlannerEmail', params.origin);
       await sendTransactionalEmail({
         to: planner.email,
         subject: `${params.participant.displayName} joined your trip to ${params.plan.trail_title}`,
-        text: `${params.participant.displayName} joined your trip to ${params.plan.trail_title} on ${formatDateLabel(params.plan.date)}. Meetup: ${params.plan.meetup_area}. Departure: ${params.plan.departure_time}. Open the trip here: ${href}${footer}`,
+        text: `${params.participant.displayName} joined your trip to ${params.plan.trail_title} on ${formatDateLabel(params.plan.date)}. Meetup: ${params.plan.meetup_area}. Departure: ${params.plan.departure_time}. Open the trip here: ${tripUrl}${footer}`,
       });
     }
   }
@@ -444,6 +446,17 @@ export async function createTripPlanForTrail(
     };
   }));
 
+  const creatorPrefs = await getEmailPreferencesByEmail(creator.email, creator.id).catch(() => null);
+  if (creatorPrefs?.tripNotifications) {
+    const tripUrl = input.origin ? `${input.origin}/trips/${plan.id}` : `/trips/${plan.id}`;
+    const footer = await buildEmailFooter(creator.email, 'tripNotifications', input.origin);
+    await sendTransactionalEmail({
+      to: creator.email,
+      subject: `Trip planned: ${plan.trail_title}`,
+      text: `Your trip for ${plan.trail_title} on ${formatDateLabel(plan.date)} is live. Open it here: ${tripUrl}${footer}`,
+    });
+  }
+
   return {
     planId: plan.id,
     shareText: `Planning a trip to ${plan.trail_title} on ${formatDateLabel(plan.date)}. Meetup: ${plan.meetup_area}. Departure: ${plan.departure_time}.${plan.trip_note ? ` ${plan.trip_note}` : ''} Shared by ${plan.share_name}.`,
@@ -451,7 +464,7 @@ export async function createTripPlanForTrail(
   };
 }
 
-export async function joinTripById(tripId: string, viewer: CreatorIdentity) {
+export async function joinTripById(tripId: string, viewer: CreatorIdentity, origin?: string) {
   const supabase = getServiceSupabase();
   const plan = await getTripPlanById(tripId);
   if (!plan) throw new Error('Trip not found');
@@ -507,6 +520,7 @@ export async function joinTripById(tripId: string, viewer: CreatorIdentity) {
       plan,
       participant: viewer,
       membership: membership as TripMembershipRow,
+      origin,
     });
   }
   return plan;

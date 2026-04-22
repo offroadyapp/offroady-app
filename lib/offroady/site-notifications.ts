@@ -1,5 +1,11 @@
 import { getServiceSupabase } from '@/lib/supabase/server';
 
+function isMissingSiteNotificationsSchemaError(error: unknown) {
+  if (!error || typeof error !== 'object') return false;
+  const maybe = error as { code?: string; message?: string };
+  return maybe.code === 'PGRST205' || maybe.message?.includes("public.site_notifications");
+}
+
 export type SiteNotification = {
   id: string;
   userId: string;
@@ -58,12 +64,18 @@ export async function createSiteNotification(input: {
 
   if (input.eventKey) {
     const { error } = await supabase.from('site_notifications').upsert(payload, { onConflict: 'event_key' });
-    if (error) throw error;
+    if (error) {
+      if (isMissingSiteNotificationsSchemaError(error)) return;
+      throw error;
+    }
     return;
   }
 
   const { error } = await supabase.from('site_notifications').insert(payload);
-  if (error) throw error;
+  if (error) {
+    if (isMissingSiteNotificationsSchemaError(error)) return;
+    throw error;
+  }
 }
 
 export async function getSiteNotificationsForUser(userId: string, limit = 50) {
@@ -75,6 +87,9 @@ export async function getSiteNotificationsForUser(userId: string, limit = 50) {
     .order('created_at', { ascending: false })
     .limit(limit);
 
-  if (error) throw error;
+  if (error) {
+    if (isMissingSiteNotificationsSchemaError(error)) return [];
+    throw error;
+  }
   return (data ?? []).map((row) => mapRow(row as SiteNotificationRow));
 }

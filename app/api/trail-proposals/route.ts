@@ -13,6 +13,14 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json();
+    const origin = (() => {
+      try {
+        return new URL(request.url).origin;
+      } catch {
+        return undefined;
+      }
+    })();
+
     const proposal = await createTrailProposal(
       {
         id: viewer.id,
@@ -32,6 +40,7 @@ export async function POST(request: Request) {
         knowsOthersVisited: Boolean(body.knowsOthersVisited),
         coverImageUrl: body.coverImageUrl,
         images: Array.isArray(body.images) ? body.images : [],
+        origin,
       }
     );
 

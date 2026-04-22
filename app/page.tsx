@@ -168,6 +168,9 @@ export default async function Home() {
                 <a href={latestDigest ? `/weekly-digests/${latestDigest.slug}` : '#featured'} className="rounded-lg bg-[#1f5a36] px-5 py-3 font-semibold text-white shadow-lg ring-1 ring-[#2f7a4d]/70 transition hover:bg-[#18482b] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white active:bg-[#143b23]">
                   Trail of the Week
                 </a>
+                <a href="#weekly-digest-signup" className="rounded-lg border border-white/70 bg-white/10 px-5 py-3 font-medium text-white transition hover:bg-white/20">
+                  Subscribe
+                </a>
                 <a href="/join-a-trip" className="rounded-lg border border-white/70 px-5 py-3 font-medium text-white transition hover:bg-white/10">
                   Join a Trip
                 </a>
@@ -285,7 +288,7 @@ export default async function Home() {
 
         {!viewer ? <AuthPanel /> : null}
 
-        <section className="mx-auto max-w-7xl px-4 pb-16 sm:px-6 lg:px-8">
+        <section id="weekly-digest-signup" className="mx-auto max-w-7xl px-4 pb-16 sm:px-6 lg:px-8">
           <WeeklyDigestSignupForm initialEmail={viewer?.email ?? ''} />
         </section>
 

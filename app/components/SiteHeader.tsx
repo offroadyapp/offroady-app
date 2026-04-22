@@ -13,6 +13,8 @@ const navItems = [
   { href: '/about', label: 'About' },
 ];
 
+const proposeTrailHref = '/propose-a-trail';
+
 export default function SiteHeader({ viewer }: Props) {
   return (
     <header className="sticky top-0 z-30 border-b border-black/10 bg-white/95 backdrop-blur">
@@ -38,8 +40,16 @@ export default function SiteHeader({ viewer }: Props) {
                 {item.label}
               </Link>
             ))}
+            <Link href={proposeTrailHref} className="rounded-full border border-[#2f5d3a]/20 bg-[#eef5ee] px-4 py-2 font-semibold text-[#2f5d3a] transition hover:bg-[#e3efe4]">
+              Propose a Trail
+            </Link>
           </nav>
-          <AuthMenu viewer={viewer} />
+          <div className="flex items-center gap-3">
+            <Link href={proposeTrailHref} className="inline-flex rounded-full bg-[#2f5d3a] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#264d30] md:hidden">
+              Propose a Trail
+            </Link>
+            <AuthMenu viewer={viewer} />
+          </div>
         </div>
       </div>
     </header>

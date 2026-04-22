@@ -137,8 +137,10 @@ export default async function WeeklyDigestPage({ params }: { params: Promise<{ s
             <p className="text-sm font-semibold uppercase tracking-[0.16em] text-[#9dc2a2]">5. CTA</p>
             <h2 className="mt-2 text-3xl font-bold">{digest.cta.title}</h2>
             <p className="mt-4 max-w-3xl text-base leading-7 text-white/80">{digest.cta.body}</p>
+            <p className="mt-3 text-sm text-white/75">Know a good trail? Propose it here.</p>
             <div className="mt-6 flex flex-wrap gap-3">
               <a href={digest.cta.href} className="rounded-lg bg-[#2f7a4d] px-5 py-3 font-semibold text-white transition hover:bg-[#286742]">Plan from this trail</a>
+              <a href="/propose-a-trail" className="rounded-lg border border-white/20 px-5 py-3 font-semibold text-white/90 transition hover:bg-white/10">Propose a Trail</a>
               <a href="/" className="rounded-lg border border-white/20 px-5 py-3 font-semibold text-white/90 transition hover:bg-white/10">Back to home</a>
             </div>
           </div>

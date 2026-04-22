@@ -297,19 +297,28 @@ export default function TrailCommunityClient({ trailSlug, trailTitle, initialSna
             <p className="mt-3 max-w-2xl text-sm leading-6 text-gray-600">
               Offroady already has 26 verified BC trail entries in the backend, but full trail content and Plan a Trip are member-only. Sign up or log in to unlock them.
             </p>
+            <p className="mt-3 text-sm leading-6 text-gray-600">Know a good trail? Propose it here.</p>
           </div>
-          {hasUnlockedTrails ? (
-            <div className="rounded-xl bg-[#eef5ee] px-4 py-3 text-sm font-medium text-[#2f5d3a]">
-              Full trail list unlocked
-            </div>
-          ) : (
+          <div className="flex flex-wrap gap-3">
             <a
-              href="#member-access"
-              className="inline-flex rounded-lg bg-[#2f5d3a] px-5 py-3 font-semibold text-white transition hover:bg-[#264d30]"
+              href="/propose-a-trail"
+              className="inline-flex rounded-lg border border-gray-300 px-5 py-3 font-semibold text-gray-800 transition hover:bg-gray-50"
             >
-              Sign up or log in to unlock trails
+              Propose a Trail
             </a>
-          )}
+            {hasUnlockedTrails ? (
+              <div className="rounded-xl bg-[#eef5ee] px-4 py-3 text-sm font-medium text-[#2f5d3a]">
+                Full trail list unlocked
+              </div>
+            ) : (
+              <a
+                href="#member-access"
+                className="inline-flex rounded-lg bg-[#2f5d3a] px-5 py-3 font-semibold text-white transition hover:bg-[#264d30]"
+              >
+                Sign up or log in to unlock trails
+              </a>
+            )}
+          </div>
         </div>
 
         <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-3">

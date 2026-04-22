@@ -5,6 +5,12 @@ import { useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import type { LocalTrail } from '@/lib/offroady/trails';
 
+type PlanTripTrail = LocalTrail & {
+  planPath?: string;
+  proposalSlug?: string;
+  sourceLabel?: string;
+};
+
 type Forecast = {
   dateLabel: string;
   weather: string;
@@ -28,7 +34,7 @@ type SavedPlan = {
 };
 
 type Props = {
-  trail: LocalTrail;
+  trail: PlanTripTrail;
   isLoggedIn: boolean;
 };
 
@@ -67,6 +73,7 @@ function formatDateLabel(value: string) {
 
 export default function PlanTripClient({ trail, isLoggedIn }: Props) {
   const searchParams = useSearchParams();
+  const planPath = trail.planPath ?? `/plan/${trail.slug}`;
   const [date, setDate] = useState(nextSaturdayInput());
   const [forecast, setForecast] = useState<Forecast | null>(null);
   const [loading, setLoading] = useState(false);
@@ -133,17 +140,17 @@ export default function PlanTripClient({ trail, isLoggedIn }: Props) {
       : 'Check forecast before heading out';
 
     const shareUrl = origin
-      ? `${origin}/plan/${trail.slug}?ref=${encodeURIComponent(shareName)}&date=${encodeURIComponent(date)}`
-      : `/plan/${trail.slug}?ref=${encodeURIComponent(shareName)}&date=${encodeURIComponent(date)}`;
+      ? `${origin}${planPath}?ref=${encodeURIComponent(shareName)}&date=${encodeURIComponent(date)}`
+      : `${planPath}?ref=${encodeURIComponent(shareName)}&date=${encodeURIComponent(date)}`;
 
     return `Planning a trip to ${trail.title} on ${formatDateLabel(date)}. Meetup: ${meetupArea}. Departure: ${departureTime}. ${tripNote} Difficulty: ${trail.difficulty}. Best for: ${trail.best_for.join(', ')}. Vehicle: ${trail.vehicle_recommendation} Weather: ${weatherLine} Shared by: ${shareName}. Join here: ${shareUrl}`;
-  }, [date, departureTime, forecast, meetupArea, origin, shareName, trail, tripNote]);
+  }, [date, departureTime, forecast, meetupArea, origin, planPath, shareName, trail, tripNote]);
 
   const referredBy = searchParams.get('ref');
 
   async function handleCreateTrackedInvites() {
     if (!isLoggedIn) {
-      window.location.href = '/#member-access';
+      window.location.href = '/propose-a-trail';
       return;
     }
 
@@ -155,7 +162,8 @@ export default function PlanTripClient({ trail, isLoggedIn }: Props) {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          trailSlug: trail.slug,
+          trailSlug: trail.proposalSlug ? undefined : trail.slug,
+          proposalSlug: trail.proposalSlug ?? undefined,
           date,
           meetupArea,
           departureTime,
@@ -188,7 +196,7 @@ export default function PlanTripClient({ trail, isLoggedIn }: Props) {
             Full trail access is not open before login. Sign up or log in on the homepage first, then come back to review the route, check the forecast, and build your trip plan.
           </p>
           <Link
-            href="/#member-access"
+            href="/propose-a-trail"
             className="mt-6 inline-flex rounded-lg bg-[#2f5d3a] px-5 py-3 font-semibold text-white transition hover:bg-[#264d30]"
           >
             Sign up or log in to unlock planning
@@ -208,7 +216,7 @@ export default function PlanTripClient({ trail, isLoggedIn }: Props) {
 
       <div className="grid gap-6 lg:grid-cols-[0.95fr_1.05fr]">
         <div className="rounded-3xl border border-black/8 bg-white p-6 shadow-sm">
-          <p className="text-sm font-semibold uppercase tracking-[0.16em] text-[#5d7d61]">Plan a Trip</p>
+          <p className="text-sm font-semibold uppercase tracking-[0.16em] text-[#5d7d61]">{trail.sourceLabel ?? 'Plan a Trip'}</p>
           <h1 className="mt-2 text-3xl font-bold text-[#243126]">{trail.title}</h1>
           <p className="mt-3 leading-7 text-gray-600">{trail.card_blurb}</p>
 
@@ -337,7 +345,7 @@ export default function PlanTripClient({ trail, isLoggedIn }: Props) {
                 <div className="px-4 pt-4">
                   <div className="font-semibold text-[#243126]">Trip saved</div>
                   <p className="mt-2 text-sm leading-6 text-gray-600">
-                    This trip is now live for trail-page RSVP. Any tracked invite links below are also saved and can be auto-claimed if the invited person signs up or logs in with the matching email.
+                    This trip is now saved and ready for RSVP. Any tracked invite links below are also saved and can be auto-claimed if the invited person signs up or logs in with the matching email.
                   </p>
                 </div>
                 <div className="space-y-3 px-4 pb-4">

@@ -168,6 +168,9 @@ export default async function Home() {
                 <a href="#more-trails" className="rounded-lg border border-white/70 px-5 py-3 font-medium text-white transition hover:bg-white/10">
                   Explore more trails
                 </a>
+                <a href="/propose-a-trail" className="rounded-lg border border-white/70 bg-white/10 px-5 py-3 font-medium text-white transition hover:bg-white/20">
+                  Propose a Trail
+                </a>
               </div>
             </div>
           </div>
@@ -219,9 +222,10 @@ export default async function Home() {
                 <div className="mt-6 rounded-2xl border border-[#d7e4d7] bg-[#f7faf6] p-4">
                   <p className="text-sm font-medium text-[#2f5d3a]">
                     {hasPlannedTrips
-                      ? 'There’s already a trip planned for this trail. Join one, or start another on a different date.'
-                      : 'No trip planned yet for this trail. Be the first to start one.'}
+                      ? 'There’s already a trip planned for this trail. Join one, start another, or send the community a fresh trail idea.'
+                      : 'No trip planned yet for this trail. Be the first to start one, or propose a new trail for the community.'}
                   </p>
+                  <p className="mt-2 text-sm text-gray-600">Know a good trail? Propose it here.</p>
                   <div className="mt-4 flex flex-wrap gap-3">
                     <a
                       href={latestDigest ? `/weekly-digests/${latestDigest.slug}` : (viewer ? '#trail-trips' : '#member-access')}
@@ -247,6 +251,12 @@ export default async function Home() {
                         View on Map
                       </a>
                     ) : null}
+                    <a
+                      href="/propose-a-trail"
+                      className="rounded-lg border border-gray-300 px-4 py-2.5 font-semibold text-gray-800 transition hover:bg-gray-50"
+                    >
+                      Propose a Trail
+                    </a>
                     {viewer ? (
                       <FavoriteTrailButton
                         trailSlug={trail.slug}

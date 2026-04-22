@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { getSessionUser } from '@/lib/offroady/auth';
 import { createTripPlanForTrail } from '@/lib/offroady/invites';
 import { getLocalTrailBySlug } from '@/lib/offroady/trails';
+import { getTrailProposalBySlug } from '@/lib/offroady/proposals';
 
 export async function POST(request: Request) {
   try {
@@ -11,7 +12,44 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json();
-    const trail = getLocalTrailBySlug(body.trailSlug);
+    let trail = body.trailSlug ? getLocalTrailBySlug(body.trailSlug) : null;
+
+    if (!trail && body.proposalSlug) {
+      const proposal = await getTrailProposalBySlug(body.proposalSlug);
+      if (!proposal) {
+        return NextResponse.json({ error: 'Trail proposal not found' }, { status: 404 });
+      }
+
+      trail = {
+        id: proposal.id,
+        slug: proposal.proposalSlug,
+        title: proposal.title,
+        region: proposal.region,
+        location_label: proposal.locationLabel,
+        latitude: proposal.latitude,
+        longitude: proposal.longitude,
+        facebook_post_url: null,
+        coordinate_source: 'community_proposal',
+        summary_zh: proposal.notes,
+        notes: proposal.notes,
+        verification_level: proposal.isConfirmed ? 'confirmed' : 'community-proposed',
+        source_type: proposal.sourceType,
+        featured_candidate: false,
+        hero_image: proposal.coverImageUrl ?? '/images/bc-hero.jpg',
+        card_image: proposal.coverImageUrl ?? '/images/bc-hero.jpg',
+        card_blurb: proposal.notes ?? 'Community-submitted trail proposal, ready to use as the basis for a trip.',
+        access_type: 'proposal',
+        difficulty: 'medium' as const,
+        best_for: ['community-sourced', 'trip-planning'],
+        vehicle_recommendation: 'Confirm vehicle fit with the people joining before you head out.',
+        route_condition_note: proposal.routeConditionNote ?? 'This trail is still community-submitted, so confirm access details before the trip.',
+        members_only_view: true,
+        members_only_plan_trip: true,
+        plan_trip_enabled: true,
+        referral_sharing_enabled: true,
+      };
+    }
+
     if (!trail) {
       return NextResponse.json({ error: 'Trail not found' }, { status: 404 });
     }

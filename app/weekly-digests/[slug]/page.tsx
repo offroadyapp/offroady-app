@@ -30,7 +30,7 @@ export default async function WeeklyDigestPage({ params }: { params: Promise<{ s
           <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/40 to-black/25" />
           <div className="relative mx-auto max-w-7xl px-4 py-20 text-white sm:px-6 lg:px-8">
             <div className="max-w-3xl">
-              <div className="inline-flex rounded-full border border-white/20 bg-white/10 px-4 py-2 text-sm backdrop-blur">Weekly flagship digest</div>
+              <div className="inline-flex rounded-full border border-white/20 bg-white/10 px-4 py-2 text-sm backdrop-blur">Weekly trail digest</div>
               <h1 className="mt-5 text-4xl font-bold tracking-tight sm:text-5xl">{digest.headline}</h1>
               <p className="mt-5 text-lg leading-8 text-white/90">{digest.introText}</p>
               <div className="mt-6 flex flex-wrap gap-3 text-sm text-white/90">
@@ -66,7 +66,7 @@ export default async function WeeklyDigestPage({ params }: { params: Promise<{ s
                 <p className="text-sm font-semibold uppercase tracking-[0.16em] text-[#5d7d61]">1. Featured trail</p>
                 <h2 className="mt-2 text-3xl font-bold text-[#243126]">{digest.featuredTrail.title}</h2>
                 <p className="mt-3 text-sm text-gray-500">{digest.featuredTrail.locationLabel ?? digest.featuredTrail.region ?? 'BC'}</p>
-                <p className="mt-5 leading-7 text-gray-700">{digest.featuredTrail.summary ?? 'Featured local trail for the week.'}</p>
+                <p className="mt-5 leading-7 text-gray-700">{digest.featuredTrail.summary ?? 'Featured BC trail for this week.'}</p>
                 <div className="mt-5 flex flex-wrap gap-2 text-sm text-gray-600">
                   <span className="rounded-full bg-[#eef5ee] px-3 py-1 text-[#2f5d3a]">{difficultyTone(digest.featuredTrail.difficulty)}</span>
                   {digest.featuredTrail.vehicleRecommendation ? <span className="rounded-full bg-gray-100 px-3 py-1">Vehicle: {digest.featuredTrail.vehicleRecommendation}</span> : null}
@@ -100,7 +100,7 @@ export default async function WeeklyDigestPage({ params }: { params: Promise<{ s
                     </div>
                   </div>
                 );
-              }) : <div className="rounded-2xl bg-[#f8faf8] p-5 text-sm leading-6 text-gray-600">No member-planned trips are on the board for the next two weeks yet. This digest still works, it just becomes a stronger invitation for somebody to post the first run.</div>}
+              }) : <div className="rounded-2xl bg-[#f8faf8] p-5 text-sm leading-6 text-gray-600">No member-planned trips are on the board for the next two weeks yet. That makes this a good week for someone to post the first run.</div>}
             </div>
           </div>
         </section>
@@ -127,7 +127,7 @@ export default async function WeeklyDigestPage({ params }: { params: Promise<{ s
                     </div>
                   </div>
                 );
-              }) : <div className="rounded-2xl bg-[#f8faf8] p-5 text-sm leading-6 text-gray-600">No manual community events have been added for the next two weeks yet. That is okay, the digest still publishes cleanly and keeps the member-planned trips in the top slot.</div>}
+              }) : <div className="rounded-2xl bg-[#f8faf8] p-5 text-sm leading-6 text-gray-600">No manual community events have been added for the next two weeks yet, so this week stays focused on member-planned trips.</div>}
             </div>
           </div>
         </section>

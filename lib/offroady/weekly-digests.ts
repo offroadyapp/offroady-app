@@ -268,7 +268,7 @@ function mapFeaturedTrail(row: TrailRow): FeaturedTrailSnapshot {
 }
 
 function defaultIntro(featuredTrail: FeaturedTrailSnapshot, weekStart: string, weekEnd: string) {
-  return `This week we’re putting ${featuredTrail.title} front and center, then pairing it with nearby member-planned trips and community events happening from ${formatDateRange(weekStart, weekEnd)}.`;
+  return `This week we’re featuring ${featuredTrail.title}, alongside member-planned trips and community events happening from ${formatDateRange(weekStart, weekEnd)}.`;
 }
 
 function defaultCta(featuredTrail: FeaturedTrailSnapshot) {
@@ -458,11 +458,11 @@ async function getUpcomingExternalEvents(weekStart: string, weekEnd: string): Pr
 }
 
 function buildTripsFallback() {
-  return 'No member-planned trips are on the board for the next two weeks yet. This is a good week to be the first one to post a run.';
+  return 'No member-planned trips are on the board for the next two weeks yet. This is a good time for someone to post the first run.';
 }
 
 function buildEventsFallback() {
-  return 'No manual community events have been added for the next two weeks yet.';
+  return 'No manual community events have been added for the next two weeks yet, so this week is all about member-planned trips.';
 }
 
 function buildShareLines(digest: {
@@ -485,9 +485,9 @@ function buildShareLines(digest: {
     : `- ${buildEventsFallback()}`;
 
   return {
-    short: `${digest.headline}. Featured trail: ${digest.featuredTrail.title}. Member trips next 2 weeks: ${digest.memberTrips.length || 'none yet'}. External events: ${digest.externalEvents.length || 'none yet'}. ${digest.cta.href}`,
-    medium: `${trailLine}\\n\\nMember-planned trips in the next 2 weeks:\\n${tripLines}\\n\\nExternal community events:\\n${eventLines}\\n\\nMore details: ${digest.cta.href}`,
-    friendly: `${trailLine}\\n\\nIf you want the easiest way to plan your next BC run, start with the member trips first, then check the external events.\\n\\nMember-planned trips:\\n${tripLines}\\n\\nCommunity events:\\n${eventLines}\\n\\nOpen the full weekly digest here: ${digest.cta.href}`,
+    short: `${digest.headline}. Featured trail: ${digest.featuredTrail.title}. Member trips in the next 2 weeks: ${digest.memberTrips.length || 'none yet'}. External events: ${digest.externalEvents.length || 'none yet'}. ${digest.cta.href}`,
+    medium: `${trailLine}\\n\\nMember-planned trips in the next 2 weeks:\\n${tripLines}\\n\\nExternal community events in the next 2 weeks:\\n${eventLines}\\n\\nMore details: ${digest.cta.href}`,
+    friendly: `${trailLine}\\n\\nStart with the member-planned trips, then check the local community events in the same two-week window.\\n\\nMember-planned trips:\\n${tripLines}\\n\\nCommunity events:\\n${eventLines}\\n\\nOpen the full weekly digest: ${digest.cta.href}`,
   };
 }
 

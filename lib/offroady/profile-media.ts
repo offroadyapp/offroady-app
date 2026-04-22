@@ -58,12 +58,16 @@ function extractManagedPath(url: string | null | undefined) {
   return null;
 }
 
+function mediaColumnFor(kind: 'avatar' | 'rig') {
+  return kind === 'avatar' ? 'avatar_image' : 'rig_photo';
+}
+
 export async function uploadMemberProfileImage(userId: string, kind: 'avatar' | 'rig', file: File) {
   assertImageFile(file);
   await ensureBucket();
 
   const supabase = getServiceSupabase();
-  const mediaColumn = kind === 'avatar' ? 'avatar_image' : 'rig_photo';
+  const mediaColumn = mediaColumnFor(kind);
 
   const { data: existing, error: existingError } = await supabase
     .from('users')
@@ -106,4 +110,37 @@ export async function uploadMemberProfileImage(userId: string, kind: 'avatar' | 
   }
 
   return { imageUrl: nextUrl, objectPath, bucket: MEMBER_MEDIA_BUCKET };
+}
+
+export async function clearMemberProfileImage(userId: string, kind: 'avatar' | 'rig') {
+  await ensureBucket();
+
+  const supabase = getServiceSupabase();
+  const mediaColumn = mediaColumnFor(kind);
+  const { data: existing, error: existingError } = await supabase
+    .from('users')
+    .select('avatar_image, rig_photo')
+    .eq('id', userId)
+    .single();
+
+  if (existingError) throw existingError;
+
+  const currentUrl = kind === 'avatar' ? existing.avatar_image : existing.rig_photo;
+
+  const { error: updateError } = await supabase
+    .from('users')
+    .update({
+      [mediaColumn]: null,
+      updated_at: new Date().toISOString(),
+    })
+    .eq('id', userId);
+
+  if (updateError) throw updateError;
+
+  const oldPath = extractManagedPath(currentUrl);
+  if (oldPath) {
+    await supabase.storage.from(MEMBER_MEDIA_BUCKET).remove([oldPath]);
+  }
+
+  return { cleared: true, kind };
 }

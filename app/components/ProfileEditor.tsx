@@ -34,6 +34,31 @@ export default function ProfileEditor({ initialProfile }: Props) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
+  async function removeImage(kind: 'avatar' | 'rig') {
+    setLoading(true);
+    setError('');
+
+    try {
+      const response = await fetch(`/api/account/member-profile/media?kind=${kind}`, {
+        method: 'DELETE',
+      });
+      const payload = await response.json();
+      if (!response.ok) throw new Error(payload.error || 'Failed to remove profile image');
+
+      if (kind === 'avatar') {
+        setAvatarFile(null);
+        setAvatarPreview('');
+      } else {
+        setRigFile(null);
+        setRigPreview('');
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to remove profile image');
+    } finally {
+      setLoading(false);
+    }
+  }
+
   function handleImageChange(kind: 'avatar' | 'rig', file: File | null) {
     if (!file) return;
     const previewUrl = URL.createObjectURL(file);
@@ -136,7 +161,19 @@ export default function ProfileEditor({ initialProfile }: Props) {
                 onChange={(event) => handleImageChange('avatar', event.target.files?.[0] || null)}
                 className="block w-full text-sm text-gray-600 file:mr-3 file:rounded-lg file:border-0 file:bg-[#eef5ee] file:px-3 file:py-2 file:font-semibold file:text-[#2f5d3a]"
               />
-              <p className="mt-2 text-xs text-gray-500">Upload or replace your avatar. JPG, PNG, WEBP, or GIF, up to 5MB.</p>
+              <div className="mt-2 flex flex-wrap items-center gap-3">
+                <p className="text-xs text-gray-500">Upload or replace your avatar. JPG, PNG, WEBP, or GIF, up to 5MB.</p>
+                {avatarPreview ? (
+                  <button
+                    type="button"
+                    onClick={() => void removeImage('avatar')}
+                    disabled={loading}
+                    className="text-xs font-semibold text-red-600 transition hover:text-red-700 disabled:cursor-not-allowed disabled:opacity-60"
+                  >
+                    Remove current avatar
+                  </button>
+                ) : null}
+              </div>
             </div>
           </div>
         </label>
@@ -159,7 +196,19 @@ export default function ProfileEditor({ initialProfile }: Props) {
               onChange={(event) => handleImageChange('rig', event.target.files?.[0] || null)}
               className="block w-full text-sm text-gray-600 file:mr-3 file:rounded-lg file:border-0 file:bg-[#eef5ee] file:px-3 file:py-2 file:font-semibold file:text-[#2f5d3a]"
             />
-            <p className="text-xs text-gray-500">Upload or replace the vehicle photo people see on your profile.</p>
+            <div className="flex flex-wrap items-center gap-3">
+              <p className="text-xs text-gray-500">Upload or replace the vehicle photo people see on your profile.</p>
+              {rigPreview ? (
+                <button
+                  type="button"
+                  onClick={() => void removeImage('rig')}
+                  disabled={loading}
+                  className="text-xs font-semibold text-red-600 transition hover:text-red-700 disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  Remove current rig photo
+                </button>
+              ) : null}
+            </div>
           </div>
         </label>
       </div>

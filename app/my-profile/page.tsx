@@ -34,7 +34,9 @@ export default async function MyProfilePage() {
                 <ProfileEditor
                   initialProfile={{
                     bio: profile.bio || '',
+                    avatarImage: profile.avatarImage || '',
                     rigName: profile.rigName || '',
+                    rigPhoto: profile.rigPhoto || '',
                     rigMods: profile.rigMods,
                     experienceSince: profile.experienceSince || null,
                     areasDriven: profile.areasDriven,

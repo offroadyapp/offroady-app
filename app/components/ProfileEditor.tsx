@@ -5,7 +5,9 @@ import { useState } from 'react';
 type Props = {
   initialProfile: {
     bio: string;
+    avatarImage: string;
     rigName: string;
+    rigPhoto: string;
     rigMods: string[];
     experienceSince: number | null;
     areasDriven: string[];
@@ -18,7 +20,11 @@ type Props = {
 export default function ProfileEditor({ initialProfile }: Props) {
   const [editing, setEditing] = useState(false);
   const [bio, setBio] = useState(initialProfile.bio);
+  const [avatarPreview, setAvatarPreview] = useState(initialProfile.avatarImage);
+  const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [rigName, setRigName] = useState(initialProfile.rigName);
+  const [rigPreview, setRigPreview] = useState(initialProfile.rigPhoto);
+  const [rigFile, setRigFile] = useState<File | null>(null);
   const [rigMods, setRigMods] = useState(initialProfile.rigMods.join(', '));
   const [experienceSince, setExperienceSince] = useState(initialProfile.experienceSince ? String(initialProfile.experienceSince) : '');
   const [areasDriven, setAreasDriven] = useState(initialProfile.areasDriven.join(', '));
@@ -28,12 +34,44 @@ export default function ProfileEditor({ initialProfile }: Props) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
+  function handleImageChange(kind: 'avatar' | 'rig', file: File | null) {
+    if (!file) return;
+    const previewUrl = URL.createObjectURL(file);
+
+    if (kind === 'avatar') {
+      setAvatarFile(file);
+      setAvatarPreview(previewUrl);
+      return;
+    }
+
+    setRigFile(file);
+    setRigPreview(previewUrl);
+  }
+
+  async function uploadImage(kind: 'avatar' | 'rig', file: File | null) {
+    if (!file) return;
+
+    const formData = new FormData();
+    formData.set('kind', kind);
+    formData.set('file', file);
+
+    const response = await fetch('/api/account/member-profile/media', {
+      method: 'POST',
+      body: formData,
+    });
+    const payload = await response.json();
+    if (!response.ok) throw new Error(payload.error || 'Failed to upload profile image');
+  }
+
   async function handleSubmit(event: React.FormEvent) {
     event.preventDefault();
     setLoading(true);
     setError('');
 
     try {
+      await uploadImage('avatar', avatarFile);
+      await uploadImage('rig', rigFile);
+
       const response = await fetch('/api/account/member-profile', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
@@ -78,6 +116,52 @@ export default function ProfileEditor({ initialProfile }: Props) {
           <h2 className="mt-2 text-2xl font-bold text-[#243126]">Update your profile</h2>
         </div>
         <button type="button" onClick={() => setEditing(false)} className="text-sm text-gray-500">Cancel</button>
+      </div>
+
+      <div className="grid gap-4 md:grid-cols-2">
+        <label className="block space-y-3">
+          <span className="text-sm font-semibold text-[#243126]">Profile photo</span>
+          <div className="flex items-center gap-4">
+            <div className="flex h-20 w-20 items-center justify-center overflow-hidden rounded-2xl bg-[#eef5ee] text-xl font-bold text-[#2f5d3a]">
+              {avatarPreview ? (
+                <img src={avatarPreview} alt="Profile preview" className="h-full w-full object-cover" />
+              ) : (
+                'You'
+              )}
+            </div>
+            <div className="flex-1">
+              <input
+                type="file"
+                accept="image/png,image/jpeg,image/webp,image/gif"
+                onChange={(event) => handleImageChange('avatar', event.target.files?.[0] || null)}
+                className="block w-full text-sm text-gray-600 file:mr-3 file:rounded-lg file:border-0 file:bg-[#eef5ee] file:px-3 file:py-2 file:font-semibold file:text-[#2f5d3a]"
+              />
+              <p className="mt-2 text-xs text-gray-500">Upload or replace your avatar. JPG, PNG, WEBP, or GIF, up to 5MB.</p>
+            </div>
+          </div>
+        </label>
+
+        <label className="block space-y-3">
+          <span className="text-sm font-semibold text-[#243126]">Rig photo</span>
+          <div className="space-y-3">
+            {rigPreview ? (
+              <div className="overflow-hidden rounded-2xl border border-black/8">
+                <img src={rigPreview} alt="Rig preview" className="h-36 w-full object-cover" />
+              </div>
+            ) : (
+              <div className="flex h-36 items-center justify-center rounded-2xl border border-dashed border-gray-300 text-sm text-gray-500">
+                No rig photo yet
+              </div>
+            )}
+            <input
+              type="file"
+              accept="image/png,image/jpeg,image/webp,image/gif"
+              onChange={(event) => handleImageChange('rig', event.target.files?.[0] || null)}
+              className="block w-full text-sm text-gray-600 file:mr-3 file:rounded-lg file:border-0 file:bg-[#eef5ee] file:px-3 file:py-2 file:font-semibold file:text-[#2f5d3a]"
+            />
+            <p className="text-xs text-gray-500">Upload or replace the vehicle photo people see on your profile.</p>
+          </div>
+        </label>
       </div>
 
       <textarea value={bio} onChange={(event) => setBio(event.target.value)} rows={4} placeholder="Bio" className="w-full rounded-lg border border-gray-300 px-4 py-3 outline-none transition focus:border-[#2f5d3a]" />

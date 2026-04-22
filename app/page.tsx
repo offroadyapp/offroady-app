@@ -168,9 +168,6 @@ export default async function Home() {
                 <a href={latestDigest ? `/weekly-digests/${latestDigest.slug}` : '#featured'} className="rounded-lg bg-[#1f5a36] px-5 py-3 font-semibold text-white shadow-lg ring-1 ring-[#2f7a4d]/70 transition hover:bg-[#18482b] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white active:bg-[#143b23]">
                   Trail of the Week
                 </a>
-                <a href="#weekly-digest-signup" className="rounded-lg border border-white/70 bg-white/10 px-5 py-3 font-medium text-white transition hover:bg-white/20">
-                  Subscribe
-                </a>
                 <a href="/join-a-trip" className="rounded-lg border border-white/70 px-5 py-3 font-medium text-white transition hover:bg-white/10">
                   Join a Trip
                 </a>
@@ -186,9 +183,14 @@ export default async function Home() {
         </section>
 
         <section id="featured" className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
-          <div className="mb-6">
-            <p className="text-sm font-semibold uppercase tracking-[0.16em] text-[#5d7d61]">Featured</p>
-            <h2 className="mt-2 text-3xl font-bold tracking-tight text-[#243126]">Trail of the Week</h2>
+          <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
+            <div>
+              <p className="text-sm font-semibold uppercase tracking-[0.16em] text-[#5d7d61]">Featured</p>
+              <h2 className="mt-2 text-3xl font-bold tracking-tight text-[#243126]">Trail of the Week</h2>
+            </div>
+            <a href="#weekly-digest-signup" className="rounded-lg border border-[#2f5d3a]/20 bg-white px-4 py-2 text-sm font-semibold text-[#2f5d3a] transition hover:bg-[#f7faf6]">
+              Subscribe
+            </a>
           </div>
 
           <div className="overflow-hidden rounded-2xl border border-black/8 bg-white shadow-sm">

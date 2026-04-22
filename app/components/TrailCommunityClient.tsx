@@ -18,6 +18,7 @@ type Props = {
   trailTitle: string;
   initialSnapshot: CommunitySnapshot;
   moreTrails: LocalTrail[];
+  tripCountsBySlug?: Record<string, number>;
   viewer?: Identity | null;
 };
 
@@ -44,7 +45,7 @@ function formatTripDate(value: string) {
   });
 }
 
-export default function TrailCommunityClient({ trailSlug, trailTitle, initialSnapshot, moreTrails, viewer = null }: Props) {
+export default function TrailCommunityClient({ trailSlug, trailTitle, initialSnapshot, moreTrails, tripCountsBySlug = {}, viewer = null }: Props) {
   const [identity, setIdentity] = useState<Identity>(emptyIdentity);
   const [signupStatus, setSignupStatus] = useState('');
   const [community, setCommunity] = useState(initialSnapshot);
@@ -322,7 +323,9 @@ export default function TrailCommunityClient({ trailSlug, trailTitle, initialSna
         </div>
 
         <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-          {moreTrails.map((item) => (
+          {moreTrails.map((item) => {
+            const upcomingTrips = tripCountsBySlug[item.slug] ?? 0;
+            return (
             <article key={item.slug} className="overflow-hidden rounded-2xl border border-black/8 bg-[#f8faf8] shadow-sm">
               <div className="relative">
                 <img src={item.card_image} alt={item.title} className={`h-48 w-full object-cover ${hasUnlockedTrails ? '' : 'blur-[2px]'}`} />
@@ -347,16 +350,29 @@ export default function TrailCommunityClient({ trailSlug, trailTitle, initialSna
                   {item.best_for.slice(0, 2).map((tag) => (
                     <span key={tag} className="rounded-full bg-white px-2.5 py-1">{tag}</span>
                   ))}
+                  {upcomingTrips ? (
+                    <span className="rounded-full bg-[#eef5ee] px-2.5 py-1 font-semibold text-[#2f5d3a]">{upcomingTrips} upcoming trip{upcomingTrips === 1 ? '' : 's'}</span>
+                  ) : null}
                 </div>
-                <a
-                  href={hasUnlockedTrails ? `/plan/${item.slug}` : '/#member-access'}
-                  className="mt-4 inline-flex rounded-lg bg-[#2f5d3a] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#264d30]"
-                >
-                  {hasUnlockedTrails ? 'Plan a Trip' : 'Sign up or log in to plan'}
-                </a>
+                <div className="mt-4 flex flex-wrap gap-3">
+                  <a
+                    href={upcomingTrips ? `/join-a-trip?trail=${encodeURIComponent(item.slug)}` : (hasUnlockedTrails ? `/plan/${item.slug}` : '/#member-access')}
+                    className="inline-flex rounded-lg bg-[#2f5d3a] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#264d30]"
+                  >
+                    {upcomingTrips ? 'View Trips' : (hasUnlockedTrails ? 'Plan a Trip' : 'Sign up or log in to plan')}
+                  </a>
+                  {upcomingTrips ? (
+                    <a
+                      href={hasUnlockedTrails ? `/plan/${item.slug}` : '/#member-access'}
+                      className="inline-flex rounded-lg border border-gray-300 px-4 py-2.5 text-sm font-semibold text-gray-800 transition hover:bg-gray-50"
+                    >
+                      {hasUnlockedTrails ? 'Plan Another Trip' : 'Log in to plan another'}
+                    </a>
+                  ) : null}
+                </div>
               </div>
             </article>
-          ))}
+          )})}
         </div>
       </div>
 
@@ -419,8 +435,9 @@ export default function TrailCommunityClient({ trailSlug, trailTitle, initialSna
               <>
                 <h3 className="mt-2 text-2xl font-bold text-[#243126]">Upcoming trips for this trail</h3>
                 <p className="mt-3 text-sm leading-6 text-gray-600">
-                  See what’s already planned, or create a new trip that fits your own date and group.
+                  Browse what is already planned, open any trip to see the details, or create a new one if you want a different date and group.
                 </p>
+                {!viewer ? <p className="mt-2 text-sm leading-6 text-gray-600">See a trip you like? Create an account or sign in when you are ready to join.</p> : null}
 
                 <div className="mt-5 space-y-3">
                   {community.trips.map((trip) => (
@@ -451,26 +468,31 @@ export default function TrailCommunityClient({ trailSlug, trailTitle, initialSna
                                 </button>
                               ) : null}
                             </>
+                          ) : !viewer ? (
+                            <Link
+                              href={`/trips/${trip.id}#join-this-trip`}
+                              className="inline-flex rounded-lg bg-[#2f5d3a] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#264d30]"
+                            >
+                              View Trip
+                            </Link>
                           ) : (
                             <button
                               type="button"
                               onClick={() => handleTripMembership(trip.id, 'join')}
-                              disabled={!viewer ? false : !trip.canJoin || tripMembershipLoadingId === trip.id}
+                              disabled={!trip.canJoin || tripMembershipLoadingId === trip.id}
                               className="inline-flex rounded-lg bg-[#2f5d3a] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#264d30] disabled:cursor-not-allowed disabled:opacity-70"
                             >
-                              {!viewer
-                                ? 'Log in to join this trip'
-                                : tripMembershipLoadingId === trip.id
-                                  ? 'Joining...'
-                                  : trip.canJoin
-                                    ? 'Join this Trip'
-                                    : trip.status === 'full'
-                                      ? 'Trip full'
-                                      : trip.status === 'cancelled'
-                                        ? 'Trip cancelled'
-                                        : trip.status === 'completed'
-                                          ? 'Trip completed'
-                                          : 'Unavailable'}
+                              {tripMembershipLoadingId === trip.id
+                                ? 'Joining...'
+                                : trip.canJoin
+                                  ? 'Join this Trip'
+                                  : trip.status === 'full'
+                                    ? 'Trip full'
+                                    : trip.status === 'cancelled'
+                                      ? 'Trip cancelled'
+                                      : trip.status === 'completed'
+                                        ? 'Trip completed'
+                                        : 'Unavailable'}
                             </button>
                           )}
                         </div>
@@ -482,7 +504,7 @@ export default function TrailCommunityClient({ trailSlug, trailTitle, initialSna
 
                 <div className="mt-5 rounded-xl border border-[#d7e4d7] bg-[#f7faf6] p-4">
                   <div className="text-base font-semibold text-[#243126]">Want a different date or a different group?</div>
-                  <p className="mt-2 text-sm leading-6 text-gray-600">Plan your own trip for this trail.</p>
+                  <p className="mt-2 text-sm leading-6 text-gray-600">Join one of the existing trips, or plan your own run for this trail.</p>
                   <div className="mt-4 flex flex-wrap gap-3">
                     <Link
                       href={viewer ? `/plan/${trailSlug}` : '/#member-access'}
@@ -508,12 +530,18 @@ export default function TrailCommunityClient({ trailSlug, trailTitle, initialSna
                 <div className="mt-5 rounded-xl border border-dashed border-[#b8cbb8] bg-[#f7faf6] p-4 text-sm leading-6 text-gray-600">
                   No upcoming trips yet. Once someone plans one, this area turns into an upcoming-trip board instead of a blank state.
                 </div>
-                <div className="mt-5">
+                <div className="mt-5 flex flex-wrap gap-3">
                   <Link
                     href={viewer ? `/plan/${trailSlug}` : '/#member-access'}
                     className="inline-flex rounded-lg bg-[#2f5d3a] px-5 py-3 font-semibold text-white transition hover:bg-[#264d30]"
                   >
                     {viewer ? 'Plan a Trip' : 'Log in to plan a trip'}
+                  </Link>
+                  <Link
+                    href="/join-a-trip"
+                    className="inline-flex rounded-lg border border-gray-300 px-5 py-3 font-semibold text-gray-800 transition hover:bg-gray-50"
+                  >
+                    Join a Trip
                   </Link>
                 </div>
               </>

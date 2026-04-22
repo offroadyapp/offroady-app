@@ -9,9 +9,11 @@ type Props = {
   token?: string | null;
 };
 
-const fields: Array<{ key: keyof Omit<EmailPreferences, 'email'>; label: string }> = [
+const fields: Array<{ key: keyof Omit<EmailPreferences, 'email'>; label: string; hint?: string }> = [
   { key: 'weeklyTrailUpdates', label: 'Weekly trail updates' },
   { key: 'tripNotifications', label: 'Trip notifications' },
+  { key: 'tripJoinPlannerEmail', label: 'Trip join emails for planners', hint: 'Email me when someone joins a trip I posted.' },
+  { key: 'tripJoinParticipantEmail', label: 'Trip join confirmation emails', hint: 'Email me when I successfully join a trip.' },
   { key: 'crewNotifications', label: 'Crew notifications' },
   { key: 'commentReplyNotifications', label: 'Comment/reply notifications' },
   { key: 'marketingPromotionalEmails', label: 'Marketing/promotional emails' },
@@ -52,7 +54,10 @@ export default function EmailPreferencesForm({ initialPreferences, token }: Prop
       <div className="space-y-4">
         {fields.map((field) => (
           <label key={field.key} className="flex items-center justify-between gap-4 rounded-2xl border border-black/8 bg-white px-4 py-4">
-            <span className="text-sm font-medium text-[#243126]">{field.label}</span>
+            <span>
+              <span className="text-sm font-medium text-[#243126]">{field.label}</span>
+              {field.hint ? <span className="mt-1 block text-xs leading-5 text-gray-500">{field.hint}</span> : null}
+            </span>
             <input
               type="checkbox"
               checked={preferences[field.key]}

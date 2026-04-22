@@ -8,6 +8,7 @@ import { getSessionUser } from '@/lib/offroady/auth';
 import { getFavoriteTrailSlugs } from '@/lib/offroady/account';
 import { getLocalFeaturedTrail, getLocalTrailBySlug, localTrails } from '@/lib/offroady/trails';
 import { getLatestWeeklyDigest } from '@/lib/offroady/weekly-digests';
+import { getUpcomingTripCountsByTrailSlugs } from '@/lib/offroady/trip-discovery';
 
 export const revalidate = 3600;
 
@@ -107,6 +108,7 @@ export default async function Home() {
   const digestTrailSlug = latestDigest?.featuredTrailSlug ?? localTrail.slug;
   const viewer = await getSessionUser();
   const favoriteTrailSlugs = viewer ? await getFavoriteTrailSlugs(viewer.id) : [];
+  const tripCountsBySlug = await getUpcomingTripCountsByTrailSlugs([digestTrailSlug, ...localTrails.map((item) => item.slug)]);
   const snapshot = await getCommunitySnapshot(digestTrailSlug);
   const trail = snapshot.trail ?? getLocalTrailBySlug(digestTrailSlug) ?? getLocalFeaturedTrail();
   const hasPlannedTrips = latestDigest ? latestDigest.memberTrips.length > 0 : snapshot.trips.length > 0;
@@ -165,6 +167,9 @@ export default async function Home() {
                 <a href={latestDigest ? `/weekly-digests/${latestDigest.slug}` : '#featured'} className="rounded-lg bg-[#1f5a36] px-5 py-3 font-semibold text-white shadow-lg ring-1 ring-[#2f7a4d]/70 transition hover:bg-[#18482b] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white active:bg-[#143b23]">
                   Trail of the Week
                 </a>
+                <a href="/join-a-trip" className="rounded-lg border border-white/70 px-5 py-3 font-medium text-white transition hover:bg-white/10">
+                  Join a Trip
+                </a>
                 <a href="#more-trails" className="rounded-lg border border-white/70 px-5 py-3 font-medium text-white transition hover:bg-white/10">
                   Explore more trails
                 </a>
@@ -222,16 +227,16 @@ export default async function Home() {
                 <div className="mt-6 rounded-2xl border border-[#d7e4d7] bg-[#f7faf6] p-4">
                   <p className="text-sm font-medium text-[#2f5d3a]">
                     {hasPlannedTrips
-                      ? 'There’s already a trip planned for this trail. Join one, start another, or send the community a fresh trail idea.'
+                      ? `There ${snapshot.trips.length === 1 ? 'is' : 'are'} already ${snapshot.trips.length} upcoming trip${snapshot.trips.length === 1 ? '' : 's'} for this trail. Browse one first, or plan another if you want a different date.`
                       : 'No trip planned yet for this trail. Be the first to start one, or propose a new trail for the community.'}
                   </p>
                   <p className="mt-2 text-sm text-gray-600">Know a good trail? Propose it here.</p>
                   <div className="mt-4 flex flex-wrap gap-3">
                     <a
-                      href={latestDigest ? `/weekly-digests/${latestDigest.slug}` : (viewer ? '#trail-trips' : '#member-access')}
+                      href={hasPlannedTrips ? `/join-a-trip?trail=${encodeURIComponent(trail.slug)}` : (latestDigest ? `/weekly-digests/${latestDigest.slug}` : (viewer ? `/plan/${trail.slug}` : '#member-access'))}
                       className="rounded-lg bg-[#2f5d3a] px-4 py-2.5 font-semibold text-white transition hover:bg-[#264d30]"
                     >
-                      {latestDigest ? 'Open weekly digest' : (hasPlannedTrips ? (viewer ? 'Join a Trip' : 'Log in to join a trip') : (viewer ? 'Plan a Trip' : 'Log in to plan a trip'))}
+                      {hasPlannedTrips ? 'View Trips' : (latestDigest ? 'Open weekly digest' : (viewer ? 'Plan a Trip' : 'Log in to plan a trip'))}
                     </a>
                     <a
                       href={hasPlannedTrips ? (viewer ? `/plan/${trail.slug}` : '#member-access') : `https://www.google.com/maps?q=${featuredTrail.latitude},${featuredTrail.longitude}`}
@@ -239,7 +244,7 @@ export default async function Home() {
                       rel={hasPlannedTrips ? undefined : 'noreferrer'}
                       className="rounded-lg border border-gray-300 px-4 py-2.5 font-semibold text-gray-800 transition hover:bg-gray-50"
                     >
-                      {latestDigest ? 'See trail details' : (hasPlannedTrips ? (viewer ? 'Plan Another Trip' : 'Log in to plan another trip') : 'View on Map')}
+                      {hasPlannedTrips ? (viewer ? 'Plan Another Trip' : 'Log in to plan another trip') : 'View on Map'}
                     </a>
                     {hasPlannedTrips ? (
                       <a
@@ -300,6 +305,7 @@ export default async function Home() {
             trailTitle={featuredTrail.title}
             initialSnapshot={snapshot}
             moreTrails={localTrails}
+            tripCountsBySlug={Object.fromEntries(tripCountsBySlug.entries())}
             viewer={viewer ? {
               displayName: viewer.displayName,
               email: viewer.email,

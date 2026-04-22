@@ -728,12 +728,17 @@ create table if not exists public.user_email_preferences (
   user_id uuid references public.users(id) on delete set null,
   weekly_trail_updates boolean not null default true,
   trip_notifications boolean not null default true,
+  trip_join_planner_email boolean not null default true,
+  trip_join_participant_email boolean not null default true,
   crew_notifications boolean not null default true,
   comment_reply_notifications boolean not null default true,
   marketing_promotional_emails boolean not null default true,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
+
+alter table public.user_email_preferences add column if not exists trip_join_planner_email boolean not null default true;
+alter table public.user_email_preferences add column if not exists trip_join_participant_email boolean not null default true;
 
 create index if not exists idx_user_email_preferences_user_id on public.user_email_preferences (user_id);
 
@@ -753,6 +758,22 @@ create table if not exists public.email_preference_tokens (
 
 create index if not exists idx_email_preference_tokens_email on public.email_preference_tokens (email);
 create index if not exists idx_email_preference_tokens_expires_at on public.email_preference_tokens (expires_at);
+
+create table if not exists public.site_notifications (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references public.users(id) on delete cascade,
+  kind text not null,
+  title text not null,
+  body text not null,
+  href text,
+  event_key text unique,
+  metadata jsonb not null default '{}'::jsonb,
+  created_at timestamptz not null default now(),
+  read_at timestamptz
+);
+
+create index if not exists idx_site_notifications_user_id on public.site_notifications (user_id, created_at desc);
+create index if not exists idx_site_notifications_read_at on public.site_notifications (read_at);
 
 -- APPEND PATCH: weekly digest pipeline
 create table if not exists public.weekly_digests (

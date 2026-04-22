@@ -9,11 +9,13 @@ type Props = {
 const navItems = [
   { href: '/', label: 'Home' },
   { href: '/trail-of-the-week', label: 'Trail of the Week' },
+  { href: '/join-a-trip', label: 'Join a Trip' },
   { href: '/#more-trails', label: 'More Trails' },
   { href: '/about', label: 'About' },
 ];
 
 const proposeTrailHref = '/propose-a-trail';
+const joinTripHref = '/join-a-trip';
 
 export default function SiteHeader({ viewer }: Props) {
   return (
@@ -45,6 +47,9 @@ export default function SiteHeader({ viewer }: Props) {
             </Link>
           </nav>
           <div className="flex items-center gap-3">
+            <Link href={joinTripHref} className="inline-flex rounded-full border border-[#2f5d3a]/20 bg-white px-4 py-2 text-sm font-semibold text-[#2f5d3a] transition hover:bg-[#eef5ee] md:hidden">
+              Join a Trip
+            </Link>
             <Link href={proposeTrailHref} className="inline-flex rounded-full bg-[#2f5d3a] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#264d30] md:hidden">
               Propose a Trail
             </Link>

@@ -1,7 +1,9 @@
 import { randomBytes } from 'crypto';
 import { getLocalTrailBySlug, type LocalTrail } from '@/lib/offroady/trails';
 import { getServiceSupabase } from '@/lib/supabase/server';
-import { buildEmailFooter } from '@/lib/offroady/email-preferences';
+import { buildEmailFooter, getEmailPreferencesByEmail } from '@/lib/offroady/email-preferences';
+import { createSiteNotification } from '@/lib/offroady/site-notifications';
+import { sendTransactionalEmail } from '@/lib/offroady/email';
 
 type CreatorIdentity = {
   id: string;
@@ -47,6 +49,7 @@ type TripMembershipRow = {
   role: 'organizer' | 'participant';
   status: 'joined' | 'requested' | 'approved' | 'waitlist' | 'cancelled';
   created_at: string;
+  updated_at?: string;
 };
 
 type TripInviteRow = {
@@ -216,6 +219,74 @@ async function upsertTrailParticipantForPlans(planRows: TripPlanRow[], userId: s
 
 async function attachClaimedTrailParticipants(_rows: TripInviteRow[], planRows: TripPlanRow[], userId: string) {
   await upsertTrailParticipantForPlans(planRows, userId, 'participant');
+}
+
+async function getUserContact(userId: string) {
+  const supabase = getServiceSupabase();
+  const { data, error } = await supabase
+    .from('users')
+    .select('id, display_name, email')
+    .eq('id', userId)
+    .single();
+
+  if (error) throw error;
+  return {
+    id: data.id,
+    displayName: data.display_name,
+    email: data.email,
+  };
+}
+
+async function notifyTripJoin(params: {
+  plan: TripPlanRow;
+  participant: CreatorIdentity;
+  membership: TripMembershipRow;
+}) {
+  const href = `/trips/${params.plan.id}`;
+  const eventKeyBase = params.membership.id;
+  const planner = await getUserContact(params.plan.created_by_user_id);
+
+  await createSiteNotification({
+    userId: params.participant.id,
+    kind: 'trip_join_participant',
+    eventKey: `trip-join-participant:${eventKeyBase}`,
+    title: `You joined ${params.plan.trail_title}.`,
+    body: `You are in for ${params.plan.trail_title} on ${formatDateLabel(params.plan.date)} with ${params.plan.share_name}.`,
+    href,
+  });
+
+  if (planner.id !== params.participant.id) {
+    await createSiteNotification({
+      userId: planner.id,
+      kind: 'trip_join_planner',
+      eventKey: `trip-join-planner:${eventKeyBase}`,
+      title: `${params.participant.displayName} joined your trip to ${params.plan.trail_title}.`,
+      body: `${params.participant.displayName} is now on the list for ${params.plan.trail_title} on ${formatDateLabel(params.plan.date)}.`,
+      href,
+    });
+  }
+
+  const participantPrefs = await getEmailPreferencesByEmail(params.participant.email, params.participant.id).catch(() => null);
+  if (participantPrefs?.tripJoinParticipantEmail) {
+    const footer = await buildEmailFooter(params.participant.email, 'tripJoinParticipantEmail');
+    await sendTransactionalEmail({
+      to: params.participant.email,
+      subject: `Trip join confirmed: ${params.plan.trail_title}`,
+      text: `You joined ${params.plan.trail_title} on ${formatDateLabel(params.plan.date)}. Organizer: ${params.plan.share_name}. Meetup: ${params.plan.meetup_area}. Departure: ${params.plan.departure_time}. View the trip here: ${href}${footer}`,
+    });
+  }
+
+  if (planner.id !== params.participant.id) {
+    const plannerPrefs = await getEmailPreferencesByEmail(planner.email, planner.id).catch(() => null);
+    if (plannerPrefs?.tripJoinPlannerEmail) {
+      const footer = await buildEmailFooter(planner.email, 'tripJoinPlannerEmail');
+      await sendTransactionalEmail({
+        to: planner.email,
+        subject: `${params.participant.displayName} joined your trip to ${params.plan.trail_title}`,
+        text: `${params.participant.displayName} joined your trip to ${params.plan.trail_title} on ${formatDateLabel(params.plan.date)}. Meetup: ${params.plan.meetup_area}. Departure: ${params.plan.departure_time}. Open the trip here: ${href}${footer}`,
+      });
+    }
+  }
 }
 
 async function cleanupTrailParticipantIfUnused(plan: TripPlanRow, userId: string) {
@@ -418,18 +489,26 @@ export async function joinTripById(tripId: string, viewer: CreatorIdentity) {
   }
 
   const role = plan.created_by_user_id === viewer.id ? 'organizer' : 'participant';
-  const { error: upsertError } = await supabase.from('trip_memberships').upsert(
+  const { data: membership, error: upsertError } = await supabase.from('trip_memberships').upsert(
     {
       trip_plan_id: tripId,
       user_id: viewer.id,
       role,
       status: 'joined',
+      updated_at: new Date().toISOString(),
     },
     { onConflict: 'trip_plan_id,user_id' }
-  );
+  ).select('id, trip_plan_id, user_id, role, status, created_at, updated_at').single();
 
   if (upsertError) throw upsertError;
   await upsertTrailParticipantForPlans([plan], viewer.id, role === 'organizer' ? 'leader' : 'participant');
+  if (role === 'participant' && membership) {
+    await notifyTripJoin({
+      plan,
+      participant: viewer,
+      membership: membership as TripMembershipRow,
+    });
+  }
   return plan;
 }
 

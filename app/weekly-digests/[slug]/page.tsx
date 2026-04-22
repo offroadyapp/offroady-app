@@ -92,6 +92,7 @@ export default async function WeeklyDigestPage({ params }: { params: Promise<{ s
                         <h3 className="text-lg font-semibold text-[#243126]">{trip.title}</h3>
                         <div className="mt-1 text-sm text-gray-500">{String(payload.date ?? new Date(trip.startsAt).toLocaleDateString('en-CA'))} · Meetup {String(payload.meetupArea ?? trip.locationName ?? 'TBD')} · Depart {String(payload.departureTime ?? 'TBD')}</div>
                         <p className="mt-3 text-sm leading-6 text-gray-700">{trip.summary ?? 'Member-planned run.'}</p>
+                        {trip.href ? <div className="mt-3 flex flex-wrap gap-3"><a href={trip.href} className="inline-flex text-sm font-semibold text-[#2f5d3a] hover:text-[#264d30]">View Trip</a><a href={`${trip.href}#join-this-trip`} className="inline-flex text-sm font-semibold text-[#2f5d3a] hover:text-[#264d30]">Join this Trip</a></div> : null}
                       </div>
                       <div className="rounded-2xl bg-white px-4 py-3 text-sm text-gray-600">
                         <div><span className="font-semibold text-[#243126]">Organizer:</span> {String(payload.organizerName ?? 'Member')}</div>
@@ -139,7 +140,7 @@ export default async function WeeklyDigestPage({ params }: { params: Promise<{ s
             <p className="mt-4 max-w-3xl text-base leading-7 text-white/80">{digest.cta.body}</p>
             <p className="mt-3 text-sm text-white/75">Know a good trail? Propose it here.</p>
             <div className="mt-6 flex flex-wrap gap-3">
-              <a href={digest.cta.href} className="rounded-lg bg-[#2f7a4d] px-5 py-3 font-semibold text-white transition hover:bg-[#286742]">Plan from this trail</a>
+              {digest.memberTrips.length ? <a href="/join-a-trip" className="rounded-lg bg-[#2f7a4d] px-5 py-3 font-semibold text-white transition hover:bg-[#286742]">Join a Trip</a> : <a href={digest.cta.href} className="rounded-lg bg-[#2f7a4d] px-5 py-3 font-semibold text-white transition hover:bg-[#286742]">Plan from this trail</a>}
               <a href="/propose-a-trail" className="rounded-lg border border-white/20 px-5 py-3 font-semibold text-white/90 transition hover:bg-white/10">Propose a Trail</a>
               <a href="/" className="rounded-lg border border-white/20 px-5 py-3 font-semibold text-white/90 transition hover:bg-white/10">Back to home</a>
             </div>

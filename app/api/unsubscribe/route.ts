@@ -4,6 +4,8 @@ import { unsubscribeCategoryByToken, type EmailPreferenceCategory } from '@/lib/
 const allowed = new Set<EmailPreferenceCategory>([
   'weeklyTrailUpdates',
   'tripNotifications',
+  'tripJoinPlannerEmail',
+  'tripJoinParticipantEmail',
   'crewNotifications',
   'commentReplyNotifications',
   'marketingPromotionalEmails',

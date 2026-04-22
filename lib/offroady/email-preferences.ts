@@ -4,6 +4,8 @@ import { getServiceSupabase } from '@/lib/supabase/server';
 export type EmailPreferenceCategory =
   | 'weeklyTrailUpdates'
   | 'tripNotifications'
+  | 'tripJoinPlannerEmail'
+  | 'tripJoinParticipantEmail'
   | 'crewNotifications'
   | 'commentReplyNotifications'
   | 'marketingPromotionalEmails';
@@ -12,6 +14,8 @@ export type EmailPreferences = {
   email: string;
   weeklyTrailUpdates: boolean;
   tripNotifications: boolean;
+  tripJoinPlannerEmail: boolean;
+  tripJoinParticipantEmail: boolean;
   crewNotifications: boolean;
   commentReplyNotifications: boolean;
   marketingPromotionalEmails: boolean;
@@ -20,6 +24,8 @@ export type EmailPreferences = {
 const defaultPreferences: Omit<EmailPreferences, 'email'> = {
   weeklyTrailUpdates: true,
   tripNotifications: true,
+  tripJoinPlannerEmail: true,
+  tripJoinParticipantEmail: true,
   crewNotifications: true,
   commentReplyNotifications: true,
   marketingPromotionalEmails: true,
@@ -28,6 +34,8 @@ const defaultPreferences: Omit<EmailPreferences, 'email'> = {
 const fieldMap: Record<EmailPreferenceCategory, keyof typeof defaultPreferences> = {
   weeklyTrailUpdates: 'weeklyTrailUpdates',
   tripNotifications: 'tripNotifications',
+  tripJoinPlannerEmail: 'tripJoinPlannerEmail',
+  tripJoinParticipantEmail: 'tripJoinParticipantEmail',
   crewNotifications: 'crewNotifications',
   commentReplyNotifications: 'commentReplyNotifications',
   marketingPromotionalEmails: 'marketingPromotionalEmails',
@@ -40,6 +48,8 @@ function normalizeEmail(email: string) {
 type EmailPreferencesRow = {
   weekly_trail_updates?: boolean | null;
   trip_notifications?: boolean | null;
+  trip_join_planner_email?: boolean | null;
+  trip_join_participant_email?: boolean | null;
   crew_notifications?: boolean | null;
   comment_reply_notifications?: boolean | null;
   marketing_promotional_emails?: boolean | null;
@@ -50,6 +60,8 @@ function mapRow(row: EmailPreferencesRow | null | undefined, email: string): Ema
     email,
     weeklyTrailUpdates: row?.weekly_trail_updates ?? true,
     tripNotifications: row?.trip_notifications ?? true,
+    tripJoinPlannerEmail: row?.trip_join_planner_email ?? true,
+    tripJoinParticipantEmail: row?.trip_join_participant_email ?? true,
     crewNotifications: row?.crew_notifications ?? true,
     commentReplyNotifications: row?.comment_reply_notifications ?? true,
     marketingPromotionalEmails: row?.marketing_promotional_emails ?? true,
@@ -60,6 +72,8 @@ function toRowPatch(input: Partial<Omit<EmailPreferences, 'email'>>) {
   const patch: Record<string, boolean> = {};
   if (typeof input.weeklyTrailUpdates === 'boolean') patch.weekly_trail_updates = input.weeklyTrailUpdates;
   if (typeof input.tripNotifications === 'boolean') patch.trip_notifications = input.tripNotifications;
+  if (typeof input.tripJoinPlannerEmail === 'boolean') patch.trip_join_planner_email = input.tripJoinPlannerEmail;
+  if (typeof input.tripJoinParticipantEmail === 'boolean') patch.trip_join_participant_email = input.tripJoinParticipantEmail;
   if (typeof input.crewNotifications === 'boolean') patch.crew_notifications = input.crewNotifications;
   if (typeof input.commentReplyNotifications === 'boolean') patch.comment_reply_notifications = input.commentReplyNotifications;
   if (typeof input.marketingPromotionalEmails === 'boolean') patch.marketing_promotional_emails = input.marketingPromotionalEmails;

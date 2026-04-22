@@ -35,6 +35,8 @@ export async function PATCH(request: Request) {
     const patch = {
       weeklyTrailUpdates: body.weeklyTrailUpdates,
       tripNotifications: body.tripNotifications,
+      tripJoinPlannerEmail: body.tripJoinPlannerEmail,
+      tripJoinParticipantEmail: body.tripJoinParticipantEmail,
       crewNotifications: body.crewNotifications,
       commentReplyNotifications: body.commentReplyNotifications,
       marketingPromotionalEmails: body.marketingPromotionalEmails,

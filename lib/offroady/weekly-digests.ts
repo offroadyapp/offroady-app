@@ -2,6 +2,7 @@ import { getLocalTrailBySlug } from '@/lib/offroady/trails';
 import { getServiceSupabase } from '@/lib/supabase/server';
 import { buildEmailFooter, listWeeklyDigestSubscribers } from '@/lib/offroady/email-preferences';
 import { sendTransactionalEmail } from '@/lib/offroady/email';
+import { resolveTripTrailReference } from '@/lib/offroady/trip-trails';
 
 export type DigestStatus = 'draft' | 'published' | 'archived';
 export type ExternalEventStatus = 'draft' | 'published' | 'cancelled';
@@ -181,6 +182,7 @@ type TrailRow = {
 
 type TripRow = {
   id: string;
+  trail_id: string | null;
   trail_slug: string;
   trail_title: string;
   trail_region: string | null;
@@ -404,7 +406,7 @@ async function getUpcomingTrips(weekStart: string, weekEnd: string): Promise<Wee
   const supabase = getServiceSupabase();
   const { data, error } = await supabase
     .from('trip_plans')
-    .select('id, trail_slug, trail_title, trail_region, trail_location_label, date, meetup_area, departure_time, trip_note, share_name, status, max_participants, created_at')
+    .select('id, trail_id, trail_slug, trail_title, trail_region, trail_location_label, date, meetup_area, departure_time, trip_note, share_name, status, max_participants, created_at')
     .gte('date', weekStart)
     .lte('date', weekEnd)
     .in('status', ['open', 'full'])
@@ -414,30 +416,45 @@ async function getUpcomingTrips(weekStart: string, weekEnd: string): Promise<Wee
   if (error) throw error;
   const rows = (data ?? []) as TripRow[];
   const counts = await getTripCounts(rows.map((row) => row.id));
+  const resolvedTrailMap = new Map(
+    await Promise.all(
+      rows.map(async (row) => ([
+        row.id,
+        await resolveTripTrailReference({
+          trailId: row.trail_id,
+          trailSlug: row.trail_slug,
+          storedTitle: row.trail_title,
+        }),
+      ] as const))
+    )
+  );
 
-  return rows.map((row) => ({
-    id: row.id,
-    itemType: 'member_trip',
-    title: row.trail_title,
-    startsAt: toIsoStart(row.date),
-    locationName: row.meetup_area,
-    summary: row.trip_note || `Meet ${row.share_name} at ${row.meetup_area} and roll out at ${row.departure_time}.`,
-    href: `/trips/${row.id}`,
-    payload: {
-      trailSlug: row.trail_slug,
-      trailTitle: row.trail_title,
-      trailRegion: row.trail_region,
-      trailLocationLabel: row.trail_location_label,
-      date: row.date,
-      departureTime: row.departure_time,
-      meetupArea: row.meetup_area,
-      organizerName: row.share_name,
-      status: row.status ?? 'open',
-      participantCount: counts.get(row.id) ?? 0,
-      maxParticipants: row.max_participants,
-      tripNote: row.trip_note,
-    },
-  }));
+  return rows.map((row) => {
+    const resolvedTrail = resolvedTrailMap.get(row.id);
+    return {
+      id: row.id,
+      itemType: 'member_trip',
+      title: resolvedTrail?.title ?? row.trail_title,
+      startsAt: toIsoStart(row.date),
+      locationName: row.meetup_area,
+      summary: row.trip_note || `Meet ${row.share_name} at ${row.meetup_area} and roll out at ${row.departure_time}.`,
+      href: `/trips/${row.id}`,
+      payload: {
+        trailSlug: resolvedTrail?.slug ?? row.trail_slug,
+        trailTitle: resolvedTrail?.title ?? row.trail_title,
+        trailRegion: row.trail_region,
+        trailLocationLabel: row.trail_location_label,
+        date: row.date,
+        departureTime: row.departure_time,
+        meetupArea: row.meetup_area,
+        organizerName: row.share_name,
+        status: row.status ?? 'open',
+        participantCount: counts.get(row.id) ?? 0,
+        maxParticipants: row.max_participants,
+        tripNote: row.trip_note,
+      },
+    };
+  });
 }
 
 async function getUpcomingExternalEvents(weekStart: string, weekEnd: string): Promise<WeeklyDigestSnapshotItem[]> {

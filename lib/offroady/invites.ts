@@ -4,6 +4,8 @@ import { getServiceSupabase } from '@/lib/supabase/server';
 import { buildEmailFooter, getEmailPreferencesByEmail } from '@/lib/offroady/email-preferences';
 import { createSiteNotification } from '@/lib/offroady/site-notifications';
 import { sendTransactionalEmail } from '@/lib/offroady/email';
+import { resolveTripTrailReference } from '@/lib/offroady/trip-trails';
+import { getTrailProposalBySlug } from '@/lib/offroady/proposals';
 
 type CreatorIdentity = {
   id: string;
@@ -87,6 +89,7 @@ export type InvitePageData = {
     id: string;
     trailSlug: string;
     trailTitle: string;
+    trailHref: string | null;
     trailRegion: string | null;
     trailLocationLabel: string | null;
     trailLatitude: number | null;
@@ -247,13 +250,18 @@ async function notifyTripJoin(params: {
   const tripUrl = params.origin ? `${params.origin}${href}` : href;
   const eventKeyBase = params.membership.id;
   const planner = await getUserContact(params.plan.created_by_user_id);
+  const canonicalTrail = await resolveTripTrailReference({
+    trailId: params.plan.trail_id,
+    trailSlug: params.plan.trail_slug,
+    storedTitle: params.plan.trail_title,
+  });
 
   await createSiteNotification({
     userId: params.participant.id,
     kind: 'trip_join_participant',
     eventKey: `trip-join-participant:${eventKeyBase}`,
-    title: `You joined ${params.plan.trail_title}.`,
-    body: `You are in for ${params.plan.trail_title} on ${formatDateLabel(params.plan.date)} with ${params.plan.share_name}.`,
+    title: `You joined ${canonicalTrail.title}.`,
+    body: `You are in for ${canonicalTrail.title} on ${formatDateLabel(params.plan.date)} with ${params.plan.share_name}.`,
     href,
   });
 
@@ -262,8 +270,8 @@ async function notifyTripJoin(params: {
       userId: planner.id,
       kind: 'trip_join_planner',
       eventKey: `trip-join-planner:${eventKeyBase}`,
-      title: `${params.participant.displayName} joined your trip to ${params.plan.trail_title}.`,
-      body: `${params.participant.displayName} is now on the list for ${params.plan.trail_title} on ${formatDateLabel(params.plan.date)}.`,
+      title: `${params.participant.displayName} joined your trip to ${canonicalTrail.title}.`,
+      body: `${params.participant.displayName} is now on the list for ${canonicalTrail.title} on ${formatDateLabel(params.plan.date)}.`,
       href,
     });
   }
@@ -273,8 +281,8 @@ async function notifyTripJoin(params: {
     const footer = await buildEmailFooter(params.participant.email, 'tripJoinParticipantEmail', params.origin);
     await sendTransactionalEmail({
       to: params.participant.email,
-      subject: `Trip join confirmed: ${params.plan.trail_title}`,
-      text: `You joined ${params.plan.trail_title} on ${formatDateLabel(params.plan.date)}. Organizer: ${params.plan.share_name}. Meetup: ${params.plan.meetup_area}. Departure: ${params.plan.departure_time}. View the trip here: ${tripUrl}${footer}`,
+      subject: `Trip join confirmed: ${canonicalTrail.title}`,
+      text: `You joined ${canonicalTrail.title} on ${formatDateLabel(params.plan.date)}. Organizer: ${params.plan.share_name}. Meetup: ${params.plan.meetup_area}. Departure: ${params.plan.departure_time}. View the trip here: ${tripUrl}${footer}`,
     });
   }
 
@@ -284,8 +292,8 @@ async function notifyTripJoin(params: {
       const footer = await buildEmailFooter(planner.email, 'tripJoinPlannerEmail', params.origin);
       await sendTransactionalEmail({
         to: planner.email,
-        subject: `${params.participant.displayName} joined your trip to ${params.plan.trail_title}`,
-        text: `${params.participant.displayName} joined your trip to ${params.plan.trail_title} on ${formatDateLabel(params.plan.date)}. Meetup: ${params.plan.meetup_area}. Departure: ${params.plan.departure_time}. Open the trip here: ${tripUrl}${footer}`,
+        subject: `${params.participant.displayName} joined your trip to ${canonicalTrail.title}`,
+        text: `${params.participant.displayName} joined your trip to ${canonicalTrail.title} on ${formatDateLabel(params.plan.date)}. Meetup: ${params.plan.meetup_area}. Departure: ${params.plan.departure_time}. Open the trip here: ${tripUrl}${footer}`,
       });
     }
   }
@@ -425,6 +433,12 @@ export async function createTripPlanForTrail(
 
   if (invitesError) throw invitesError;
 
+  const canonicalTrail = await resolveTripTrailReference({
+    trailId: plan.trail_id,
+    trailSlug: plan.trail_slug,
+    storedTitle: plan.trail_title,
+  });
+
   const inviteResults = await Promise.all((invites as TripInviteRow[]).map(async (invite) => {
     const inviteUrl = buildInviteUrl(invite.invite_token, input.origin);
     return {
@@ -433,7 +447,7 @@ export async function createTripPlanForTrail(
       inviteUrl,
       status: invite.status,
       message: await buildInviteMessage({
-        trailTitle: plan.trail_title,
+        trailTitle: canonicalTrail.title,
         date: plan.date,
         meetupArea: plan.meetup_area,
         departureTime: plan.departure_time,
@@ -452,14 +466,14 @@ export async function createTripPlanForTrail(
     const footer = await buildEmailFooter(creator.email, 'tripNotifications', input.origin);
     await sendTransactionalEmail({
       to: creator.email,
-      subject: `Trip planned: ${plan.trail_title}`,
-      text: `Your trip for ${plan.trail_title} on ${formatDateLabel(plan.date)} is live. Open it here: ${tripUrl}${footer}`,
+      subject: `Trip planned: ${canonicalTrail.title}`,
+      text: `Your trip for ${canonicalTrail.title} on ${formatDateLabel(plan.date)} is live. Open it here: ${tripUrl}${footer}`,
     });
   }
 
   return {
     planId: plan.id,
-    shareText: `Planning a trip to ${plan.trail_title} on ${formatDateLabel(plan.date)}. Meetup: ${plan.meetup_area}. Departure: ${plan.departure_time}.${plan.trip_note ? ` ${plan.trip_note}` : ''} Shared by ${plan.share_name}.`,
+    shareText: `Planning a trip to ${canonicalTrail.title} on ${formatDateLabel(plan.date)}. Meetup: ${plan.meetup_area}. Departure: ${plan.departure_time}.${plan.trip_note ? ` ${plan.trip_note}` : ''} Shared by ${plan.share_name}.`,
     invites: inviteResults,
   };
 }
@@ -586,6 +600,14 @@ export async function getInvitePageData(token: string): Promise<InvitePageData |
 
   if (inviterError) throw inviterError;
 
+  const canonicalTrail = await resolveTripTrailReference({
+    trailId: plan.trail_id,
+    trailSlug: plan.trail_slug,
+    storedTitle: plan.trail_title,
+  });
+  const localTrail = canonicalTrail.slug ? getLocalTrailBySlug(canonicalTrail.slug) : null;
+  const proposal = !localTrail && plan.trail_slug ? await getTrailProposalBySlug(plan.trail_slug).catch(() => null) : null;
+
   return {
     inviteId: invite.id,
     token: invite.invite_token,
@@ -594,8 +616,9 @@ export async function getInvitePageData(token: string): Promise<InvitePageData |
     claimedAt: invite.claimed_at,
     trip: {
       id: plan.id,
-      trailSlug: plan.trail_slug,
-      trailTitle: plan.trail_title,
+      trailSlug: canonicalTrail.slug ?? plan.trail_slug,
+      trailTitle: canonicalTrail.title,
+      trailHref: canonicalTrail.href ?? (proposal ? `/plan/proposal/${plan.trail_slug}` : null),
       trailRegion: plan.trail_region,
       trailLocationLabel: plan.trail_location_label,
       trailLatitude: plan.trail_latitude,
@@ -611,7 +634,7 @@ export async function getInvitePageData(token: string): Promise<InvitePageData |
       displayName: inviter?.display_name ?? plan.share_name,
       email: inviter?.email ?? '',
     },
-    trail: getLocalTrailBySlug(plan.trail_slug),
+    trail: localTrail,
   };
 }
 

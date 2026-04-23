@@ -123,12 +123,14 @@ export default async function InvitePage({
               <p className="mt-3 text-sm leading-6 text-gray-600">
                 Once claimed, you can head into the trip planning and community flow for this trail.
               </p>
-              <a
-                href={`/plan/${invite.trip.trailSlug}`}
-                className="mt-5 inline-flex rounded-lg bg-[#2f5d3a] px-5 py-3 font-semibold text-white transition hover:bg-[#264d30]"
-              >
-                Open this trail plan
-              </a>
+              {invite.trip.trailHref ? (
+                <a
+                  href={invite.trip.trailHref}
+                  className="mt-5 inline-flex rounded-lg bg-[#2f5d3a] px-5 py-3 font-semibold text-white transition hover:bg-[#264d30]"
+                >
+                  Open this trail plan
+                </a>
+              ) : null}
             </div>
           </div>
         </div>

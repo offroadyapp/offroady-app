@@ -6,6 +6,7 @@ import { createSiteNotification } from '@/lib/offroady/site-notifications';
 import { sendTransactionalEmail } from '@/lib/offroady/email';
 import { resolveTripTrailReference } from '@/lib/offroady/trip-trails';
 import { getTrailProposalBySlug } from '@/lib/offroady/proposals';
+import { appendTripChatSystemMessage } from '@/lib/offroady/trip-chat';
 
 type CreatorIdentity = {
   id: string;
@@ -536,6 +537,7 @@ export async function joinTripById(tripId: string, viewer: CreatorIdentity, orig
       membership: membership as TripMembershipRow,
       origin,
     });
+    await appendTripChatSystemMessage(tripId, `${viewer.displayName} joined the trip.`);
   }
   return plan;
 }
@@ -566,6 +568,7 @@ export async function leaveTripById(tripId: string, viewer: CreatorIdentity) {
   }
 
   await cleanupTrailParticipantIfUnused(plan, viewer.id);
+  await appendTripChatSystemMessage(tripId, `${viewer.displayName} left the trip.`);
   return plan;
 }
 

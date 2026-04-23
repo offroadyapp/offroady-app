@@ -866,3 +866,132 @@ drop trigger if exists trg_weekly_digest_outputs_updated_at on public.weekly_dig
 create trigger trg_weekly_digest_outputs_updated_at
 before update on public.weekly_digest_outputs
 for each row execute function public.set_updated_at();
+
+
+-- APPEND PATCH: trip chat mvp
+create table if not exists public.trip_chat_messages (
+  id uuid primary key default gen_random_uuid(),
+  trip_id uuid not null references public.trip_plans(id) on delete cascade,
+  user_id uuid references public.users(id) on delete set null,
+  message_text text not null,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz,
+  deleted_at timestamptz,
+  is_system boolean not null default false
+);
+
+create index if not exists idx_trip_chat_messages_trip_id_created_at on public.trip_chat_messages (trip_id, created_at);
+create index if not exists idx_trip_chat_messages_user_id on public.trip_chat_messages (user_id);
+create index if not exists idx_trip_chat_messages_deleted_at on public.trip_chat_messages (deleted_at);
+
+create table if not exists public.trip_chat_reads (
+  trip_id uuid not null references public.trip_plans(id) on delete cascade,
+  user_id uuid not null references public.users(id) on delete cascade,
+  last_read_at timestamptz,
+  primary key (trip_id, user_id)
+);
+
+create index if not exists idx_trip_chat_reads_user_id on public.trip_chat_reads (user_id);
+
+create or replace function public.viewer_user_id()
+returns uuid
+language sql
+stable
+as $$
+  select u.id
+  from public.users u
+  where u.auth_user_id = auth.uid()
+  limit 1;
+$$;
+
+create or replace function public.can_access_trip_chat(p_trip_id uuid)
+returns boolean
+language sql
+stable
+as $$
+  select exists (
+    select 1
+    from public.trip_plans tp
+    where tp.id = p_trip_id
+      and tp.created_by_user_id = public.viewer_user_id()
+  )
+  or exists (
+    select 1
+    from public.trip_memberships tm
+    where tm.trip_plan_id = p_trip_id
+      and tm.user_id = public.viewer_user_id()
+      and tm.status in ('joined', 'approved')
+  );
+$$;
+
+create or replace function public.is_trip_chat_organizer(p_trip_id uuid)
+returns boolean
+language sql
+stable
+as $$
+  select exists (
+    select 1
+    from public.trip_plans tp
+    where tp.id = p_trip_id
+      and tp.created_by_user_id = public.viewer_user_id()
+  );
+$$;
+
+alter table public.trip_chat_messages enable row level security;
+alter table public.trip_chat_reads enable row level security;
+
+drop policy if exists "trip chat members can read messages" on public.trip_chat_messages;
+create policy "trip chat members can read messages"
+on public.trip_chat_messages
+for select
+using (public.can_access_trip_chat(trip_id));
+
+drop policy if exists "trip chat members can insert messages" on public.trip_chat_messages;
+create policy "trip chat members can insert messages"
+on public.trip_chat_messages
+for insert
+with check (
+  public.can_access_trip_chat(trip_id)
+  and (
+    (is_system = false and user_id = public.viewer_user_id())
+    or (is_system = true and public.is_trip_chat_organizer(trip_id))
+  )
+);
+
+drop policy if exists "trip chat owners can update delete state" on public.trip_chat_messages;
+create policy "trip chat owners can update delete state"
+on public.trip_chat_messages
+for update
+using (
+  public.can_access_trip_chat(trip_id)
+  and (
+    public.is_trip_chat_organizer(trip_id)
+    or (not is_system and user_id = public.viewer_user_id())
+  )
+)
+with check (
+  public.can_access_trip_chat(trip_id)
+  and (
+    public.is_trip_chat_organizer(trip_id)
+    or (not is_system and user_id = public.viewer_user_id())
+  )
+);
+
+drop policy if exists "trip chat members can read reads" on public.trip_chat_reads;
+create policy "trip chat members can read reads"
+on public.trip_chat_reads
+for select
+using (public.can_access_trip_chat(trip_id) and user_id = public.viewer_user_id());
+
+drop policy if exists "trip chat members can upsert own reads" on public.trip_chat_reads;
+create policy "trip chat members can upsert own reads"
+on public.trip_chat_reads
+for insert
+with check (public.can_access_trip_chat(trip_id) and user_id = public.viewer_user_id());
+
+drop policy if exists "trip chat members can update own reads" on public.trip_chat_reads;
+create policy "trip chat members can update own reads"
+on public.trip_chat_reads
+for update
+using (public.can_access_trip_chat(trip_id) and user_id = public.viewer_user_id())
+with check (public.can_access_trip_chat(trip_id) and user_id = public.viewer_user_id());

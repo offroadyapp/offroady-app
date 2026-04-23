@@ -7,9 +7,10 @@ import type { TripMembershipSummary } from '@/lib/offroady/account';
 
 type Props = {
   trips: TripMembershipSummary[];
+  chatUnreadByTripId?: Record<string, number>;
 };
 
-export default function TripsDashboard({ trips }: Props) {
+export default function TripsDashboard({ trips, chatUnreadByTripId = {} }: Props) {
   return (
     <div className="space-y-4">
       {trips.map((trip) => (
@@ -22,6 +23,10 @@ export default function TripsDashboard({ trips }: Props) {
               {trip.tripNote ? <p className="mt-3 text-sm leading-6 text-gray-600">{trip.tripNote}</p> : null}
             </div>
             <div className="flex flex-col items-end gap-3">
+              <Link href={`/trips/${trip.id}/chat`} className="inline-flex items-center gap-2 rounded-lg border border-[#2f5d3a]/20 bg-white px-4 py-2 text-sm font-semibold text-[#243126] transition hover:bg-[#eef5ee]">
+                Open Chat
+                {(chatUnreadByTripId[trip.id] ?? 0) > 0 ? <span className="rounded-full bg-[#2f5d3a] px-2 py-0.5 text-xs font-bold text-white">{chatUnreadByTripId[trip.id]} new</span> : null}
+              </Link>
               <FavoriteToggleButton apiPath={`/api/trips/${trip.id}/favorite`} initialFavorite={trip.isFavorite} refreshOnSuccess={true} />
               {trip.canLeave ? (
                 <LeaveActionButton

@@ -5,12 +5,14 @@ import FavoriteToggleButton from '@/app/components/FavoriteToggleButton';
 import TripDetailActions from '@/app/components/TripDetailActions';
 import { getSessionUser } from '@/lib/offroady/auth';
 import { getTripDetail } from '@/lib/offroady/account';
+import { getTripChatEntryState } from '@/lib/offroady/trip-chat';
 
 export default async function TripDetailPage({ params }: { params: Promise<{ tripId: string }> }) {
   const { tripId } = await params;
   const viewer = await getSessionUser();
   const trip = await getTripDetail(tripId, viewer?.id);
   if (!trip) notFound();
+  const chat = await getTripChatEntryState(tripId, viewer?.id).catch(() => ({ canAccess: false, canPost: false, unreadCount: 0, href: `/trips/${tripId}/chat`, status: trip.status }));
 
   return (
     <PageShell>
@@ -63,6 +65,11 @@ export default async function TripDetailPage({ params }: { params: Promise<{ tri
               shareName: trip.shareName,
               status: trip.status,
               participantCount: trip.participantCount,
+            } }
+            tripChat={{
+              href: chat.href,
+              canAccess: chat.canAccess,
+              unreadCount: chat.unreadCount,
             }}
           />
         </div>

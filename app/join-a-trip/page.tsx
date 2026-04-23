@@ -3,6 +3,7 @@ import PageShell from '@/app/components/PageShell';
 import TripShareButton from '@/app/components/TripShareButton';
 import { getSessionUser } from '@/lib/offroady/auth';
 import { getUpcomingTripDiscovery } from '@/lib/offroady/trip-discovery';
+import { getTripChatAccessMap, getTripChatUnreadCountMap } from '@/lib/offroady/trip-chat';
 
 function formatTripDate(value: string) {
   return new Date(`${value}T12:00:00`).toLocaleDateString('en-CA', {
@@ -18,6 +19,9 @@ export default async function JoinATripPage({ searchParams }: { searchParams: Pr
   const query = await searchParams;
   const viewer = await getSessionUser().catch(() => null);
   const trips = await getUpcomingTripDiscovery({ trailSlug: query.trail ?? null });
+  const tripIds = trips.map((trip) => trip.id);
+  const chatAccess = viewer ? await getTripChatAccessMap(viewer.id, tripIds).catch(() => new Map()) : new Map();
+  const chatUnread = viewer ? await getTripChatUnreadCountMap(viewer.id, tripIds).catch(() => new Map()) : new Map();
 
   return (
     <PageShell>
@@ -68,9 +72,16 @@ export default async function JoinATripPage({ searchParams }: { searchParams: Pr
                       <Link href={`/trips/${trip.id}`} className="inline-flex rounded-lg bg-[#2f5d3a] px-5 py-3 font-semibold text-white transition hover:bg-[#264d30]">
                         View Trip
                       </Link>
-                      <Link href={`/trips/${trip.id}#join-this-trip`} className="inline-flex rounded-lg border border-gray-300 px-5 py-3 font-semibold text-gray-800 transition hover:bg-gray-50">
-                        Join this Trip
-                      </Link>
+                      {chatAccess.has(trip.id) ? (
+                        <Link href={`/trips/${trip.id}/chat`} className="inline-flex items-center gap-2 rounded-lg border border-[#2f5d3a]/20 bg-white px-5 py-3 font-semibold text-[#243126] transition hover:bg-[#eef5ee]">
+                          Open Chat
+                          {(chatUnread.get(trip.id) ?? 0) > 0 ? <span className="rounded-full bg-[#2f5d3a] px-2 py-0.5 text-xs font-bold text-white">{chatUnread.get(trip.id)} new</span> : null}
+                        </Link>
+                      ) : (
+                        <Link href={`/trips/${trip.id}#join-this-trip`} className="inline-flex rounded-lg border border-gray-300 px-5 py-3 font-semibold text-gray-800 transition hover:bg-gray-50">
+                          Join this Trip
+                        </Link>
+                      )}
                       <TripShareButton
                         trip={{
                           id: trip.id,

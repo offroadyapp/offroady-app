@@ -40,7 +40,7 @@ export async function POST(
     const trip = await getTripDetail(tripId).catch(() => null);
     if (!trip) {
       const response = NextResponse.json({ error: 'Trip not found' }, { status: 404 });
-      attachRuntimeHeaders(response);
+      attachRuntimeHeaders(response, { branch: 'not-found' });
       return response;
     }
 
@@ -52,7 +52,7 @@ export async function POST(
         { error: EMAIL_SHARE_AUTH_REQUIRED_MESSAGE, code: EMAIL_SHARE_AUTH_REQUIRED_CODE },
         { status: 401 }
       );
-      attachRuntimeHeaders(response);
+      attachRuntimeHeaders(response, { branch: 'auth-required' });
       return response;
     }
 
@@ -62,17 +62,17 @@ export async function POST(
 
     if (!friendEmail) {
       const response = NextResponse.json({ error: "Recipient email is required." }, { status: 400 });
-      attachRuntimeHeaders(response);
+      attachRuntimeHeaders(response, { branch: 'validation', reason: 'missing-recipient-email' });
       return response;
     }
     if (!isValidEmail(friendEmail)) {
       const response = NextResponse.json({ error: 'Please enter a valid email address.' }, { status: 400 });
-      attachRuntimeHeaders(response);
+      attachRuntimeHeaders(response, { branch: 'validation', reason: 'invalid-recipient-email' });
       return response;
     }
     if (message.length > 1200) {
       const response = NextResponse.json({ error: 'Your message is too long.' }, { status: 400 });
-      attachRuntimeHeaders(response);
+      attachRuntimeHeaders(response, { branch: 'validation', reason: 'message-too-long' });
       return response;
     }
 
@@ -147,12 +147,16 @@ export async function POST(
         { error: EMAIL_SHARE_UNAVAILABLE_MESSAGE, code: EMAIL_SHARE_UNAVAILABLE_CODE },
         { status: 503 }
       );
-      attachRuntimeHeaders(response);
+      attachRuntimeHeaders(response, {
+        branch: 'provider-unavailable',
+        reason: result.reason ?? null,
+        missingConfig: result.missingConfig ?? null,
+      });
       return response;
     }
 
     const response = NextResponse.json({ ok: true });
-    attachRuntimeHeaders(response);
+    attachRuntimeHeaders(response, { branch: 'sent', reason: result.reason ?? null });
     return response;
   } catch (error) {
     console.error('[trip-share-email] unexpected exception', {
@@ -166,7 +170,7 @@ export async function POST(
       { error: EMAIL_SHARE_UNAVAILABLE_MESSAGE, code: EMAIL_SHARE_UNAVAILABLE_CODE },
       { status: 500 }
     );
-    attachRuntimeHeaders(response);
+    attachRuntimeHeaders(response, { branch: 'unexpected-exception' });
     return response;
   }
 }

@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getTripDetail } from '@/lib/offroady/account';
 import { getSessionUser } from '@/lib/offroady/auth';
-import { sendTransactionalEmail } from '@/lib/offroady/email';
+import { getTransactionalEmailDebugInfo, sendTransactionalEmail } from '@/lib/offroady/email';
 import { buildTripSharePack, getTripDetailUrl } from '@/lib/offroady/trip-sharing';
 import {
   EMAIL_SHARE_AUTH_REQUIRED_CODE,
@@ -14,12 +14,19 @@ function isValidEmail(value: string) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
 }
 
+function getEmailDomain(value: string) {
+  const [, domain = ''] = value.split('@');
+  return domain || null;
+}
+
 export async function POST(
   request: Request,
   { params }: { params: Promise<{ tripId: string }> }
 ) {
   try {
     const { tripId } = await params;
+    console.info('[trip-share-email] request received', { tripId });
+
     const trip = await getTripDetail(tripId).catch(() => null);
     if (!trip) {
       return NextResponse.json({ error: 'Trip not found' }, { status: 404 });
@@ -28,6 +35,7 @@ export async function POST(
     const origin = new URL(request.url).origin;
     const viewer = await getSessionUser().catch(() => null);
     if (!viewer) {
+      console.info('[trip-share-email] auth required', { tripId });
       return NextResponse.json(
         { error: EMAIL_SHARE_AUTH_REQUIRED_MESSAGE, code: EMAIL_SHARE_AUTH_REQUIRED_CODE },
         { status: 401 }
@@ -47,6 +55,19 @@ export async function POST(
     if (message.length > 1200) {
       return NextResponse.json({ error: 'Your message is too long.' }, { status: 400 });
     }
+
+    const providerDebug = getTransactionalEmailDebugInfo();
+    console.info('[trip-share-email] provider check', {
+      tripId,
+      viewerId: viewer.id,
+      provider: providerDebug.provider,
+      enabled: providerDebug.enabled,
+      hasApiKey: providerDebug.hasApiKey,
+      hasFrom: providerDebug.hasFrom,
+      from: providerDebug.from,
+      missingConfig: providerDebug.missingConfig,
+      recipientDomain: getEmailDomain(friendEmail),
+    });
 
     const email = buildTripSharePack({
       trip: {
@@ -72,6 +93,21 @@ export async function POST(
       subject: email.emailSubject,
       text: email.emailBody,
       html: email.emailHtml,
+    });
+
+    console.info('[trip-share-email] provider result', {
+      tripId,
+      viewerId: viewer.id,
+      ok: result.ok,
+      skipped: result.skipped,
+      provider: result.provider,
+      status: result.status ?? null,
+      reason: result.reason ?? null,
+      messageId: result.messageId ?? null,
+      accepted: result.accepted ?? false,
+      from: result.from,
+      missingConfig: result.missingConfig,
+      providerResponseSummary: result.providerResponseSummary ?? null,
     });
 
     if (!result.ok) {

@@ -32,6 +32,8 @@ export default function TripChatClient({ tripId, initialAccess, initialMessages 
   const [loading, setLoading] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const listRef = useRef<HTMLDivElement | null>(null);
+  const inputRef = useRef<HTMLTextAreaElement | null>(null);
+  const shouldStickToBottomRef = useRef(true);
   const latestMessageId = useMemo(() => messages[messages.length - 1]?.id ?? null, [messages]);
 
   useEffect(() => {
@@ -39,10 +41,32 @@ export default function TripChatClient({ tripId, initialAccess, initialMessages 
   }, [tripId, latestMessageId]);
 
   useEffect(() => {
+    if (access.canPost) {
+      inputRef.current?.focus();
+    }
+  }, [access.canPost]);
+
+  useEffect(() => {
     const list = listRef.current;
     if (!list) return;
+    if (!shouldStickToBottomRef.current) return;
     list.scrollTop = list.scrollHeight;
   }, [latestMessageId]);
+
+  useEffect(() => {
+    const element = listRef.current;
+    if (!element) return;
+    const scrollElement = element;
+
+    function handleScroll() {
+      const distanceFromBottom = scrollElement.scrollHeight - scrollElement.scrollTop - scrollElement.clientHeight;
+      shouldStickToBottomRef.current = distanceFromBottom < 48;
+    }
+
+    handleScroll();
+    scrollElement.addEventListener('scroll', handleScroll);
+    return () => scrollElement.removeEventListener('scroll', handleScroll);
+  }, []);
 
   useEffect(() => {
     let active = true;
@@ -79,6 +103,8 @@ export default function TripChatClient({ tripId, initialAccess, initialMessages 
       setAccess(payload.access);
       setMessages(payload.messages);
       setMessageText('');
+      shouldStickToBottomRef.current = true;
+      inputRef.current?.focus();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to send message');
     } finally {
@@ -105,19 +131,26 @@ export default function TripChatClient({ tripId, initialAccess, initialMessages 
   return (
     <div className="rounded-3xl border border-black/8 bg-white shadow-sm">
       <div className="border-b border-black/8 px-6 py-5 sm:px-8">
-        <p className="text-sm font-semibold uppercase tracking-[0.16em] text-[#5d7d61]">Trip Chat</p>
-        <h1 className="mt-2 text-3xl font-bold text-[#243126]">{access.tripTitle}</h1>
-        <p className="mt-3 text-sm leading-6 text-gray-600">
-          Chat with everyone in this trip to coordinate timing, meeting point, trail conditions, and last-minute updates.
-        </p>
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <p className="text-sm font-semibold uppercase tracking-[0.16em] text-[#5d7d61]">Trip Chat</p>
+            <h1 className="mt-2 text-3xl font-bold text-[#243126]">{access.tripTitle}</h1>
+            <p className="mt-3 text-sm leading-6 text-gray-600">
+              Chat with everyone in this trip to coordinate timing, meeting point, trail conditions, and last-minute updates.
+            </p>
+          </div>
+          <div className="inline-flex items-center rounded-full bg-[#eef5ee] px-3 py-1 text-xs font-semibold uppercase tracking-[0.12em] text-[#2f5d3a]">
+            {access.status}
+          </div>
+        </div>
         <div className="mt-4 flex flex-wrap gap-3 text-sm text-gray-500">
           <span>{access.tripDate}</span>
           <span>Planner: {access.plannerName}</span>
-          <span>Status: {access.status}</span>
+          <span>{messages.length} message{messages.length === 1 ? '' : 's'}</span>
         </div>
       </div>
 
-      <div ref={listRef} className="max-h-[60vh] min-h-[360px] space-y-4 overflow-y-auto bg-[#f8faf8] px-4 py-5 sm:px-6">
+      <div ref={listRef} className="max-h-[60vh] min-h-[360px] space-y-4 overflow-y-auto bg-[#f8faf8] px-4 py-5 scroll-smooth sm:px-6">
         {messages.length ? messages.map((message) => (
           message.isSystem ? (
             <div key={message.id} className="text-center text-xs text-gray-500">
@@ -147,7 +180,7 @@ export default function TripChatClient({ tripId, initialAccess, initialMessages 
         )) : (
           <div className="rounded-2xl bg-white p-6 text-center text-sm leading-6 text-gray-600 shadow-sm">
             <div className="text-base font-semibold text-[#243126]">No messages yet</div>
-            <p className="mt-2">Say hello and start coordinating this trip.</p>
+            <p className="mt-2">Be the first to confirm timing, meetup details, trail conditions, or what to bring.</p>
           </div>
         )}
       </div>
@@ -163,12 +196,13 @@ export default function TripChatClient({ tripId, initialAccess, initialMessages 
               <label htmlFor="trip-chat-message" className="sr-only">Message</label>
               <textarea
                 id="trip-chat-message"
+                ref={inputRef}
                 value={messageText}
                 onChange={(event) => setMessageText(event.target.value)}
                 maxLength={1000}
                 rows={3}
                 placeholder="Share timing, meeting point, trail conditions, weather, or last-minute updates..."
-                className="w-full rounded-2xl border border-gray-300 px-4 py-3 text-sm outline-none transition focus:border-[#2f5d3a]"
+                className="w-full rounded-2xl border border-gray-300 px-4 py-3 text-sm outline-none transition focus:border-[#2f5d3a] focus:ring-2 focus:ring-[#2f5d3a]/15"
               />
               <div className="mt-2 text-xs text-gray-500">{messageText.trim().length}/1000</div>
             </div>

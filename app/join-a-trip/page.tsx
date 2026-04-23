@@ -74,8 +74,15 @@ export default async function JoinATripPage({ searchParams }: { searchParams: Pr
                       </Link>
                       {chatAccess.has(trip.id) ? (
                         <Link href={`/trips/${trip.id}/chat`} className="inline-flex items-center gap-2 rounded-lg border border-[#2f5d3a]/20 bg-white px-5 py-3 font-semibold text-[#243126] transition hover:bg-[#eef5ee]">
-                          Open Chat
-                          {(chatUnread.get(trip.id) ?? 0) > 0 ? <span className="rounded-full bg-[#2f5d3a] px-2 py-0.5 text-xs font-bold text-white">{chatUnread.get(trip.id)} new</span> : null}
+                          <span>Open Chat</span>
+                          {(chatUnread.get(trip.id) ?? 0) > 0 ? (
+                            <span className="inline-flex items-center gap-1 rounded-full bg-[#2f5d3a] px-2 py-0.5 text-xs font-bold text-white">
+                              <span className="h-2 w-2 rounded-full bg-white" />
+                              {chatUnread.get(trip.id)} unread
+                            </span>
+                          ) : (
+                            <span className="rounded-full bg-[#eef5ee] px-2 py-0.5 text-xs font-bold text-[#2f5d3a]">Chat ready</span>
+                          )}
                         </Link>
                       ) : (
                         <Link href={`/trips/${trip.id}#join-this-trip`} className="inline-flex rounded-lg border border-gray-300 px-5 py-3 font-semibold text-gray-800 transition hover:bg-gray-50">

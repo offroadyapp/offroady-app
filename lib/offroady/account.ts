@@ -249,9 +249,17 @@ export async function getAccountOverview(userId: string): Promise<AccountOvervie
     } satisfies FavoriteTrailSummary];
   });
 
+  const { data: organizerTripRows, error: organizerTripRowsError } = await supabase
+    .from('trip_plans')
+    .select('id, created_at')
+    .eq('created_by_user_id', userId)
+    .order('created_at', { ascending: false });
+  if (organizerTripRowsError) throw organizerTripRowsError;
+
   const tripIds = [...new Set([
     ...(tripMembershipRows ?? []).map((row) => row.trip_plan_id),
     ...(favoriteTripRows ?? []).map((row) => row.trip_plan_id),
+    ...(organizerTripRows ?? []).map((row) => row.id),
   ])];
   const { data: tripPlans, error: tripPlansError } = tripIds.length
     ? await supabase.from('trip_plans').select('id, trail_id, trail_slug, trail_title, trail_region, date, meetup_area, departure_time, trip_note, share_name, status, created_by_user_id, created_at').in('id', tripIds)
@@ -274,9 +282,17 @@ export async function getAccountOverview(userId: string): Promise<AccountOvervie
   const tripParticipantCountMap = await getTripParticipantCountMap(tripIds);
   const favoriteTripIds = new Set((favoriteTripRows ?? []).map((row) => row.trip_plan_id));
 
-  const trips = (tripMembershipRows ?? []).flatMap((row) => {
-    const trip = tripPlanMap.get(row.trip_plan_id);
+  const tripMembershipMap = new Map((tripMembershipRows ?? []).map((row) => [row.trip_plan_id, row]));
+  const organizerTripCreatedAtMap = new Map((organizerTripRows ?? []).map((row) => [row.id, row.created_at]));
+
+  const trips = tripIds.flatMap((tripId) => {
+    const trip = tripPlanMap.get(tripId);
     if (!trip) return [];
+
+    const membership = tripMembershipMap.get(tripId);
+    const isOrganizer = trip.created_by_user_id === userId;
+    if (!membership && !isOrganizer) return [];
+
     const resolvedTrail = tripTrailMap.get(trip.id);
     return [{
       id: trip.id,
@@ -290,13 +306,13 @@ export async function getAccountOverview(userId: string): Promise<AccountOvervie
       tripNote: trip.trip_note,
       shareName: trip.share_name,
       status: trip.status || 'open',
-      joinedAt: row.created_at,
-      viewerRole: row.role,
+      joinedAt: membership?.created_at ?? organizerTripCreatedAtMap.get(trip.id) ?? trip.created_at,
+      viewerRole: membership?.role ?? 'organizer',
       participantCount: tripParticipantCountMap.get(trip.id) ?? 0,
-      canLeave: row.role !== 'organizer',
+      canLeave: membership ? membership.role !== 'organizer' : false,
       isFavorite: favoriteTripIds.has(trip.id),
     } satisfies TripMembershipSummary];
-  });
+  }).sort((a, b) => new Date(b.joinedAt).getTime() - new Date(a.joinedAt).getTime());
 
   const favoriteTrips = (favoriteTripRows ?? []).flatMap((row) => {
     const trip = tripPlanMap.get(row.trip_plan_id);

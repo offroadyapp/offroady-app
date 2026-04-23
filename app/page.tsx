@@ -109,6 +109,7 @@ export default async function Home() {
   const digestTrailSlug = latestDigest?.featuredTrailSlug ?? localTrail.slug;
   const viewer = await getSessionUser();
   const favoriteTrailSlugs = viewer ? await getFavoriteTrailSlugs(viewer.id) : [];
+  const availableTrailCount = localTrails.length;
   const tripCountsBySlug = await getUpcomingTripCountsByTrailSlugs([digestTrailSlug, ...localTrails.map((item) => item.slug)]);
   const snapshot = await getCommunitySnapshot(digestTrailSlug);
   const trail = snapshot.trail ?? getLocalTrailBySlug(digestTrailSlug) ?? getLocalFeaturedTrail();
@@ -315,6 +316,7 @@ export default async function Home() {
             trailTitle={featuredTrail.title}
             initialSnapshot={snapshot}
             moreTrails={localTrails}
+            availableTrailCount={availableTrailCount}
             tripCountsBySlug={Object.fromEntries(tripCountsBySlug.entries())}
             viewer={viewer ? {
               displayName: viewer.displayName,

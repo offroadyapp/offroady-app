@@ -18,6 +18,7 @@ type Props = {
   trailTitle: string;
   initialSnapshot: CommunitySnapshot;
   moreTrails: LocalTrail[];
+  availableTrailCount: number;
   tripCountsBySlug?: Record<string, number>;
   viewer?: Identity | null;
 };
@@ -45,7 +46,7 @@ function formatTripDate(value: string) {
   });
 }
 
-export default function TrailCommunityClient({ trailSlug, trailTitle, initialSnapshot, moreTrails, tripCountsBySlug = {}, viewer = null }: Props) {
+export default function TrailCommunityClient({ trailSlug, trailTitle, initialSnapshot, moreTrails, availableTrailCount, tripCountsBySlug = {}, viewer = null }: Props) {
   const [identity, setIdentity] = useState<Identity>(emptyIdentity);
   const [signupStatus, setSignupStatus] = useState('');
   const [community, setCommunity] = useState(initialSnapshot);
@@ -305,7 +306,7 @@ export default function TrailCommunityClient({ trailSlug, trailTitle, initialSna
             <p className="text-sm font-semibold uppercase tracking-[0.16em] text-[#5d7d61]">More trails</p>
             <h3 className="mt-2 text-2xl font-bold text-[#243126]">Want to browse beyond this week&apos;s pick?</h3>
             <p className="mt-3 max-w-2xl text-sm leading-6 text-gray-600">
-              Offroady already has 26 verified BC trail entries in the backend, but full trail content and Plan a Trip are member-only. Sign up or log in to unlock them.
+              Offroady already has {availableTrailCount} BC trail entries in the backend, and more are being added. Full trail content and Plan a Trip are member-only. Sign up or log in to unlock them.
             </p>
             <p className="mt-3 text-sm leading-6 text-gray-600">Know a good trail? Propose it here.</p>
           </div>

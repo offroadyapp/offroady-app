@@ -48,6 +48,7 @@ export default function ProfileEditor({ initialProfile, onProfileUpdated }: Prop
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [activity, setActivity] = useState('');
 
   function snapshot(overrides?: Partial<EditableProfile>): EditableProfile {
     return {
@@ -70,6 +71,7 @@ export default function ProfileEditor({ initialProfile, onProfileUpdated }: Prop
     setLoading(true);
     setError('');
     setSuccess('');
+    setActivity(kind === 'avatar' ? 'Removing avatar...' : 'Removing rig photo...');
 
     try {
       const response = await fetch(`/api/account/member-profile/media?kind=${kind}`, {
@@ -92,6 +94,7 @@ export default function ProfileEditor({ initialProfile, onProfileUpdated }: Prop
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to remove profile image');
     } finally {
+      setActivity('');
       setLoading(false);
     }
   }
@@ -113,6 +116,8 @@ export default function ProfileEditor({ initialProfile, onProfileUpdated }: Prop
   async function uploadImage(kind: 'avatar' | 'rig', file: File | null) {
     if (!file) return null;
 
+    setActivity(kind === 'avatar' ? 'Uploading avatar...' : 'Uploading rig photo...');
+
     const formData = new FormData();
     formData.set('kind', kind);
     formData.set('file', file);
@@ -131,11 +136,13 @@ export default function ProfileEditor({ initialProfile, onProfileUpdated }: Prop
     setLoading(true);
     setError('');
     setSuccess('');
+    setActivity('Saving profile...');
 
     try {
       const uploadedAvatarUrl = await uploadImage('avatar', avatarFile);
       const uploadedRigUrl = await uploadImage('rig', rigFile);
 
+      setActivity('Saving profile details...');
       const response = await fetch('/api/account/member-profile', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
@@ -179,6 +186,7 @@ export default function ProfileEditor({ initialProfile, onProfileUpdated }: Prop
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to update profile');
     } finally {
+      setActivity('');
       setLoading(false);
     }
   }
@@ -228,6 +236,7 @@ export default function ProfileEditor({ initialProfile, onProfileUpdated }: Prop
               />
               <div className="mt-2 flex flex-wrap items-center gap-3">
                 <p className="text-xs text-gray-500">Upload or replace your avatar. JPG, PNG, WEBP, or GIF, up to 5MB.</p>
+                {avatarFile ? <p className="text-xs font-semibold text-[#2f5d3a]">Ready to upload new avatar</p> : null}
                 {avatarPreview ? (
                   <button
                     type="button"
@@ -263,6 +272,7 @@ export default function ProfileEditor({ initialProfile, onProfileUpdated }: Prop
             />
             <div className="flex flex-wrap items-center gap-3">
               <p className="text-xs text-gray-500">Upload or replace the vehicle photo people see on your profile.</p>
+              {rigFile ? <p className="text-xs font-semibold text-[#2f5d3a]">Ready to upload new rig photo</p> : null}
               {rigPreview ? (
                 <button
                   type="button"
@@ -287,11 +297,12 @@ export default function ProfileEditor({ initialProfile, onProfileUpdated }: Prop
       <input value={petNote} onChange={(event) => setPetNote(event.target.value)} placeholder="Pet note" className="w-full rounded-lg border border-gray-300 px-4 py-3 outline-none transition focus:border-[#2f5d3a]" />
       <input value={shareVibe} onChange={(event) => setShareVibe(event.target.value)} placeholder="Trail vibe" className="w-full rounded-lg border border-gray-300 px-4 py-3 outline-none transition focus:border-[#2f5d3a]" />
 
+      {activity ? <div className="rounded-lg border border-[#cfe3d3] bg-[#f4faf5] px-3 py-2 text-sm text-[#2f5d3a]">{activity}</div> : null}
       {error ? <div className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">{error}</div> : null}
       {success ? <div className="rounded-lg border border-green-200 bg-green-50 px-3 py-2 text-sm text-green-700">{success}</div> : null}
 
       <button type="submit" disabled={loading} className="rounded-lg bg-[#2f5d3a] px-5 py-3 font-semibold text-white transition hover:bg-[#264d30] disabled:cursor-not-allowed disabled:opacity-70">
-        {loading ? 'Saving...' : 'Save profile'}
+        {loading ? activity || 'Saving...' : 'Save profile'}
       </button>
     </form>
   );

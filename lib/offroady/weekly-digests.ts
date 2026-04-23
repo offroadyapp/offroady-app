@@ -206,6 +206,10 @@ const DIGEST_OUTPUT_TYPES: WeeklyDigestOutputType[] = [
   'share_friendly',
 ];
 
+const MEMBER_TRIP_WINDOW_LABEL = 'next 2 weeks';
+const EXTERNAL_EVENT_WINDOW_LABEL = 'next 4 weeks';
+const EXTERNAL_EVENT_WINDOW_DAYS = 28;
+
 function startOfDay(date: Date) {
   const next = new Date(date);
   next.setHours(0, 0, 0, 0);
@@ -457,10 +461,11 @@ async function getUpcomingTrips(weekStart: string, weekEnd: string): Promise<Wee
   });
 }
 
-async function getUpcomingExternalEvents(weekStart: string, weekEnd: string): Promise<WeeklyDigestSnapshotItem[]> {
+async function getUpcomingExternalEvents(weekStart: string, _weekEnd: string): Promise<WeeklyDigestSnapshotItem[]> {
   const supabase = getServiceSupabase();
   const startIso = new Date(`${weekStart}T00:00:00.000Z`).toISOString();
-  const endIso = new Date(`${weekEnd}T23:59:59.999Z`).toISOString();
+  const eventWindowEnd = addDays(new Date(`${weekStart}T00:00:00`), EXTERNAL_EVENT_WINDOW_DAYS - 1);
+  const endIso = new Date(`${formatDateOnly(eventWindowEnd)}T23:59:59.999Z`).toISOString();
   const { data, error } = await supabase
     .from('external_events')
     .select('id, title, starts_at, ends_at, location_name, region, summary, source_label, source_url, cta_label, status, created_at, updated_at')
@@ -495,7 +500,7 @@ function buildTripsFallback() {
 }
 
 function buildEventsFallback() {
-  return 'No manual community events have been added for the next two weeks yet, so this week is all about member-planned trips.';
+  return 'No manual community events have been added for the next four weeks yet, so this week is all about member-planned trips.';
 }
 
 function buildShareLines(digest: {
@@ -549,9 +554,9 @@ function buildEmailOutputs(digest: {
     <h2>Featured trail</h2>
     <p><strong>${digest.featuredTrail.title}</strong>${digest.featuredTrail.locationLabel ? `, ${digest.featuredTrail.locationLabel}` : ''}</p>
     <p>${digest.featuredTrail.summary ?? 'Featured BC trail for the week.'}</p>
-    <h2>Member-planned trips in the next 2 weeks</h2>
+    <h2>Member-planned trips in the ${MEMBER_TRIP_WINDOW_LABEL}</h2>
     ${tripsHtml}
-    <h2>External community events in the next 2 weeks</h2>
+    <h2>External community events in the ${EXTERNAL_EVENT_WINDOW_LABEL}</h2>
     ${eventsHtml}
     <h2>${digest.cta.title}</h2>
     <p>${digest.cta.body}</p>

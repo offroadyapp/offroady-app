@@ -146,7 +146,7 @@ export default function WeeklyDigestAdminPanel({ digests, externalEvents }: Prop
       <section className="rounded-3xl border border-black/8 bg-white p-6 shadow-sm">
         <p className="text-sm font-semibold uppercase tracking-[0.16em] text-[#5d7d61]">Manual events</p>
         <h2 className="mt-2 text-2xl font-bold text-[#243126]">External community events</h2>
-        <p className="mt-2 text-sm leading-6 text-gray-600">Manual entry only for now. These events are pulled into the weekly digest when they fall in the next 14 days and are marked published.</p>
+        <p className="mt-2 text-sm leading-6 text-gray-600">Manual entry only for now. These events are pulled into the weekly digest when they fall in the next 4 weeks and are marked published.</p>
 
         <form className="mt-6 grid gap-4 md:grid-cols-2" onSubmit={createEvent}>
           <label className="space-y-2 text-sm font-medium text-[#243126]">

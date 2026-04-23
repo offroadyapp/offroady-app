@@ -114,7 +114,7 @@ export default async function WeeklyDigestPage({ params }: { params: Promise<{ s
 
         <section className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
           <div className="rounded-3xl border border-black/8 bg-white p-8 shadow-sm">
-            <p className="text-sm font-semibold uppercase tracking-[0.16em] text-[#5d7d61]">3. External community events in the next 2 weeks</p>
+            <p className="text-sm font-semibold uppercase tracking-[0.16em] text-[#5d7d61]">3. External community events in the next 4 weeks</p>
             <h2 className="mt-2 text-3xl font-bold text-[#243126]">Manually curated local events</h2>
             <div className="mt-6 space-y-4">
               {digest.externalEvents.length ? digest.externalEvents.map((event) => {
@@ -134,7 +134,7 @@ export default async function WeeklyDigestPage({ params }: { params: Promise<{ s
                     </div>
                   </div>
                 );
-              }) : <div className="rounded-2xl bg-[#f8faf8] p-5 text-sm leading-6 text-gray-600">No manual community events have been added for the next two weeks yet, so this week stays focused on member-planned trips.</div>}
+              }) : <div className="rounded-2xl bg-[#f8faf8] p-5 text-sm leading-6 text-gray-600">No manual community events have been added for the next four weeks yet, so this week stays focused on member-planned trips.</div>}
             </div>
           </div>
         </section>

@@ -27,6 +27,15 @@ npm run local:start
 - `npm run local:dev` cleans first, then starts a single dev runtime on `http://127.0.0.1:3000`
 - `npm run local:start` cleans first, rebuilds, then starts a single production-style runtime on `http://127.0.0.1:3000`
 
+### Manual test quick checklist
+
+For a clean local verification loop, do this and nothing else:
+
+1. `npm run local:start`
+2. Open `http://127.0.0.1:3000`
+3. Run the manual checks against that exact runtime
+4. If you restart, use `npm run local:start` again instead of ad-hoc `next start` commands
+
 If you need a different host or port temporarily, you can override them.
 
 PowerShell:

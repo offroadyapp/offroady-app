@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import SiteHeader from './SiteHeader';
+import SiteFooter from './SiteFooter';
 import { getSessionUser } from '@/lib/offroady/auth';
 
 type Props = {
@@ -13,6 +14,7 @@ export default async function PageShell({ children }: Props) {
     <div className="min-h-screen bg-[#f4f6f3] text-[#2b2b2b]">
       <SiteHeader viewer={viewer} />
       {children}
+      <SiteFooter />
     </div>
   );
 }

@@ -5,6 +5,8 @@ import { getSessionUser } from '@/lib/offroady/auth';
 import { getAccountOverview } from '@/lib/offroady/account';
 
 const links = [
+  { href: '/disclaimer', label: 'Disclaimer' },
+  { href: '/privacy-policy', label: 'Privacy Policy' },
   { href: '/my-profile', label: 'Profile' },
   { href: '/favorite-trails', label: 'Favorite Trails' },
   { href: '/favorite-trips', label: 'Favorite Trips' },

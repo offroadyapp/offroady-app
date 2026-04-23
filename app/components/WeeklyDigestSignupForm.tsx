@@ -1,5 +1,6 @@
 "use client";
 
+import Link from 'next/link';
 import { useState } from 'react';
 
 type Props = {
@@ -59,6 +60,12 @@ export default function WeeklyDigestSignupForm({ initialEmail = '' }: Props) {
       </div>
       {message ? <p className="mt-3 text-sm text-[#2f5d3a]">{message}</p> : null}
       {error ? <p className="mt-3 text-sm text-red-600">{error}</p> : null}
+      <p className="mt-3 text-xs leading-5 text-gray-500">
+        Weekly digest emails are optional. Review our{' '}
+        <Link href="/privacy-policy" className="font-medium text-[#2f5d3a] hover:text-[#264d30]">Privacy Policy</Link>{' '}
+        and{' '}
+        <Link href="/disclaimer" className="font-medium text-[#2f5d3a] hover:text-[#264d30]">Disclaimer</Link>.
+      </p>
     </form>
   );
 }

@@ -170,6 +170,12 @@ export default function AuthPanel({ initialMode = 'signup' }: Props) {
             >
               {loading ? 'Working...' : mode === 'signup' ? 'Create account' : mode === 'reset' ? 'Send reset link' : 'Log in'}
             </button>
+            <p className="text-xs leading-5 text-gray-500">
+              By using Offroady, you agree that trail, trip, and community information must be independently verified. Read our{' '}
+              <Link href="/disclaimer" className="font-medium text-[#2f5d3a] hover:text-[#264d30]">Disclaimer</Link>{' '}
+              and{' '}
+              <Link href="/privacy-policy" className="font-medium text-[#2f5d3a] hover:text-[#264d30]">Privacy Policy</Link>.
+            </p>
           </form>
         </div>
       </div>

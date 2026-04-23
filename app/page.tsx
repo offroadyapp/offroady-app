@@ -4,6 +4,7 @@ import CopyCoordinatesButton from './components/CopyCoordinatesButton';
 import FavoriteTrailButton from './components/FavoriteTrailButton';
 import SiteHeader from './components/SiteHeader';
 import WeeklyDigestSignupForm from './components/WeeklyDigestSignupForm';
+import SiteFooter from './components/SiteFooter';
 import { getCommunitySnapshot } from '@/lib/offroady/community';
 import { getSessionUser } from '@/lib/offroady/auth';
 import { getFavoriteTrailSlugs } from '@/lib/offroady/account';
@@ -326,6 +327,7 @@ export default async function Home() {
           />
         </div>
       </main>
+      <SiteFooter />
     </div>
   );
 }

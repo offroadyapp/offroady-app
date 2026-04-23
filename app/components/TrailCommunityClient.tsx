@@ -63,6 +63,8 @@ export default function TrailCommunityClient({ trailSlug, trailTitle, initialSna
   const [crewDescription, setCrewDescription] = useState('');
   const [comment, setComment] = useState('');
   const [signupPassword, setSignupPassword] = useState('');
+  const [signupConfirmPassword, setSignupConfirmPassword] = useState('');
+  const [signupError, setSignupError] = useState('');
 
   useEffect(() => {
     const saved = window.localStorage.getItem('offroady.identity');
@@ -104,9 +106,16 @@ export default function TrailCommunityClient({ trailSlug, trailTitle, initialSna
 
   async function handleSignup(event: React.FormEvent) {
     event.preventDefault();
-    setSignupLoading(true);
     setError('');
+    setSignupError('');
     setSignupStatus('');
+
+    if (signupPassword !== signupConfirmPassword) {
+      setSignupError('Passwords do not match.');
+      return;
+    }
+
+    setSignupLoading(true);
 
     try {
       const response = await fetch('/api/auth/signup', {
@@ -418,11 +427,25 @@ export default function TrailCommunityClient({ trailSlug, trailTitle, initialSna
                 />
                 <input
                   value={signupPassword}
-                  onChange={(event) => setSignupPassword(event.target.value)}
+                  onChange={(event) => {
+                    setSignupPassword(event.target.value);
+                    if (signupError === 'Passwords do not match.') setSignupError('');
+                  }}
                   placeholder="Password"
                   type="password"
                   className="w-full rounded-lg border border-gray-300 px-4 py-3 outline-none transition focus:border-[#2f5d3a]"
                 />
+                <input
+                  value={signupConfirmPassword}
+                  onChange={(event) => {
+                    setSignupConfirmPassword(event.target.value);
+                    if (signupError === 'Passwords do not match.') setSignupError('');
+                  }}
+                  placeholder="Confirm Password"
+                  type="password"
+                  className="w-full rounded-lg border border-gray-300 px-4 py-3 outline-none transition focus:border-[#2f5d3a]"
+                />
+                {signupError ? <p className="text-sm text-red-700">{signupError}</p> : null}
                 <button
                   type="submit"
                   disabled={signupLoading}

@@ -15,15 +15,22 @@ export default function AuthPanel({ initialMode = 'signup' }: Props) {
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
 
   async function handleSubmit(event: React.FormEvent) {
     event.preventDefault();
-    setLoading(true);
     setError('');
     setMessage('');
+
+    if (mode === 'signup' && password !== confirmPassword) {
+      setError('Passwords do not match.');
+      return;
+    }
+
+    setLoading(true);
 
     try {
       const endpoint = mode === 'signup'
@@ -123,8 +130,23 @@ export default function AuthPanel({ initialMode = 'signup' }: Props) {
             {mode !== 'reset' ? (
               <input
                 value={password}
-                onChange={(event) => setPassword(event.target.value)}
+                onChange={(event) => {
+                  setPassword(event.target.value);
+                  if (error === 'Passwords do not match.') setError('');
+                }}
                 placeholder="Password"
+                type="password"
+                className="w-full rounded-lg border border-gray-300 px-4 py-3 outline-none transition focus:border-[#2f5d3a]"
+              />
+            ) : null}
+            {mode === 'signup' ? (
+              <input
+                value={confirmPassword}
+                onChange={(event) => {
+                  setConfirmPassword(event.target.value);
+                  if (error === 'Passwords do not match.') setError('');
+                }}
+                placeholder="Confirm Password"
                 type="password"
                 className="w-full rounded-lg border border-gray-300 px-4 py-3 outline-none transition focus:border-[#2f5d3a]"
               />

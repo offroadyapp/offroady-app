@@ -639,7 +639,7 @@ export async function getTripDetail(tripId: string, viewerId?: string | null) {
   const supabase = getServiceSupabase();
   const { data: trip, error } = await supabase
     .from('trip_plans')
-    .select('id, trail_slug, trail_title, trail_region, date, meetup_area, departure_time, trip_note, share_name, status, created_by_user_id, created_at')
+    .select('id, trail_slug, trail_title, trail_region, trail_location_label, date, meetup_area, departure_time, trip_note, share_name, status, created_by_user_id, created_at')
     .eq('id', tripId)
     .maybeSingle();
   if (error) throw error;
@@ -656,6 +656,7 @@ export async function getTripDetail(tripId: string, viewerId?: string | null) {
     trailSlug: trip.trail_slug,
     title: trip.trail_title,
     region: trip.trail_region,
+    locationLabel: trip.trail_location_label,
     image: imageForTrail(trip.trail_slug),
     date: trip.date,
     meetupArea: trip.meetup_area,

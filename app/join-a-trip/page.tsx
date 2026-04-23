@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import PageShell from '@/app/components/PageShell';
+import TripShareButton from '@/app/components/TripShareButton';
 import { getUpcomingTripDiscovery } from '@/lib/offroady/trip-discovery';
 
 function formatTripDate(value: string) {
@@ -68,6 +69,21 @@ export default async function JoinATripPage({ searchParams }: { searchParams: Pr
                       <Link href={`/trips/${trip.id}#join-this-trip`} className="inline-flex rounded-lg border border-gray-300 px-5 py-3 font-semibold text-gray-800 transition hover:bg-gray-50">
                         Join this Trip
                       </Link>
+                      <TripShareButton
+                        trip={{
+                          id: trip.id,
+                          title: trip.trailTitle,
+                          region: trip.trailRegion,
+                          locationLabel: trip.trailLocationLabel,
+                          date: trip.date,
+                          meetupArea: trip.meetupArea,
+                          departureTime: trip.departureTime,
+                          tripNote: trip.tripNote,
+                          shareName: trip.shareName,
+                          status: trip.status,
+                          participantCount: trip.participantCount,
+                        }}
+                      />
                     </div>
                   </div>
                 </article>

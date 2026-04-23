@@ -25,7 +25,7 @@ export default async function TripDetailPage({ params }: { params: Promise<{ tri
             <div>Departure: {trip.departureTime}</div>
             <div>Organizer: {trip.shareName}</div>
             <div>Attendees: {trip.participantCount}</div>
-            <div>Region: {trip.region ?? 'BC'}</div>
+            <div>Location: {trip.locationLabel ?? trip.region ?? 'BC'}</div>
           </div>
           {trip.tripNote ? <p className="mt-6 text-sm leading-7 text-gray-700">{trip.tripNote}</p> : null}
           <div className="mt-8 flex flex-wrap gap-3">
@@ -38,6 +38,19 @@ export default async function TripDetailPage({ params }: { params: Promise<{ tri
             isJoined={Boolean(trip.viewerRole)}
             viewerRole={trip.viewerRole}
             canLeave={trip.canLeave}
+            shareTrip={{
+              id: trip.id,
+              title: trip.title,
+              region: trip.region,
+              locationLabel: trip.locationLabel,
+              date: trip.date,
+              meetupArea: trip.meetupArea,
+              departureTime: trip.departureTime,
+              tripNote: trip.tripNote,
+              shareName: trip.shareName,
+              status: trip.status,
+              participantCount: trip.participantCount,
+            }}
           />
         </div>
       </main>

@@ -4,6 +4,8 @@ import Link from 'next/link';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import AuthPanel from './AuthPanel';
+import TripShareButton from './TripShareButton';
+import type { TripShareFields } from '@/lib/offroady/trip-sharing';
 
 type Props = {
   tripId: string;
@@ -11,9 +13,10 @@ type Props = {
   isJoined: boolean;
   viewerRole: string | null;
   canLeave: boolean;
+  shareTrip: TripShareFields;
 };
 
-export default function TripDetailActions({ tripId, viewerSignedIn, isJoined, viewerRole, canLeave }: Props) {
+export default function TripDetailActions({ tripId, viewerSignedIn, isJoined, viewerRole, canLeave, shareTrip }: Props) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -50,16 +53,19 @@ export default function TripDetailActions({ tripId, viewerSignedIn, isJoined, vi
                   ? 'People can discover this trip and join from here.'
                   : 'Nice, you are on the participant list. You can come back here any time to review the plan.'}
               </p>
-              {canLeave ? (
-                <button
-                  type="button"
-                  onClick={() => handleMembership('leave')}
-                  disabled={loading}
-                  className="mt-5 inline-flex rounded-lg border border-gray-300 px-5 py-3 font-semibold text-gray-800 transition hover:bg-gray-50 disabled:opacity-70"
-                >
-                  {loading ? 'Leaving...' : 'Leave Trip'}
-                </button>
-              ) : null}
+              <div className="mt-5 flex flex-wrap gap-3">
+                {canLeave ? (
+                  <button
+                    type="button"
+                    onClick={() => handleMembership('leave')}
+                    disabled={loading}
+                    className="inline-flex rounded-lg border border-gray-300 px-5 py-3 font-semibold text-gray-800 transition hover:bg-gray-50 disabled:opacity-70"
+                  >
+                    {loading ? 'Leaving...' : 'Leave Trip'}
+                  </button>
+                ) : null}
+                <TripShareButton trip={shareTrip} />
+              </div>
             </>
           ) : (
             <>
@@ -67,14 +73,17 @@ export default function TripDetailActions({ tripId, viewerSignedIn, isJoined, vi
               <p className="mt-3 text-sm leading-6 text-gray-600">
                 Join the trip when you are ready. Offroady will add you to the participant list and let the organizer know someone new is in.
               </p>
-              <button
-                type="button"
-                onClick={() => handleMembership('join')}
-                disabled={loading}
-                className="mt-5 inline-flex rounded-lg bg-[#2f5d3a] px-5 py-3 font-semibold text-white transition hover:bg-[#264d30] disabled:opacity-70"
-              >
-                {loading ? 'Joining...' : 'Join this Trip'}
-              </button>
+              <div className="mt-5 flex flex-wrap gap-3">
+                <button
+                  type="button"
+                  onClick={() => handleMembership('join')}
+                  disabled={loading}
+                  className="inline-flex rounded-lg bg-[#2f5d3a] px-5 py-3 font-semibold text-white transition hover:bg-[#264d30] disabled:opacity-70"
+                >
+                  {loading ? 'Joining...' : 'Join this Trip'}
+                </button>
+                <TripShareButton trip={shareTrip} />
+              </div>
             </>
           )}
           {error ? <div className="mt-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</div> : null}
@@ -89,6 +98,7 @@ export default function TripDetailActions({ tripId, viewerSignedIn, isJoined, vi
             <a href="#member-access" className="inline-flex rounded-lg bg-[#2f5d3a] px-5 py-3 font-semibold text-white transition hover:bg-[#264d30]">
               Join this Trip
             </a>
+            <TripShareButton trip={shareTrip} />
             <Link href="/join-a-trip" className="inline-flex rounded-lg border border-gray-300 px-5 py-3 font-semibold text-gray-800 transition hover:bg-gray-50">
               Back to upcoming trips
             </Link>

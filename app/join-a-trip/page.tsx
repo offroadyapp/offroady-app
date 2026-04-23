@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import PageShell from '@/app/components/PageShell';
 import TripShareButton from '@/app/components/TripShareButton';
+import { getSessionUser } from '@/lib/offroady/auth';
 import { getUpcomingTripDiscovery } from '@/lib/offroady/trip-discovery';
 
 function formatTripDate(value: string) {
@@ -15,6 +16,7 @@ export const dynamic = 'force-dynamic';
 
 export default async function JoinATripPage({ searchParams }: { searchParams: Promise<{ trail?: string }> }) {
   const query = await searchParams;
+  const viewer = await getSessionUser().catch(() => null);
   const trips = await getUpcomingTripDiscovery({ trailSlug: query.trail ?? null });
 
   return (
@@ -83,6 +85,8 @@ export default async function JoinATripPage({ searchParams }: { searchParams: Pr
                           status: trip.status,
                           participantCount: trip.participantCount,
                         }}
+                        viewerSignedIn={Boolean(viewer)}
+                        authHref="/#member-access"
                       />
                     </div>
                   </div>

@@ -4,6 +4,12 @@ import { getLocalTrailBySlug } from '@/lib/offroady/trails';
 import { buildTrailShareEmail, getTrailDetailUrl } from '@/lib/offroady/trail-sharing';
 import { sendTransactionalEmail } from '@/lib/offroady/email';
 import { getUpcomingTripDiscovery } from '@/lib/offroady/trip-discovery';
+import {
+  EMAIL_SHARE_AUTH_REQUIRED_CODE,
+  EMAIL_SHARE_AUTH_REQUIRED_MESSAGE,
+  EMAIL_SHARE_UNAVAILABLE_CODE,
+  EMAIL_SHARE_UNAVAILABLE_MESSAGE,
+} from '@/lib/offroady/email-share';
 
 function isValidEmail(value: string) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
@@ -20,6 +26,15 @@ export async function POST(
       return NextResponse.json({ error: 'Trail not found' }, { status: 404 });
     }
 
+    const origin = new URL(request.url).origin;
+    const viewer = await getSessionUser().catch(() => null);
+    if (!viewer) {
+      return NextResponse.json(
+        { error: EMAIL_SHARE_AUTH_REQUIRED_MESSAGE, code: EMAIL_SHARE_AUTH_REQUIRED_CODE },
+        { status: 401 }
+      );
+    }
+
     const body = await request.json().catch(() => null);
     const friendEmail = typeof body?.friendEmail === 'string' ? body.friendEmail.trim() : '';
     const message = typeof body?.message === 'string' ? body.message.trim() : '';
@@ -34,8 +49,6 @@ export async function POST(
       return NextResponse.json({ error: 'Your message is too long.' }, { status: 400 });
     }
 
-    const origin = new URL(request.url).origin;
-    const viewer = await getSessionUser().catch(() => null);
     const hasUpcomingTrip = (await getUpcomingTripDiscovery({ trailSlug: trail.slug, limit: 1 }).catch(() => [])).length > 0;
     const email = buildTrailShareEmail({
       trail,
@@ -53,13 +66,17 @@ export async function POST(
     });
 
     if (!result.ok) {
-      return NextResponse.json({ error: result.reason || 'Failed to send trail email' }, { status: 502 });
+      return NextResponse.json(
+        { error: EMAIL_SHARE_UNAVAILABLE_MESSAGE, code: EMAIL_SHARE_UNAVAILABLE_CODE },
+        { status: 503 }
+      );
     }
 
     return NextResponse.json({ ok: true });
   } catch (error) {
+    console.error('Trail email share failed', error);
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'Failed to share trail by email' },
+      { error: EMAIL_SHARE_UNAVAILABLE_MESSAGE, code: EMAIL_SHARE_UNAVAILABLE_CODE },
       { status: 500 }
     );
   }

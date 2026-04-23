@@ -64,7 +64,7 @@ export default function TripDetailActions({ tripId, viewerSignedIn, isJoined, vi
                     {loading ? 'Leaving...' : 'Leave Trip'}
                   </button>
                 ) : null}
-                <TripShareButton trip={shareTrip} />
+                <TripShareButton trip={shareTrip} viewerSignedIn={viewerSignedIn} authHref="#member-access" />
               </div>
             </>
           ) : (
@@ -82,7 +82,7 @@ export default function TripDetailActions({ tripId, viewerSignedIn, isJoined, vi
                 >
                   {loading ? 'Joining...' : 'Join this Trip'}
                 </button>
-                <TripShareButton trip={shareTrip} />
+                <TripShareButton trip={shareTrip} viewerSignedIn={viewerSignedIn} authHref="#member-access" />
               </div>
             </>
           )}
@@ -98,7 +98,7 @@ export default function TripDetailActions({ tripId, viewerSignedIn, isJoined, vi
             <a href="#member-access" className="inline-flex rounded-lg bg-[#2f5d3a] px-5 py-3 font-semibold text-white transition hover:bg-[#264d30]">
               Join this Trip
             </a>
-            <TripShareButton trip={shareTrip} />
+            <TripShareButton trip={shareTrip} viewerSignedIn={false} authHref="#member-access" />
             <Link href="/join-a-trip" className="inline-flex rounded-lg border border-gray-300 px-5 py-3 font-semibold text-gray-800 transition hover:bg-gray-50">
               Back to upcoming trips
             </Link>

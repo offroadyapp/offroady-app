@@ -5,6 +5,11 @@ import Link from 'next/link';
 import FavoriteTrailButton from './FavoriteTrailButton';
 import ActionToast from './ActionToast';
 import { buildTrailSharePack } from '@/lib/offroady/trail-sharing';
+import {
+  EMAIL_SHARE_AUTH_REQUIRED_MESSAGE,
+  EMAIL_SHARE_MEMBERS_ONLY_MESSAGE,
+  getEmailShareErrorMessage,
+} from '@/lib/offroady/email-share';
 
 type Props = {
   trail: {
@@ -90,6 +95,11 @@ export default function TrailDetailActions({
     event.preventDefault();
     setEmailError('');
 
+    if (!viewerSignedIn) {
+      setEmailError(EMAIL_SHARE_AUTH_REQUIRED_MESSAGE);
+      return;
+    }
+
     const trimmedEmail = email.trim();
     if (!trimmedEmail) {
       setEmailError("Friend's email is required.");
@@ -103,8 +113,11 @@ export default function TrailDetailActions({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ friendEmail: trimmedEmail, message }),
       });
-      const payload = await response.json();
-      if (!response.ok) throw new Error(payload.error || 'Failed to send trail email');
+      const payload = await response.json().catch(() => null);
+      if (!response.ok) {
+        const code = typeof payload?.code === 'string' ? payload.code : null;
+        throw new Error(getEmailShareErrorMessage(code, payload?.error));
+      }
       setEmailState('sent');
       setEmail('');
       setMessage('');
@@ -267,21 +280,36 @@ export default function TrailDetailActions({
                 <p className="mt-1 text-sm leading-6 text-gray-600">
                   Send the trail link, quick context, and your note in one go.
                 </p>
+                {!viewerSignedIn ? (
+                  <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+                    <div>{EMAIL_SHARE_MEMBERS_ONLY_MESSAGE}</div>
+                    <div className="mt-3 flex flex-wrap gap-3">
+                      <Link href="/#member-access" className="inline-flex rounded-lg bg-[#2f5d3a] px-4 py-2.5 font-semibold text-white transition hover:bg-[#264d30]">
+                        Log in
+                      </Link>
+                      <Link href="/#member-access" className="inline-flex rounded-lg border border-gray-300 bg-white px-4 py-2.5 font-semibold text-gray-800 transition hover:bg-gray-50">
+                        Sign up
+                      </Link>
+                    </div>
+                  </div>
+                ) : null}
                 <div className="mt-4 space-y-3">
                   <input
                     type="email"
                     value={email}
                     onChange={(event) => setEmail(event.target.value)}
                     placeholder="Friend's email"
-                    className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm outline-none transition focus:border-[#2f5d3a]"
+                    className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm outline-none transition focus:border-[#2f5d3a] disabled:cursor-not-allowed disabled:bg-gray-100"
                     required
+                    disabled={!viewerSignedIn}
                   />
                   <textarea
                     value={message}
                     onChange={(event) => setMessage(event.target.value)}
                     rows={4}
                     placeholder="Your message"
-                    className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm outline-none transition focus:border-[#2f5d3a]"
+                    className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm outline-none transition focus:border-[#2f5d3a] disabled:cursor-not-allowed disabled:bg-gray-100"
+                    disabled={!viewerSignedIn}
                   />
                 </div>
                 {emailError ? <div className="mt-3 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{emailError}</div> : null}
@@ -289,12 +317,16 @@ export default function TrailDetailActions({
                 <div className="mt-4 flex flex-wrap items-center gap-3">
                   <button
                     type="submit"
-                    disabled={emailState === 'sending'}
+                    disabled={emailState === 'sending' || !viewerSignedIn}
                     className="rounded-lg bg-[#2f5d3a] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#264d30] disabled:cursor-not-allowed disabled:opacity-70"
                   >
-                    {emailState === 'sending' ? 'Sending...' : 'Email to a friend'}
+                    {!viewerSignedIn ? 'Log in to share by email' : emailState === 'sending' ? 'Sending...' : 'Email to a friend'}
                   </button>
-                  {viewerDisplayName ? <div className="text-sm text-gray-500">Sent as a trail recommendation from {viewerDisplayName} via Offroady.</div> : <div className="text-sm text-gray-500">Sent as a trail recommendation via Offroady.</div>}
+                  {viewerSignedIn ? (
+                    viewerDisplayName ? <div className="text-sm text-gray-500">Sent as a trail recommendation from {viewerDisplayName} via Offroady.</div> : <div className="text-sm text-gray-500">Sent as a trail recommendation via Offroady.</div>
+                  ) : (
+                    <div className="text-sm text-gray-500">Email sharing is members-only so you do not fill everything out and hit a dead end.</div>
+                  )}
                 </div>
               </form>
             </div>

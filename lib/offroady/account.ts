@@ -1,6 +1,7 @@
 import { getServiceSupabase } from '@/lib/supabase/server';
 import { getLocalTrailBySlug } from '@/lib/offroady/trails';
 import { slugifyProfile } from '@/lib/offroady/members';
+import { resolveTripTrailReference } from '@/lib/offroady/trip-trails';
 
 export type FavoriteTrailSummary = {
   slug: string;
@@ -128,13 +129,6 @@ type TripPlanRow = {
   created_at: string;
 };
 
-type ResolvedTripTrail = {
-  title: string;
-  slug: string | null;
-  href: string | null;
-  source: 'local-trail' | 'published-trail' | 'stored-fallback';
-};
-
 type CrewRow = {
   id: string;
   trail_id: string;
@@ -163,67 +157,6 @@ async function getPublishedTrailMap() {
   const { data, error } = await supabase.from('trails').select('id, slug, title, region').eq('is_published', true);
   if (error) throw error;
   return new Map((data ?? []).map((trail) => [trail.id, trail as DbTrail]));
-}
-
-async function getTrailBySlugMap(slugs: string[]) {
-  const uniqueSlugs = [...new Set(slugs.filter(Boolean))];
-  if (!uniqueSlugs.length) return new Map<string, DbTrail>();
-
-  const supabase = getServiceSupabase();
-  const { data, error } = await supabase.from('trails').select('id, slug, title, region').in('slug', uniqueSlugs);
-  if (error) throw error;
-  return new Map((data ?? []).map((trail) => [trail.slug, trail as DbTrail]));
-}
-
-async function resolveTripTrailReference(input: { trailId?: string | null; trailSlug?: string | null; storedTitle?: string | null }): Promise<ResolvedTripTrail> {
-  const trailSlug = input.trailSlug?.trim() || null;
-  const localTrail = trailSlug ? getLocalTrailBySlug(trailSlug) : null;
-  if (localTrail) {
-    return {
-      title: localTrail.title,
-      slug: localTrail.slug,
-      href: `/plan/${localTrail.slug}`,
-      source: 'local-trail',
-    };
-  }
-
-  const supabase = getServiceSupabase();
-  let publishedTrail: Pick<DbTrail, 'slug' | 'title'> | null = null;
-
-  if (input.trailId) {
-    const { data, error } = await supabase.from('trails').select('slug, title').eq('id', input.trailId).maybeSingle();
-    if (error) throw error;
-    publishedTrail = (data as Pick<DbTrail, 'slug' | 'title'> | null) ?? null;
-  }
-
-  if (!publishedTrail && trailSlug) {
-    const { data, error } = await supabase.from('trails').select('slug, title').eq('slug', trailSlug).maybeSingle();
-    if (error) throw error;
-    publishedTrail = (data as Pick<DbTrail, 'slug' | 'title'> | null) ?? null;
-  }
-
-  if (publishedTrail) {
-    const localTrailForHref = getLocalTrailBySlug(publishedTrail.slug);
-    return {
-      title: publishedTrail.title,
-      slug: publishedTrail.slug,
-      href: localTrailForHref ? `/plan/${publishedTrail.slug}` : null,
-      source: 'published-trail',
-    };
-  }
-
-  console.warn('[getTripDetail] Unable to resolve canonical trail reference for trip detail page', {
-    trailId: input.trailId ?? null,
-    trailSlug,
-    storedTitle: input.storedTitle ?? null,
-  });
-
-  return {
-    title: input.storedTitle?.trim() || 'Trail unavailable',
-    slug: trailSlug,
-    href: null,
-    source: 'stored-fallback',
-  };
 }
 
 async function getTripParticipantCountMap(tripIds: string[]) {
@@ -321,23 +254,36 @@ export async function getAccountOverview(userId: string): Promise<AccountOvervie
     ...(favoriteTripRows ?? []).map((row) => row.trip_plan_id),
   ])];
   const { data: tripPlans, error: tripPlansError } = tripIds.length
-    ? await supabase.from('trip_plans').select('id, trail_slug, trail_title, trail_region, date, meetup_area, departure_time, trip_note, share_name, status, created_by_user_id, created_at').in('id', tripIds)
+    ? await supabase.from('trip_plans').select('id, trail_id, trail_slug, trail_title, trail_region, date, meetup_area, departure_time, trip_note, share_name, status, created_by_user_id, created_at').in('id', tripIds)
     : { data: [], error: null };
   if (tripPlansError) throw tripPlansError;
 
   const tripPlanMap = new Map((tripPlans ?? []).map((trip) => [trip.id, trip as TripPlanRow]));
+  const tripTrailMap = new Map(
+    await Promise.all(
+      [...tripPlanMap.values()].map(async (trip) => ([
+        trip.id,
+        await resolveTripTrailReference({
+          trailId: trip.trail_id,
+          trailSlug: trip.trail_slug,
+          storedTitle: trip.trail_title,
+        }),
+      ] as const))
+    )
+  );
   const tripParticipantCountMap = await getTripParticipantCountMap(tripIds);
   const favoriteTripIds = new Set((favoriteTripRows ?? []).map((row) => row.trip_plan_id));
 
   const trips = (tripMembershipRows ?? []).flatMap((row) => {
     const trip = tripPlanMap.get(row.trip_plan_id);
     if (!trip) return [];
+    const resolvedTrail = tripTrailMap.get(trip.id);
     return [{
       id: trip.id,
-      trailSlug: trip.trail_slug,
-      title: trip.trail_title,
+      trailSlug: resolvedTrail?.slug ?? trip.trail_slug,
+      title: resolvedTrail?.title ?? trip.trail_title,
       region: trip.trail_region,
-      image: imageForTrail(trip.trail_slug),
+      image: imageForTrail(resolvedTrail?.slug ?? trip.trail_slug),
       date: trip.date,
       meetupArea: trip.meetup_area,
       departureTime: trip.departure_time,
@@ -355,13 +301,14 @@ export async function getAccountOverview(userId: string): Promise<AccountOvervie
   const favoriteTrips = (favoriteTripRows ?? []).flatMap((row) => {
     const trip = tripPlanMap.get(row.trip_plan_id);
     if (!trip) return [];
+    const resolvedTrail = tripTrailMap.get(trip.id);
     const membership = trips.find((item) => item.id === trip.id);
     return [{
       id: trip.id,
-      trailSlug: trip.trail_slug,
-      title: trip.trail_title,
+      trailSlug: resolvedTrail?.slug ?? trip.trail_slug,
+      title: resolvedTrail?.title ?? trip.trail_title,
       region: trip.trail_region,
-      image: imageForTrail(trip.trail_slug),
+      image: imageForTrail(resolvedTrail?.slug ?? trip.trail_slug),
       date: trip.date,
       meetupArea: trip.meetup_area,
       departureTime: trip.departure_time,

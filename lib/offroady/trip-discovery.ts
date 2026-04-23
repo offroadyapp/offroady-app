@@ -1,5 +1,6 @@
 import { getServiceSupabase } from '@/lib/supabase/server';
 import { getLocalTrailBySlug } from '@/lib/offroady/trails';
+import { resolveTripTrailReference } from '@/lib/offroady/trip-trails';
 
 export type TripDiscoveryItem = {
   id: string;
@@ -19,6 +20,7 @@ export type TripDiscoveryItem = {
 
 type TripRow = {
   id: string;
+  trail_id: string | null;
   trail_slug: string;
   trail_title: string;
   trail_region: string | null;
@@ -61,7 +63,7 @@ export async function getUpcomingTripDiscovery(options?: { trailSlug?: string | 
   const today = new Date().toISOString().slice(0, 10);
   let query = supabase
     .from('trip_plans')
-    .select('id, trail_slug, trail_title, trail_region, trail_location_label, date, meetup_area, departure_time, trip_note, share_name, status, created_at')
+    .select('id, trail_id, trail_slug, trail_title, trail_region, trail_location_label, date, meetup_area, departure_time, trip_note, share_name, status, created_at')
     .gte('date', today)
     .in('status', ['open', 'full'])
     .order('date', { ascending: true })
@@ -79,22 +81,37 @@ export async function getUpcomingTripDiscovery(options?: { trailSlug?: string | 
 
   const rows = (data ?? []) as TripRow[];
   const counts = await getTripParticipantCounts(rows.map((row) => row.id));
+  const resolvedTrailMap = new Map(
+    await Promise.all(
+      rows.map(async (row) => ([
+        row.id,
+        await resolveTripTrailReference({
+          trailId: row.trail_id,
+          trailSlug: row.trail_slug,
+          storedTitle: row.trail_title,
+        }),
+      ] as const))
+    )
+  );
 
-  return rows.map((row) => ({
-    id: row.id,
-    trailSlug: row.trail_slug,
-    trailTitle: row.trail_title,
-    trailRegion: row.trail_region,
-    trailLocationLabel: row.trail_location_label,
-    image: imageForTrail(row.trail_slug),
-    date: row.date,
-    meetupArea: row.meetup_area,
-    departureTime: row.departure_time,
-    tripNote: row.trip_note,
-    shareName: row.share_name,
-    status: row.status ?? 'open',
-    participantCount: counts.get(row.id) ?? 0,
-  })) satisfies TripDiscoveryItem[];
+  return rows.map((row) => {
+    const resolvedTrail = resolvedTrailMap.get(row.id);
+    return {
+      id: row.id,
+      trailSlug: resolvedTrail?.slug ?? row.trail_slug,
+      trailTitle: resolvedTrail?.title ?? row.trail_title,
+      trailRegion: row.trail_region,
+      trailLocationLabel: row.trail_location_label,
+      image: imageForTrail(resolvedTrail?.slug ?? row.trail_slug),
+      date: row.date,
+      meetupArea: row.meetup_area,
+      departureTime: row.departure_time,
+      tripNote: row.trip_note,
+      shareName: row.share_name,
+      status: row.status ?? 'open',
+      participantCount: counts.get(row.id) ?? 0,
+    };
+  }) satisfies TripDiscoveryItem[];
 }
 
 export async function getUpcomingTripCountsByTrailSlugs(trailSlugs: string[]) {

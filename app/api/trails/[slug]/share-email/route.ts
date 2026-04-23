@@ -10,6 +10,7 @@ import {
   EMAIL_SHARE_UNAVAILABLE_CODE,
   EMAIL_SHARE_UNAVAILABLE_MESSAGE,
 } from '@/lib/offroady/email-share';
+import { attachRuntimeHeaders, getRuntimeInfo } from '@/lib/offroady/runtime-info';
 
 function isValidEmail(value: string) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
@@ -24,23 +25,36 @@ export async function POST(
   request: Request,
   { params }: { params: Promise<{ slug: string }> }
 ) {
+  const runtime = getRuntimeInfo();
+  const requestUrl = new URL(request.url);
+
   try {
     const { slug } = await params;
-    console.info('[trail-share-email] request received', { slug });
+    console.info('[trail-share-email] request received', {
+      slug,
+      requestUrl: request.url,
+      host: request.headers.get('host'),
+      origin: requestUrl.origin,
+      runtime,
+    });
 
     const trail = getLocalTrailBySlug(slug);
     if (!trail) {
-      return NextResponse.json({ error: 'Trail not found' }, { status: 404 });
+      const response = NextResponse.json({ error: 'Trail not found' }, { status: 404 });
+      attachRuntimeHeaders(response);
+      return response;
     }
 
-    const origin = new URL(request.url).origin;
+    const origin = requestUrl.origin;
     const viewer = await getSessionUser().catch(() => null);
     if (!viewer) {
-      console.info('[trail-share-email] auth required', { slug });
-      return NextResponse.json(
+      console.info('[trail-share-email] auth required', { slug, branch: 'auth-required', runtime });
+      const response = NextResponse.json(
         { error: EMAIL_SHARE_AUTH_REQUIRED_MESSAGE, code: EMAIL_SHARE_AUTH_REQUIRED_CODE },
         { status: 401 }
       );
+      attachRuntimeHeaders(response);
+      return response;
     }
 
     const body = await request.json().catch(() => null);
@@ -48,13 +62,19 @@ export async function POST(
     const message = typeof body?.message === 'string' ? body.message.trim() : '';
 
     if (!friendEmail) {
-      return NextResponse.json({ error: "Friend's email is required." }, { status: 400 });
+      const response = NextResponse.json({ error: "Friend's email is required." }, { status: 400 });
+      attachRuntimeHeaders(response);
+      return response;
     }
     if (!isValidEmail(friendEmail)) {
-      return NextResponse.json({ error: 'Please enter a valid email address.' }, { status: 400 });
+      const response = NextResponse.json({ error: 'Please enter a valid email address.' }, { status: 400 });
+      attachRuntimeHeaders(response);
+      return response;
     }
     if (message.length > 1200) {
-      return NextResponse.json({ error: 'Your message is too long.' }, { status: 400 });
+      const response = NextResponse.json({ error: 'Your message is too long.' }, { status: 400 });
+      attachRuntimeHeaders(response);
+      return response;
     }
 
     const providerDebug = getTransactionalEmailDebugInfo();
@@ -68,6 +88,7 @@ export async function POST(
       from: providerDebug.from,
       missingConfig: providerDebug.missingConfig,
       recipientDomain: getEmailDomain(friendEmail),
+      runtime,
     });
 
     const hasUpcomingTrip = (await getUpcomingTripDiscovery({ trailSlug: trail.slug, limit: 1 }).catch(() => [])).length > 0;
@@ -102,18 +123,41 @@ export async function POST(
     });
 
     if (!result.ok) {
-      return NextResponse.json(
+      console.error('[trail-share-email] provider unavailable', {
+        slug,
+        branch: 'provider-unavailable',
+        runtime,
+        provider: result.provider,
+        status: result.status ?? null,
+        reason: result.reason ?? null,
+        from: result.from,
+        missingConfig: result.missingConfig,
+        providerResponseSummary: result.providerResponseSummary ?? null,
+      });
+      const response = NextResponse.json(
         { error: EMAIL_SHARE_UNAVAILABLE_MESSAGE, code: EMAIL_SHARE_UNAVAILABLE_CODE },
         { status: 503 }
       );
+      attachRuntimeHeaders(response);
+      return response;
     }
 
-    return NextResponse.json({ ok: true });
+    const response = NextResponse.json({ ok: true });
+    attachRuntimeHeaders(response);
+    return response;
   } catch (error) {
-    console.error('Trail email share failed', error);
-    return NextResponse.json(
+    console.error('[trail-share-email] unexpected exception', {
+      branch: 'unexpected-exception',
+      runtime,
+      requestUrl: request.url,
+      host: request.headers.get('host'),
+      error,
+    });
+    const response = NextResponse.json(
       { error: EMAIL_SHARE_UNAVAILABLE_MESSAGE, code: EMAIL_SHARE_UNAVAILABLE_CODE },
       { status: 500 }
     );
+    attachRuntimeHeaders(response);
+    return response;
   }
 }

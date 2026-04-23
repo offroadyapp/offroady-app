@@ -156,7 +156,13 @@ export async function POST(
     }
 
     const response = NextResponse.json({ ok: true });
-    attachRuntimeHeaders(response, { branch: 'sent', reason: result.reason ?? null });
+    attachRuntimeHeaders(response, {
+      branch: 'sent',
+      reason: result.reason ?? null,
+      messageId: result.messageId ?? null,
+      accepted: result.accepted ?? false,
+      from: result.from,
+    });
     return response;
   } catch (error) {
     console.error('[trip-share-email] unexpected exception', {

@@ -11,6 +11,9 @@ export type ShareDiagnosticHeaders = {
   branch?: string | null;
   reason?: string | null;
   missingConfig?: string[] | null;
+  messageId?: string | null;
+  accepted?: boolean | null;
+  from?: string | null;
 };
 
 let cachedBuildId: string | null | undefined;
@@ -44,4 +47,7 @@ export function attachRuntimeHeaders(response: HeaderCarrier, diagnostics: Share
   if (diagnostics.branch) response.headers.set('x-offroady-share-branch', diagnostics.branch);
   if (diagnostics.reason) response.headers.set('x-offroady-share-reason', diagnostics.reason);
   if (diagnostics.missingConfig?.length) response.headers.set('x-offroady-share-missing-config', diagnostics.missingConfig.join(','));
+  if (diagnostics.messageId) response.headers.set('x-offroady-share-message-id', diagnostics.messageId);
+  if (typeof diagnostics.accepted === 'boolean') response.headers.set('x-offroady-share-accepted', String(diagnostics.accepted));
+  if (diagnostics.from) response.headers.set('x-offroady-share-from', diagnostics.from);
 }

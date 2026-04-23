@@ -1,22 +1,48 @@
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
-## Getting Started
+## Offroady Local Runtime
 
-First, run the development server:
+Use the standardized local runtime scripts instead of ad-hoc `next dev` / `next start` commands.
+
+### Fixed local convention
+
+- Host: `127.0.0.1`
+- Port: `3000`
+- Env source: `.env.local`
+- Cleanup rule: kill stale **Offroady-only** Next/node runtimes before starting a new one
+
+### Commands
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm run local:status
+npm run local:clean
+npm run local:dev
+npm run local:start
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### What they do
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+- `npm run local:status` shows the current Offroady runtime and port listener state
+- `npm run local:clean` stops stale Offroady local runtimes and frees port `3000`
+- `npm run local:dev` cleans first, then starts a single dev runtime on `http://127.0.0.1:3000`
+- `npm run local:start` cleans first, rebuilds, then starts a single production-style runtime on `http://127.0.0.1:3000`
+
+If you need a different host or port temporarily, you can override them.
+
+PowerShell:
+
+```powershell
+$env:OFFROADY_PORT = '3001'
+npm run local:start
+```
+
+bash/zsh:
+
+```bash
+OFFROADY_PORT=3001 npm run local:start
+```
+
+You can start editing the page by modifying `app/page.tsx`. The dev runtime will auto-update.
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 

@@ -6,7 +6,11 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "local:status": "node scripts/offroady-local-runtime.mjs status",
+    "local:clean": "node scripts/offroady-local-runtime.mjs clean",
+    "local:dev": "node scripts/offroady-local-runtime.mjs dev",
+    "local:start": "node scripts/offroady-local-runtime.mjs start"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.103.3",

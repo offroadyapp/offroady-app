@@ -114,6 +114,7 @@ type DbTrail = {
 
 type TripPlanRow = {
   id: string;
+  trail_id?: string | null;
   trail_slug: string;
   trail_title: string;
   trail_region: string | null;
@@ -125,6 +126,13 @@ type TripPlanRow = {
   status: string | null;
   created_by_user_id: string;
   created_at: string;
+};
+
+type ResolvedTripTrail = {
+  title: string;
+  slug: string | null;
+  href: string | null;
+  source: 'local-trail' | 'published-trail' | 'stored-fallback';
 };
 
 type CrewRow = {
@@ -165,6 +173,57 @@ async function getTrailBySlugMap(slugs: string[]) {
   const { data, error } = await supabase.from('trails').select('id, slug, title, region').in('slug', uniqueSlugs);
   if (error) throw error;
   return new Map((data ?? []).map((trail) => [trail.slug, trail as DbTrail]));
+}
+
+async function resolveTripTrailReference(input: { trailId?: string | null; trailSlug?: string | null; storedTitle?: string | null }): Promise<ResolvedTripTrail> {
+  const trailSlug = input.trailSlug?.trim() || null;
+  const localTrail = trailSlug ? getLocalTrailBySlug(trailSlug) : null;
+  if (localTrail) {
+    return {
+      title: localTrail.title,
+      slug: localTrail.slug,
+      href: `/plan/${localTrail.slug}`,
+      source: 'local-trail',
+    };
+  }
+
+  const supabase = getServiceSupabase();
+  let publishedTrail: Pick<DbTrail, 'slug' | 'title'> | null = null;
+
+  if (input.trailId) {
+    const { data, error } = await supabase.from('trails').select('slug, title').eq('id', input.trailId).maybeSingle();
+    if (error) throw error;
+    publishedTrail = (data as Pick<DbTrail, 'slug' | 'title'> | null) ?? null;
+  }
+
+  if (!publishedTrail && trailSlug) {
+    const { data, error } = await supabase.from('trails').select('slug, title').eq('slug', trailSlug).maybeSingle();
+    if (error) throw error;
+    publishedTrail = (data as Pick<DbTrail, 'slug' | 'title'> | null) ?? null;
+  }
+
+  if (publishedTrail) {
+    const localTrailForHref = getLocalTrailBySlug(publishedTrail.slug);
+    return {
+      title: publishedTrail.title,
+      slug: publishedTrail.slug,
+      href: localTrailForHref ? `/plan/${publishedTrail.slug}` : null,
+      source: 'published-trail',
+    };
+  }
+
+  console.warn('[getTripDetail] Unable to resolve canonical trail reference for trip detail page', {
+    trailId: input.trailId ?? null,
+    trailSlug,
+    storedTitle: input.storedTitle ?? null,
+  });
+
+  return {
+    title: input.storedTitle?.trim() || 'Trail unavailable',
+    slug: trailSlug,
+    href: null,
+    source: 'stored-fallback',
+  };
 }
 
 async function getTripParticipantCountMap(tripIds: string[]) {
@@ -639,11 +698,17 @@ export async function getTripDetail(tripId: string, viewerId?: string | null) {
   const supabase = getServiceSupabase();
   const { data: trip, error } = await supabase
     .from('trip_plans')
-    .select('id, trail_slug, trail_title, trail_region, trail_location_label, date, meetup_area, departure_time, trip_note, share_name, status, created_by_user_id, created_at')
+    .select('id, trail_id, trail_slug, trail_title, trail_region, trail_location_label, date, meetup_area, departure_time, trip_note, share_name, status, created_by_user_id, created_at')
     .eq('id', tripId)
     .maybeSingle();
   if (error) throw error;
   if (!trip) return null;
+
+  const resolvedTrail = await resolveTripTrailReference({
+    trailId: trip.trail_id,
+    trailSlug: trip.trail_slug,
+    storedTitle: trip.trail_title,
+  });
 
   const participantCounts = await getTripParticipantCountMap([tripId]);
   const { data: membership, error: membershipError } = viewerId
@@ -653,11 +718,14 @@ export async function getTripDetail(tripId: string, viewerId?: string | null) {
 
   return {
     id: trip.id,
-    trailSlug: trip.trail_slug,
-    title: trip.trail_title,
+    trailSlug: resolvedTrail.slug ?? trip.trail_slug,
+    trailTitle: resolvedTrail.title,
+    trailHref: resolvedTrail.href,
+    trailSource: resolvedTrail.source,
+    title: resolvedTrail.title,
     region: trip.trail_region,
     locationLabel: trip.trail_location_label,
-    image: imageForTrail(trip.trail_slug),
+    image: imageForTrail(resolvedTrail.slug ?? trip.trail_slug),
     date: trip.date,
     meetupArea: trip.meetup_area,
     departureTime: trip.departure_time,

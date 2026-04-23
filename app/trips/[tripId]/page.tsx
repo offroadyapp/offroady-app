@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import PageShell from '@/app/components/PageShell';
 import FavoriteToggleButton from '@/app/components/FavoriteToggleButton';
@@ -18,7 +19,19 @@ export default async function TripDetailPage({ params }: { params: Promise<{ tri
           <p className="text-sm font-semibold uppercase tracking-[0.16em] text-[#5d7d61]">Trip</p>
           <h1 className="mt-2 text-3xl font-bold text-[#243126]">{trip.title}</h1>
           <div className="mt-4 grid gap-3 text-sm text-gray-600 md:grid-cols-2">
-            <div>Trail: {trip.title}</div>
+            <div className="min-w-0">
+              <span>Trail: </span>
+              {trip.trailHref ? (
+                <Link
+                  href={trip.trailHref}
+                  className="inline-flex max-w-full items-center rounded-md px-1 py-0.5 font-medium text-[#2f5d3a] underline decoration-[#9dc2a2] underline-offset-4 transition hover:text-[#264d30] hover:decoration-[#2f5d3a] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2f5d3a]/30"
+                >
+                  <span className="break-words">{trip.trailTitle}</span>
+                </Link>
+              ) : (
+                <span className="break-words">{trip.trailTitle}</span>
+              )}
+            </div>
             <div>Date: {trip.date}</div>
             <div>Status: {trip.status}</div>
             <div>Meetup: {trip.meetupArea}</div>

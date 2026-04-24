@@ -13,6 +13,24 @@ function difficultyTone(level?: string | null) {
   return 'Mixed';
 }
 
+function formatEventDateTime(value: string) {
+  return new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'America/Vancouver',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+  }).format(new Date(value)).replace(',', '');
+}
+
+function formatEventDateTimeRange(startsAt: string, endsAt?: string | null) {
+  const start = formatEventDateTime(startsAt);
+  if (!endsAt) return start;
+  return `${start} to ${formatEventDateTime(endsAt)}`;
+}
+
 export default async function WeeklyDigestPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   const digest = await getWeeklyDigestBySlug(slug);
@@ -133,13 +151,17 @@ export default async function WeeklyDigestPage({ params }: { params: Promise<{ s
             <div className="mt-6 space-y-4">
               {digest.externalEvents.length ? digest.externalEvents.map((event) => {
                 const payload = event.payload as Record<string, unknown>;
+                const eventLink = String(payload.sourceUrl ?? event.href ?? '').trim();
+                const endsAt = typeof payload.endsAt === 'string' ? payload.endsAt : null;
+                const ctaLabel = String(payload.ctaLabel ?? 'Event details');
                 return (
                   <div key={event.id} className="rounded-2xl border border-black/8 bg-[#f8faf8] p-5">
                     <div className="flex flex-wrap items-start justify-between gap-4">
                       <div>
                         <h3 className="text-lg font-semibold text-[#243126]">{event.title}</h3>
-                        <div className="mt-1 text-sm text-gray-500">{new Date(event.startsAt).toLocaleString('en-CA')} {event.locationName ? `· ${event.locationName}` : ''}</div>
+                        <div className="mt-1 text-sm text-gray-500">{formatEventDateTimeRange(event.startsAt, endsAt)} {event.locationName ? `· ${event.locationName}` : ''}</div>
                         {event.summary ? <p className="mt-3 text-sm leading-6 text-gray-700">{event.summary}</p> : null}
+                        {eventLink ? <div className="mt-3 flex flex-wrap gap-3"><a href={eventLink} target="_blank" rel="noreferrer" className="inline-flex text-sm font-semibold text-[#2f5d3a] hover:text-[#264d30]">{ctaLabel}</a></div> : null}
                       </div>
                       <div className="text-sm text-gray-600">
                         {payload.sourceLabel ? <div><span className="font-semibold text-[#243126]">Source:</span> {String(payload.sourceLabel)}</div> : null}

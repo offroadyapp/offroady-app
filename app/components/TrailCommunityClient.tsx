@@ -48,6 +48,7 @@ function formatTripDate(value: string) {
 
 export default function TrailCommunityClient({ trailSlug, trailTitle, initialSnapshot, moreTrails, availableTrailCount, tripCountsBySlug = {}, viewer = null }: Props) {
   const [identity, setIdentity] = useState<Identity>(emptyIdentity);
+  const [arrivedHighlight, setArrivedHighlight] = useState(false);
   const [signupStatus, setSignupStatus] = useState('');
   const [community, setCommunity] = useState(initialSnapshot);
   const [hasUnlockedTrails, setHasUnlockedTrails] = useState(Boolean(viewer));
@@ -169,6 +170,22 @@ export default function TrailCommunityClient({ trailSlug, trailTitle, initialSna
     return () => window.clearTimeout(timeout);
   }, [toast]);
 
+  useEffect(() => {
+    function triggerHashHighlight() {
+      if (window.location.hash !== '#more-trails') return;
+      setArrivedHighlight(true);
+      const timeout = window.setTimeout(() => setArrivedHighlight(false), 2200);
+      return () => window.clearTimeout(timeout);
+    }
+
+    const cleanup = triggerHashHighlight();
+    window.addEventListener('hashchange', triggerHashHighlight);
+    return () => {
+      if (typeof cleanup === 'function') cleanup();
+      window.removeEventListener('hashchange', triggerHashHighlight);
+    };
+  }, []);
+
   async function handleTripMembership(tripId: string, action: 'join' | 'leave') {
     if (!viewer) {
       window.location.href = '/#member-access';
@@ -276,7 +293,7 @@ export default function TrailCommunityClient({ trailSlug, trailTitle, initialSna
   }
 
   return (
-    <section className="mx-auto max-w-7xl px-4 pb-16 sm:px-6 lg:px-8">
+    <section id="more-trails" className={`mx-auto max-w-7xl scroll-mt-28 px-4 pb-16 transition-all duration-700 sm:px-6 lg:px-8 ${arrivedHighlight ? 'rounded-3xl bg-[#eef5ee]/70 ring-2 ring-[#2f5d3a]/15 ring-offset-4 ring-offset-[#f4f6f3]' : ''}`}>
       <div className="mb-8 rounded-2xl border border-black/8 bg-[#101412] p-5 text-white shadow-sm">
         <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
           <div>
@@ -366,9 +383,9 @@ export default function TrailCommunityClient({ trailSlug, trailTitle, initialSna
                   {item.best_for.slice(0, 2).map((tag) => (
                     <span key={tag} className="rounded-full bg-white px-2.5 py-1">{tag}</span>
                   ))}
-                  {upcomingTrips ? (
-                    <span className="rounded-full bg-[#eef5ee] px-2.5 py-1 font-semibold text-[#2f5d3a]">{upcomingTrips} upcoming trip{upcomingTrips === 1 ? '' : 's'}</span>
-                  ) : null}
+                  <span className="rounded-full bg-[#eef5ee] px-2.5 py-1 font-semibold text-[#2f5d3a]">
+                    {upcomingTrips ? `${upcomingTrips} planned trip${upcomingTrips === 1 ? '' : 's'}` : 'No trips yet, start one'}
+                  </span>
                 </div>
                 <div className="mt-4 flex flex-wrap gap-3">
                   <a

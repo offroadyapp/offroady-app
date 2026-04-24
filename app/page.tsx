@@ -311,21 +311,19 @@ export default async function Home() {
           </div>
         </section>
 
-        <div id="more-trails">
-          <TrailCommunityClient
-            trailSlug={trail.slug}
-            trailTitle={featuredTrail.title}
-            initialSnapshot={snapshot}
-            moreTrails={localTrails}
-            availableTrailCount={availableTrailCount}
-            tripCountsBySlug={Object.fromEntries(tripCountsBySlug.entries())}
-            viewer={viewer ? {
-              displayName: viewer.displayName,
-              email: viewer.email,
-              phone: viewer.phone || '',
-            } : null}
-          />
-        </div>
+        <TrailCommunityClient
+          trailSlug={trail.slug}
+          trailTitle={featuredTrail.title}
+          initialSnapshot={snapshot}
+          moreTrails={localTrails}
+          availableTrailCount={availableTrailCount}
+          tripCountsBySlug={Object.fromEntries(tripCountsBySlug.entries())}
+          viewer={viewer ? {
+            displayName: viewer.displayName,
+            email: viewer.email,
+            phone: viewer.phone || '',
+          } : null}
+        />
       </main>
       <SiteFooter />
     </div>

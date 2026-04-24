@@ -73,6 +73,10 @@ function parseTimeRange(raw, currentDate) {
   return { startsAt, endsAt };
 }
 
+function normalizeUrl(text) {
+  return String(text || '').trim().replace(/^<+/, '').replace(/>+$/, '');
+}
+
 function parseMarkdown(markdown) {
   const events = [];
   const skipped = [];
@@ -104,7 +108,7 @@ function parseMarkdown(markdown) {
       location_text: current.fields['地点'],
       summary: notes.join(' '),
       source_name: current.fields['群组'] || null,
-      source_url: current.fields['报名/联系'] || null,
+      source_url: normalizeUrl(current.fields['报名/联系'] || '' ) || null,
       status: 'published',
       source_type: SOURCE_TYPE,
       source_platform: SOURCE_PLATFORM,

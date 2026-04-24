@@ -1,7 +1,8 @@
 "use client";
 
 import Link from 'next/link';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 
 type Mode = 'login' | 'signup' | 'reset';
 
@@ -10,6 +11,7 @@ type Props = {
 };
 
 export default function AuthPanel({ initialMode = 'signup' }: Props) {
+  const searchParams = useSearchParams();
   const [mode, setMode] = useState<Mode>(initialMode);
   const [displayName, setDisplayName] = useState('');
   const [email, setEmail] = useState('');
@@ -19,6 +21,13 @@ export default function AuthPanel({ initialMode = 'signup' }: Props) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
+
+  useEffect(() => {
+    const requestedMode = searchParams.get('auth');
+    if (requestedMode === 'login' || requestedMode === 'signup' || requestedMode === 'reset') {
+      setMode(requestedMode);
+    }
+  }, [searchParams]);
 
   async function handleSubmit(event: React.FormEvent) {
     event.preventDefault();

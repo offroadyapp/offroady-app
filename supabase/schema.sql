@@ -793,6 +793,19 @@ create index if not exists idx_community_trip_invites_receiver_status on public.
 create index if not exists idx_community_trip_invites_sender_created_at on public.community_trip_invites (sender_user_id, created_at desc);
 create index if not exists idx_community_trip_invites_trip_plan_id on public.community_trip_invites (trip_plan_id);
 
+create table if not exists public.community_direct_messages (
+  id uuid primary key default gen_random_uuid(),
+  sender_user_id uuid not null references public.users(id) on delete cascade,
+  receiver_user_id uuid not null references public.users(id) on delete cascade,
+  message_text text not null,
+  created_at timestamptz not null default now(),
+  read_at timestamptz,
+  constraint community_direct_messages_sender_receiver_check check (sender_user_id <> receiver_user_id)
+);
+
+create index if not exists idx_community_direct_messages_sender_created_at on public.community_direct_messages (sender_user_id, created_at desc);
+create index if not exists idx_community_direct_messages_receiver_created_at on public.community_direct_messages (receiver_user_id, created_at desc);
+
 -- APPEND PATCH: weekly digest pipeline
 create table if not exists public.weekly_digests (
   id uuid primary key default gen_random_uuid(),

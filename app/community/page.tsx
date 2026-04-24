@@ -19,13 +19,16 @@ export default async function CommunityPage() {
             <p className="text-sm font-semibold uppercase tracking-[0.16em] text-[#5d7d61]">Community</p>
             <h1 className="mt-2 text-3xl font-bold text-[#243126]">Find people who are up for the next run</h1>
             <p className="mt-4 max-w-3xl text-sm leading-7 text-gray-700">
-              Looking for people to go off-roading with? Browse members and invite them to your trip. Offroady stays trip-first on purpose, so invites come before direct messages.
+              Looking for people to go off-roading with? Browse members, invite them to your trip, or send a direct message when you need to break the ice. Invites still come first, and direct messaging is rate-limited for safety.
             </p>
             <div className="mt-5 flex flex-wrap gap-3 text-sm">
               {viewer ? (
                 <>
                   <Link href="/my-profile" className="inline-flex rounded-lg border border-gray-300 px-4 py-2.5 font-semibold text-gray-700 transition hover:bg-gray-50">
                     Manage profile visibility
+                  </Link>
+                  <Link href="/community/messages" className="inline-flex rounded-lg border border-gray-300 px-4 py-2.5 font-semibold text-gray-700 transition hover:bg-gray-50">
+                    Open messages
                   </Link>
                   <Link href="/community/invites" className="inline-flex rounded-lg bg-[#2f5d3a] px-4 py-2.5 font-semibold text-white transition hover:bg-[#264d30]">
                     View incoming invites

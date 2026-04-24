@@ -34,6 +34,7 @@ function initialsFor(displayName: string) {
 
 export default function ProfileEditor({ initialProfile, onProfileUpdated }: Props) {
   const [editing, setEditing] = useState(false);
+  const [displayName, setDisplayName] = useState(initialProfile.displayName);
   const [bio, setBio] = useState(initialProfile.bio);
   const [avatarPreview, setAvatarPreview] = useState(initialProfile.avatarImage);
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
@@ -54,7 +55,7 @@ export default function ProfileEditor({ initialProfile, onProfileUpdated }: Prop
 
   function snapshot(overrides?: Partial<EditableProfile>): EditableProfile {
     return {
-      displayName: initialProfile.displayName,
+      displayName,
       bio,
       avatarImage: avatarPreview,
       rigName,
@@ -142,6 +143,15 @@ export default function ProfileEditor({ initialProfile, onProfileUpdated }: Prop
     setActivity('Saving profile...');
 
     try {
+      setActivity('Saving display name...');
+      const displayNameResponse = await fetch('/api/account/profile', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ displayName }),
+      });
+      const displayNamePayload = await displayNameResponse.json();
+      if (!displayNameResponse.ok) throw new Error(displayNamePayload.error || 'Failed to update display name');
+
       const uploadedAvatarUrl = await uploadImage('avatar', avatarFile);
       const uploadedRigUrl = await uploadImage('rig', rigFile);
 
@@ -165,7 +175,7 @@ export default function ProfileEditor({ initialProfile, onProfileUpdated }: Prop
       if (!response.ok) throw new Error(payload.error || 'Failed to update profile');
 
       const nextProfile: EditableProfile = {
-        displayName: initialProfile.displayName,
+        displayName: displayNamePayload.profile?.display_name || displayName,
         bio: payload.profile.bio || '',
         avatarImage: uploadedAvatarUrl ?? avatarPreview,
         rigName: payload.profile.rig_name || '',
@@ -181,6 +191,7 @@ export default function ProfileEditor({ initialProfile, onProfileUpdated }: Prop
 
       setAvatarFile(null);
       setRigFile(null);
+      setDisplayName(nextProfile.displayName);
       setAvatarPreview(nextProfile.avatarImage);
       setRigPreview(nextProfile.rigPhoto);
       setRigMods(nextProfile.rigMods.join(', '));
@@ -222,6 +233,12 @@ export default function ProfileEditor({ initialProfile, onProfileUpdated }: Prop
       </div>
 
       <div className="grid gap-4 md:grid-cols-2">
+        <label className="block space-y-2 md:col-span-2">
+          <span className="text-sm font-semibold text-[#243126]">Display name</span>
+          <input value={displayName} onChange={(event) => setDisplayName(event.target.value)} placeholder="Display name, with your rig short title if you want" className="w-full rounded-lg border border-gray-300 px-4 py-3 outline-none transition focus:border-[#2f5d3a]" maxLength={50} />
+          <p className="text-xs text-gray-500">This is what other members will see across your profile, trips, and community messages.</p>
+        </label>
+
         <label className="block space-y-3">
           <span className="text-sm font-semibold text-[#243126]">Profile photo</span>
           <div className="flex items-center gap-4">
@@ -229,7 +246,7 @@ export default function ProfileEditor({ initialProfile, onProfileUpdated }: Prop
               {avatarPreview ? (
                 <img src={avatarPreview} alt="Profile preview" className="h-full w-full object-cover" />
               ) : (
-                initialsFor(initialProfile.displayName)
+                initialsFor(displayName)
               )}
             </div>
             <div className="flex-1">

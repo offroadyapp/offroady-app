@@ -452,7 +452,6 @@ export async function updateDisplayName(userId: string, displayName: string) {
     .from('users')
     .update({
       display_name: cleanName,
-      profile_slug: slugifyProfile(cleanName),
       updated_at: new Date().toISOString(),
     })
     .eq('id', userId)

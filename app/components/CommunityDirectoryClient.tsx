@@ -36,10 +36,14 @@ function formatRecentActivity(value: string) {
 
 export default function CommunityDirectoryClient({ members, viewerSignedIn, myTrips }: Props) {
   const [selectedMember, setSelectedMember] = useState<CommunityMemberCard | null>(null);
+  const [messageMember, setMessageMember] = useState<CommunityMemberCard | null>(null);
   const [tripId, setTripId] = useState(myTrips[0]?.id || '');
   const [messageText, setMessageText] = useState('');
   const [state, setState] = useState<'idle' | 'sending' | 'sent'>('idle');
   const [error, setError] = useState('');
+  const [directMessageText, setDirectMessageText] = useState('');
+  const [directMessageState, setDirectMessageState] = useState<'idle' | 'sending' | 'sent'>('idle');
+  const [directMessageError, setDirectMessageError] = useState('');
 
   const selectedTrip = useMemo(() => myTrips.find((trip) => trip.id === tripId) || null, [myTrips, tripId]);
 
@@ -60,6 +64,26 @@ export default function CommunityDirectoryClient({ members, viewerSignedIn, myTr
     } catch (err) {
       setState('idle');
       setError(err instanceof Error ? err.message : 'Failed to send trip invite');
+    }
+  }
+
+  async function handleDirectMessage() {
+    if (!messageMember || !directMessageText.trim()) return;
+    setDirectMessageError('');
+    setDirectMessageState('sending');
+    try {
+      const response = await fetch('/api/community/messages', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ receiverUserId: messageMember.id, messageText: directMessageText }),
+      });
+      const payload = await response.json();
+      if (!response.ok) throw new Error(payload.error || 'Failed to send message');
+      setDirectMessageState('sent');
+      setDirectMessageText('');
+    } catch (err) {
+      setDirectMessageState('idle');
+      setDirectMessageError(err instanceof Error ? err.message : 'Failed to send message');
     }
   }
 
@@ -104,16 +128,21 @@ export default function CommunityDirectoryClient({ members, viewerSignedIn, myTr
               </button>
               <button
                 type="button"
-                disabled
-                className="inline-flex rounded-lg border border-gray-300 px-4 py-2.5 text-sm font-semibold text-gray-400"
-                title="Direct messages are planned for the next phase, after invite-first safety limits land."
+                onClick={() => {
+                  setMessageMember(member);
+                  setDirectMessageText('');
+                  setDirectMessageError('');
+                  setDirectMessageState('idle');
+                }}
+                disabled={!viewerSignedIn}
+                className="inline-flex rounded-lg border border-gray-300 px-4 py-2.5 text-sm font-semibold text-gray-700 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-60"
               >
                 Message
               </button>
             </div>
 
             <div className="mt-3 text-xs leading-5 text-gray-500">
-              Prefer inviting to a trip instead of messaging.
+              Prefer inviting to a trip instead of messaging. Direct messages are capped at 5 different people per day.
               {!viewerSignedIn ? ' Sign in to invite.' : !myTrips.length ? ' Create or join a trip first to invite someone.' : ''}
             </div>
 
@@ -169,6 +198,39 @@ export default function CommunityDirectoryClient({ members, viewerSignedIn, myTr
                   {state === 'sending' ? 'Sending...' : 'Send trip invite'}
                 </button>
                 <div className="text-sm text-gray-500">Invite first, message later. That is intentional.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      ) : null}
+
+      {messageMember ? (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="w-full max-w-xl rounded-3xl bg-white p-6 shadow-2xl">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <p className="text-sm font-semibold uppercase tracking-[0.16em] text-[#5d7d61]">Community message</p>
+                <h3 className="mt-2 text-2xl font-bold text-[#243126]">Message {messageMember.displayName}</h3>
+                <p className="mt-2 text-sm leading-6 text-gray-600">
+                  Keep it trail-related, respectful, and specific. You can contact up to 5 different people per day.
+                </p>
+              </div>
+              <button type="button" onClick={() => setMessageMember(null)} className="rounded-lg border border-gray-300 px-3 py-2 text-sm font-semibold text-gray-700 transition hover:bg-gray-50">
+                Close
+              </button>
+            </div>
+
+            <div className="mt-5 space-y-4">
+              <textarea value={directMessageText} onChange={(event) => setDirectMessageText(event.target.value)} rows={5} maxLength={500} placeholder="Hey, I saw your profile in Offroady. I am planning a run near Stave this weekend and wondered if your rig setup is aimed more at moderate trails or harder lines." className="w-full rounded-lg border border-gray-300 px-4 py-3 text-sm outline-none transition focus:border-[#2f5d3a]" />
+
+              {directMessageError ? <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{directMessageError}</div> : null}
+              {directMessageState === 'sent' ? <div className="rounded-xl border border-[#cfe6d2] bg-[#eef5ee] px-4 py-3 text-sm text-[#2f5d3a]">Message sent. They can reply from Community Messages.</div> : null}
+
+              <div className="flex flex-wrap items-center gap-3">
+                <button type="button" onClick={() => void handleDirectMessage()} disabled={directMessageState === 'sending' || !directMessageText.trim()} className="rounded-lg bg-[#2f5d3a] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#264d30] disabled:cursor-not-allowed disabled:opacity-70">
+                  {directMessageState === 'sending' ? 'Sending...' : 'Send message'}
+                </button>
+                <Link href="/community/messages" className="text-sm font-semibold text-[#2f5d3a] hover:text-[#264d30]">Open inbox</Link>
               </div>
             </div>
           </div>

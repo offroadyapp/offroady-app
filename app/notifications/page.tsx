@@ -42,7 +42,7 @@ export default async function NotificationsPage() {
               </div>
             )) : (
               <div className="rounded-2xl bg-[#f8faf8] p-5 text-sm leading-6 text-gray-600">
-                Nothing new yet. When someone joins one of your trips, or when you join a trip yourself, it will show up here.
+                Nothing new yet. Trip activity, community invites, and direct messages will show up here.
               </div>
             )}
           </div>

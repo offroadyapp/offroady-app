@@ -24,6 +24,7 @@ const accountLinks = [
   { href: '/my-trips', label: 'My Trips' },
   { href: '/my-crews', label: 'My Crews' },
   { href: '/community', label: 'Community' },
+  { href: '/community/messages', label: 'Messages' },
   { href: '/community/invites', label: 'Community Invites' },
   { href: '/notifications', label: 'Notifications' },
   { href: '/my-account/email-preferences', label: 'Email Preferences' },
@@ -55,13 +56,13 @@ export default function AuthMenu({ viewer }: Props) {
     return (
       <div className="flex items-center gap-2 sm:gap-3">
         <Link
-          href="/#member-access"
+          href="/?auth=login#member-access"
           className="inline-flex rounded-full border border-[#2f5d3a]/20 bg-white px-3 py-2 text-sm font-semibold text-[#2f5d3a] transition hover:bg-[#eef5ee] sm:px-4"
         >
           Log in
         </Link>
         <Link
-          href="/#member-access"
+          href="/?auth=signup#member-access"
           className="inline-flex rounded-full bg-[#2f5d3a] px-3 py-2 text-sm font-semibold text-white transition hover:bg-[#264d30] sm:px-4"
         >
           Sign up

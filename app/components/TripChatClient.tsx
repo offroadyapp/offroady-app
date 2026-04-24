@@ -51,6 +51,7 @@ export default function TripChatClient({ tripId, initialAccess, initialMessages 
   const humanMessages = useMemo(() => messages.filter((message) => !message.isSystem), [messages]);
   const hasHumanMessages = humanMessages.length > 0;
   const hasOwnHumanMessage = humanMessages.some((message) => message.isOwn);
+  const showOrganizerKickoffHint = access.viewerRole === 'organizer' && !hasHumanMessages;
   const tripSoonHours = useMemo(() => hoursUntilTrip(access.tripDate), [access.tripDate]);
   const tripWithin24Hours = tripSoonHours <= 24 && tripSoonHours >= 0;
 
@@ -65,7 +66,7 @@ export default function TripChatClient({ tripId, initialAccess, initialMessages 
   }, [access.canPost]);
 
   useEffect(() => {
-    if (!access.canPost || !hasHumanMessages || hasOwnHumanMessage || typeof window === 'undefined') {
+    if (access.viewerRole !== 'participant' || !access.canPost || !hasHumanMessages || hasOwnHumanMessage || typeof window === 'undefined') {
       setShowFirstReplyHint(false);
       return;
     }
@@ -78,7 +79,7 @@ export default function TripChatClient({ tripId, initialAccess, initialMessages 
 
     window.sessionStorage.setItem(sessionKey, 'seen');
     setShowFirstReplyHint(true);
-  }, [access.canPost, hasHumanMessages, hasOwnHumanMessage, tripId]);
+  }, [access.viewerRole, access.canPost, hasHumanMessages, hasOwnHumanMessage, tripId]);
 
   useEffect(() => {
     const list = listRef.current;
@@ -196,7 +197,7 @@ export default function TripChatClient({ tripId, initialAccess, initialMessages 
         </div>
         {tripWithin24Hours ? (
           <div className="mt-3 rounded-2xl border border-[#dfe9df] bg-[#f3f8f1] px-4 py-3 text-sm text-[#36543d]">
-            Trip is coming up, now is a good time to confirm timing and meetup.
+            Trip is coming up, good time to confirm timing and meetup.
           </div>
         ) : null}
       </div>
@@ -245,14 +246,14 @@ export default function TripChatClient({ tripId, initialAccess, initialMessages 
         ) : (
           <form onSubmit={handleSend} className="flex flex-col gap-3 sm:flex-row sm:items-end">
             <div className="flex-1">
-              {!hasHumanMessages ? (
+              {showOrganizerKickoffHint ? (
                 <div className="mb-3 rounded-xl bg-[#f3f8f1] px-4 py-3 text-sm text-[#36543d]">
-                  No one has said anything yet, kick things off. Ask about timing or meetup.
+                  Kick things off, share timing or meetup so others can plan.
                 </div>
               ) : null}
               {showFirstReplyHint ? (
                 <div className="mb-3 rounded-xl bg-[#f7faf6] px-4 py-3 text-xs text-gray-600">
-                  Say hi or confirm your timing so others know you are in.
+                  Let others know you are in, confirm your timing or meetup.
                 </div>
               ) : null}
               <label htmlFor="trip-chat-message" className="sr-only">Message</label>

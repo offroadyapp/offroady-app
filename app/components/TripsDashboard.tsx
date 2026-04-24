@@ -44,6 +44,8 @@ export default function TripsDashboard({ trips, chatPreviewByTripId = {} }: Prop
     <div className="space-y-4">
       {trips.map((trip) => {
         const tripSoon = hoursUntilTrip(trip.date) <= 48 && hoursUntilTrip(trip.date) >= 0;
+        const chatPreview = chatPreviewByTripId[trip.id];
+        const emphasizeChat = trip.viewerRole === 'participant' && (chatPreview?.unreadCount ?? 0) > 0;
         return (
         <div key={trip.id} className="rounded-2xl border border-black/8 bg-[#f8faf8] p-5">
           <div className="flex flex-wrap items-start justify-between gap-4">
@@ -54,13 +56,13 @@ export default function TripsDashboard({ trips, chatPreviewByTripId = {} }: Prop
               {trip.tripNote ? <p className="mt-3 text-sm leading-6 text-gray-600">{trip.tripNote}</p> : null}
             </div>
             <div className="flex flex-col items-end gap-3">
-              <Link href={`/trips/${trip.id}/chat`} className="max-w-[320px] rounded-xl border border-[#2f5d3a]/20 bg-white px-4 py-3 text-left transition hover:bg-[#eef5ee]">
+              <Link href={`/trips/${trip.id}/chat`} className={`max-w-[320px] rounded-xl border px-4 py-3 text-left transition hover:bg-[#eef5ee] ${emphasizeChat ? 'border-[#2f5d3a]/35 bg-[#f3f8f1] shadow-sm' : 'border-[#2f5d3a]/20 bg-white'}`}>
                 <div className="flex items-center gap-2 text-sm font-semibold text-[#243126]">
                   <span>Open Chat</span>
-                  {(chatPreviewByTripId[trip.id]?.unreadCount ?? 0) > 0 ? (
+                  {(chatPreview?.unreadCount ?? 0) > 0 ? (
                     <span className="inline-flex items-center gap-1 rounded-full bg-[#2f5d3a] px-2 py-0.5 text-xs font-bold text-white">
                       <span className="h-2 w-2 rounded-full bg-white" />
-                      {chatPreviewByTripId[trip.id]?.unreadCount} unread
+                      {chatPreview?.unreadCount} unread
                     </span>
                   ) : (
                     <span className="rounded-full bg-[#eef5ee] px-2 py-0.5 text-xs font-bold text-[#2f5d3a]">Chat ready</span>
@@ -68,7 +70,7 @@ export default function TripsDashboard({ trips, chatPreviewByTripId = {} }: Prop
                   {tripSoon ? <span className="rounded-full bg-[#fff4d6] px-2 py-0.5 text-xs font-bold text-[#8a5a00]">Trip soon</span> : null}
                 </div>
                 <div className="mt-2 line-clamp-1 text-xs text-gray-600">
-                  {renderChatLine(chatPreviewByTripId[trip.id])}
+                  {renderChatLine(chatPreview)}
                 </div>
               </Link>
               <FavoriteToggleButton apiPath={`/api/trips/${trip.id}/favorite`} initialFavorite={trip.isFavorite} refreshOnSuccess={true} />

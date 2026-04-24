@@ -76,6 +76,9 @@ export default async function JoinATripPage({ searchParams }: { searchParams: Pr
             <div className="mt-6 space-y-4">
               {trips.length ? trips.map((trip) => {
                 const tripSoon = hoursUntilTrip(trip.date) <= 48 && hoursUntilTrip(trip.date) >= 0;
+                const viewerChatRole = chatAccess.get(trip.id);
+                const preview = chatPreview.get(trip.id);
+                const emphasizeChat = viewerChatRole === 'participant' && (preview?.unreadCount ?? 0) > 0;
                 return (
                 <article key={trip.id} className="overflow-hidden rounded-2xl border border-black/8 bg-[#f8faf8] shadow-sm md:grid md:grid-cols-[240px_1fr]">
                   <img src={trip.image} alt={trip.trailTitle} className="h-full min-h-[180px] w-full object-cover" />
@@ -99,13 +102,13 @@ export default async function JoinATripPage({ searchParams }: { searchParams: Pr
                         View Trip
                       </Link>
                       {chatAccess.has(trip.id) ? (
-                        <Link href={`/trips/${trip.id}/chat`} className="min-w-[240px] max-w-[360px] rounded-xl border border-[#2f5d3a]/20 bg-white px-5 py-3 text-left transition hover:bg-[#eef5ee]">
+                        <Link href={`/trips/${trip.id}/chat`} className={`min-w-[240px] max-w-[360px] rounded-xl border px-5 py-3 text-left transition hover:bg-[#eef5ee] ${emphasizeChat ? 'border-[#2f5d3a]/35 bg-[#f3f8f1] shadow-sm' : 'border-[#2f5d3a]/20 bg-white'}`}>
                           <div className="flex items-center gap-2 font-semibold text-[#243126]">
                             <span>Open Chat</span>
-                            {(chatPreview.get(trip.id)?.unreadCount ?? 0) > 0 ? (
+                            {(preview?.unreadCount ?? 0) > 0 ? (
                               <span className="inline-flex items-center gap-1 rounded-full bg-[#2f5d3a] px-2 py-0.5 text-xs font-bold text-white">
                                 <span className="h-2 w-2 rounded-full bg-white" />
-                                {chatPreview.get(trip.id)?.unreadCount} unread
+                                {preview?.unreadCount} unread
                               </span>
                             ) : (
                               <span className="rounded-full bg-[#eef5ee] px-2 py-0.5 text-xs font-bold text-[#2f5d3a]">Chat ready</span>
@@ -113,7 +116,7 @@ export default async function JoinATripPage({ searchParams }: { searchParams: Pr
                             {tripSoon ? <span className="rounded-full bg-[#fff4d6] px-2 py-0.5 text-xs font-bold text-[#8a5a00]">Trip soon</span> : null}
                           </div>
                           <div className="mt-2 line-clamp-1 text-xs text-gray-600">
-                            {renderChatLine(chatPreview.get(trip.id))}
+                            {renderChatLine(preview)}
                           </div>
                         </Link>
                       ) : (

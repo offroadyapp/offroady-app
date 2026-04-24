@@ -42,6 +42,9 @@ export default function MyProfileClient({ initialProfile, profileSlug }: Props) 
               <ProfileEditor initialProfile={profile} onProfileUpdated={setProfile} />
             </div>
             <p className="mt-4 max-w-3xl leading-7 text-gray-700">{profile.bio || 'No bio yet.'}</p>
+            <div className="mt-4 inline-flex rounded-full bg-[#eef5ee] px-3 py-1 text-sm font-semibold text-[#2f5d3a]">
+              {profile.isVisible ? 'Visible to community' : 'Hidden from community'}
+            </div>
           </div>
         </div>
       </section>

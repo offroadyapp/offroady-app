@@ -10,6 +10,7 @@ const navItems = [
   { href: '/', label: 'Home' },
   { href: '/trail-of-the-week', label: 'Trail of the Week' },
   { href: '/join-a-trip', label: 'Join a Trip' },
+  { href: '/community', label: 'Community' },
   { href: '/#more-trails', label: 'More Trails' },
   { href: '/about', label: 'About' },
 ];

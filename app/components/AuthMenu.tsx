@@ -23,6 +23,8 @@ const accountLinks = [
   { href: '/favorite-crews', label: 'Favorite Crews' },
   { href: '/my-trips', label: 'My Trips' },
   { href: '/my-crews', label: 'My Crews' },
+  { href: '/community', label: 'Community' },
+  { href: '/community/invites', label: 'Community Invites' },
   { href: '/notifications', label: 'Notifications' },
   { href: '/my-account/email-preferences', label: 'Email Preferences' },
 ];

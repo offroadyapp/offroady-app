@@ -19,6 +19,7 @@ export async function PATCH(request: Request) {
       petName: body.petName,
       petNote: body.petNote,
       shareVibe: body.shareVibe,
+      isVisible: body.isVisible,
     });
 
     return NextResponse.json({ ok: true, profile: result });

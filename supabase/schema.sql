@@ -56,6 +56,7 @@ alter table public.users add column if not exists areas_driven text[];
 alter table public.users add column if not exists pet_name text;
 alter table public.users add column if not exists pet_note text;
 alter table public.users add column if not exists share_vibe text;
+alter table public.users add column if not exists is_visible boolean not null default true;
 alter table public.users add column if not exists password_hash text;
 alter table public.users add column if not exists created_at timestamptz not null default now();
 alter table public.users add column if not exists updated_at timestamptz not null default now();
@@ -64,6 +65,7 @@ create unique index if not exists idx_users_email_lower_unique on public.users (
 create unique index if not exists idx_users_auth_user_id_unique on public.users (auth_user_id) where auth_user_id is not null;
 create unique index if not exists idx_users_profile_slug_unique on public.users (profile_slug) where profile_slug is not null;
 create index if not exists idx_users_display_name on public.users (display_name);
+create index if not exists idx_users_is_visible on public.users (is_visible);
 
 drop trigger if exists trg_users_updated_at on public.users;
 create trigger trg_users_updated_at
@@ -774,6 +776,22 @@ create table if not exists public.site_notifications (
 
 create index if not exists idx_site_notifications_user_id on public.site_notifications (user_id, created_at desc);
 create index if not exists idx_site_notifications_read_at on public.site_notifications (read_at);
+
+create table if not exists public.community_trip_invites (
+  id uuid primary key default gen_random_uuid(),
+  trip_plan_id uuid not null references public.trip_plans(id) on delete cascade,
+  sender_user_id uuid not null references public.users(id) on delete cascade,
+  receiver_user_id uuid not null references public.users(id) on delete cascade,
+  message_text text,
+  status text not null default 'pending' check (status in ('pending', 'accepted', 'declined')),
+  created_at timestamptz not null default now(),
+  responded_at timestamptz,
+  constraint community_trip_invites_sender_receiver_check check (sender_user_id <> receiver_user_id)
+);
+
+create index if not exists idx_community_trip_invites_receiver_status on public.community_trip_invites (receiver_user_id, status, created_at desc);
+create index if not exists idx_community_trip_invites_sender_created_at on public.community_trip_invites (sender_user_id, created_at desc);
+create index if not exists idx_community_trip_invites_trip_plan_id on public.community_trip_invites (trip_plan_id);
 
 -- APPEND PATCH: weekly digest pipeline
 create table if not exists public.weekly_digests (

@@ -29,6 +29,7 @@ export default async function MyProfilePage() {
               petName: profile.petName || '',
               petNote: profile.petNote || '',
               shareVibe: profile.shareVibe || '',
+              isVisible: profile.isVisible,
             }}
           />
         </div>

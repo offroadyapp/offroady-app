@@ -15,6 +15,7 @@ export type MemberProfile = {
   petName: string | null;
   petNote: string | null;
   shareVibe: string | null;
+  isVisible: boolean;
 };
 
 export function slugifyProfile(value: string) {
@@ -40,6 +41,7 @@ function trailScoutFallback(): MemberProfile {
     petName: trailScoutProfile.petName,
     petNote: trailScoutProfile.petNote,
     shareVibe: trailScoutProfile.shareVibe,
+    isVisible: true,
   };
 }
 
@@ -57,6 +59,7 @@ function mapUser(data: {
   pet_name?: string | null;
   pet_note?: string | null;
   share_vibe?: string | null;
+  is_visible?: boolean | null;
 }): MemberProfile {
   return {
     displayName: data.display_name,
@@ -72,6 +75,7 @@ function mapUser(data: {
     petName: data.pet_name || null,
     petNote: data.pet_note || null,
     shareVibe: data.share_vibe || null,
+    isVisible: data.is_visible ?? true,
   };
 }
 
@@ -91,6 +95,7 @@ function mergeWithTrailScoutFallback(profile: MemberProfile): MemberProfile {
     petName: profile.petName || fallback.petName,
     petNote: profile.petNote || fallback.petNote,
     shareVibe: profile.shareVibe || fallback.shareVibe,
+    isVisible: profile.isVisible,
   };
 }
 

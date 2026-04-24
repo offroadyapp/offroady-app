@@ -14,6 +14,7 @@ export type EditableProfile = {
   petName: string;
   petNote: string;
   shareVibe: string;
+  isVisible: boolean;
 };
 
 type Props = {
@@ -45,6 +46,7 @@ export default function ProfileEditor({ initialProfile, onProfileUpdated }: Prop
   const [petName, setPetName] = useState(initialProfile.petName);
   const [petNote, setPetNote] = useState(initialProfile.petNote);
   const [shareVibe, setShareVibe] = useState(initialProfile.shareVibe);
+  const [isVisible, setIsVisible] = useState(initialProfile.isVisible);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
@@ -63,6 +65,7 @@ export default function ProfileEditor({ initialProfile, onProfileUpdated }: Prop
       petName,
       petNote,
       shareVibe,
+      isVisible,
       ...overrides,
     };
   }
@@ -155,6 +158,7 @@ export default function ProfileEditor({ initialProfile, onProfileUpdated }: Prop
           petName,
           petNote,
           shareVibe,
+          isVisible,
         }),
       });
       const payload = await response.json();
@@ -172,6 +176,7 @@ export default function ProfileEditor({ initialProfile, onProfileUpdated }: Prop
         petName: payload.profile.pet_name || '',
         petNote: payload.profile.pet_note || '',
         shareVibe: payload.profile.share_vibe || '',
+        isVisible: payload.profile.is_visible ?? true,
       };
 
       setAvatarFile(null);
@@ -296,6 +301,21 @@ export default function ProfileEditor({ initialProfile, onProfileUpdated }: Prop
       <input value={petName} onChange={(event) => setPetName(event.target.value)} placeholder="Pet name" className="w-full rounded-lg border border-gray-300 px-4 py-3 outline-none transition focus:border-[#2f5d3a]" />
       <input value={petNote} onChange={(event) => setPetNote(event.target.value)} placeholder="Pet note" className="w-full rounded-lg border border-gray-300 px-4 py-3 outline-none transition focus:border-[#2f5d3a]" />
       <input value={shareVibe} onChange={(event) => setShareVibe(event.target.value)} placeholder="Trail vibe" className="w-full rounded-lg border border-gray-300 px-4 py-3 outline-none transition focus:border-[#2f5d3a]" />
+
+      <div className="rounded-2xl border border-black/8 bg-[#f8faf8] p-4">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+          <div>
+            <div className="font-semibold text-[#243126]">Community visibility</div>
+            <p className="mt-1 text-sm leading-6 text-gray-600">
+              When visible, other members can find and contact you for trips. When hidden, you will not appear in the community and you will not receive new invites.
+            </p>
+          </div>
+          <label className="inline-flex items-center gap-3 rounded-full border border-[#d7e5d9] bg-white px-4 py-2 text-sm font-semibold text-[#243126]">
+            <input type="checkbox" checked={isVisible} onChange={(event) => setIsVisible(event.target.checked)} className="h-4 w-4 rounded border-gray-300 text-[#2f5d3a] focus:ring-[#2f5d3a]" />
+            {isVisible ? 'Visible to community' : 'Hidden from community'}
+          </label>
+        </div>
+      </div>
 
       {activity ? <div className="rounded-lg border border-[#cfe3d3] bg-[#f4faf5] px-3 py-2 text-sm text-[#2f5d3a]">{activity}</div> : null}
       {error ? <div className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">{error}</div> : null}

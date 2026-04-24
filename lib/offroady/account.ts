@@ -474,6 +474,7 @@ export async function updateMemberProfile(
     petName?: string;
     petNote?: string;
     shareVibe?: string;
+    isVisible?: boolean;
   }
 ) {
   const supabase = getServiceSupabase();
@@ -486,6 +487,7 @@ export async function updateMemberProfile(
     pet_name: input.petName?.trim() || null,
     pet_note: input.petNote?.trim() || null,
     share_vibe: input.shareVibe?.trim() || null,
+    is_visible: typeof input.isVisible === 'boolean' ? input.isVisible : true,
     updated_at: new Date().toISOString(),
   };
 
@@ -493,7 +495,7 @@ export async function updateMemberProfile(
     .from('users')
     .update(payload)
     .eq('id', userId)
-    .select('bio, rig_name, rig_mods, experience_since, areas_driven, pet_name, pet_note, share_vibe')
+    .select('bio, rig_name, rig_mods, experience_since, areas_driven, pet_name, pet_note, share_vibe, is_visible')
     .single();
 
   if (error) throw error;

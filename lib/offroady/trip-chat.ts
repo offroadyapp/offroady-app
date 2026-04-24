@@ -19,11 +19,20 @@ export type TripChatMessage = {
   canDelete: boolean;
 };
 
+export type TripChatPreview = {
+  unreadCount: number;
+  latestSenderName: string | null;
+  latestMessageText: string | null;
+  latestIsOwn: boolean;
+  latestCreatedAt: string | null;
+};
+
 export type TripChatAccessState = {
   tripId: string;
   tripTitle: string;
   tripDate: string;
   plannerName: string;
+  participantCount: number;
   viewerRole: 'organizer' | 'participant' | null;
   canAccess: boolean;
   canPost: boolean;
@@ -96,6 +105,20 @@ async function getMembership(tripId: string, userId: string) {
   return (data as MembershipRow | null) ?? null;
 }
 
+async function getTripParticipantCount(tripId: string, organizerId: string) {
+  const supabase = getServiceSupabase();
+  const { data, error } = await supabase
+    .from('trip_memberships')
+    .select('user_id')
+    .eq('trip_plan_id', tripId)
+    .in('status', ['joined', 'approved']);
+
+  if (error) throw error;
+  const participantIds = new Set((data ?? []).map((row) => row.user_id));
+  participantIds.add(organizerId);
+  return participantIds.size;
+}
+
 export async function getTripChatAccessState(tripId: string, viewerId?: string | null): Promise<TripChatAccessState> {
   const trip = await getTripPlan(tripId);
   if (!trip) {
@@ -104,6 +127,7 @@ export async function getTripChatAccessState(tripId: string, viewerId?: string |
       tripTitle: 'Trip Chat',
       tripDate: '',
       plannerName: '',
+      participantCount: 0,
       viewerRole: null,
       canAccess: false,
       canPost: false,
@@ -112,12 +136,15 @@ export async function getTripChatAccessState(tripId: string, viewerId?: string |
     };
   }
 
+  const participantCount = await getTripParticipantCount(tripId, trip.created_by_user_id).catch(() => 0);
+
   if (!viewerId) {
     return {
       tripId,
       tripTitle: trip.trail_title,
       tripDate: trip.date,
       plannerName: trip.share_name,
+      participantCount,
       viewerRole: null,
       canAccess: false,
       canPost: false,
@@ -133,6 +160,7 @@ export async function getTripChatAccessState(tripId: string, viewerId?: string |
       tripTitle: trip.trail_title,
       tripDate: trip.date,
       plannerName: trip.share_name,
+      participantCount,
       viewerRole: 'organizer',
       canAccess: true,
       canPost: !['cancelled', 'completed'].includes(status),
@@ -149,6 +177,7 @@ export async function getTripChatAccessState(tripId: string, viewerId?: string |
     tripTitle: trip.trail_title,
     tripDate: trip.date,
     plannerName: trip.share_name,
+    participantCount,
     viewerRole: active ? membership.role : null,
     canAccess: Boolean(active),
     canPost: Boolean(active) && !['cancelled', 'completed'].includes(status),
@@ -363,36 +392,69 @@ export async function appendTripChatSystemMessage(tripId: string, messageText: s
   if (error && !isMissingTripChatSchemaError(error)) throw error;
 }
 
-export async function getTripChatUnreadCountMap(userId: string, tripIds: string[]) {
+function buildPreview(text: string, maxLength = 72) {
+  const normalized = text.replace(/\s+/g, ' ').trim();
+  if (!normalized) return '';
+  if (normalized.length <= maxLength) return normalized;
+  return `${normalized.slice(0, maxLength - 1).trimEnd()}…`;
+}
+
+export async function getTripChatPreviewMap(userId: string, tripIds: string[]) {
   const uniqueTripIds = [...new Set(tripIds.filter(Boolean))];
-  const counts = new Map<string, number>();
-  for (const tripId of uniqueTripIds) counts.set(tripId, 0);
-  if (!uniqueTripIds.length) return counts;
+  const previews = new Map<string, TripChatPreview>();
+  for (const tripId of uniqueTripIds) {
+    previews.set(tripId, {
+      unreadCount: 0,
+      latestSenderName: null,
+      latestMessageText: null,
+      latestIsOwn: false,
+      latestCreatedAt: null,
+    });
+  }
+  if (!uniqueTripIds.length) return previews;
 
   const supabase = getServiceSupabase();
   const [{ data: reads, error: readsError }, { data: messages, error: messagesError }] = await Promise.all([
     supabase.from('trip_chat_reads').select('trip_id, last_read_at').eq('user_id', userId).in('trip_id', uniqueTripIds),
-    supabase.from('trip_chat_messages').select('trip_id, user_id, created_at, deleted_at').in('trip_id', uniqueTripIds).is('deleted_at', null),
+    supabase.from('trip_chat_messages').select('trip_id, user_id, message_text, created_at, deleted_at, is_system').in('trip_id', uniqueTripIds).is('deleted_at', null),
   ]);
 
   if (readsError || messagesError) {
     if (isMissingTripChatSchemaError(readsError) || isMissingTripChatSchemaError(messagesError)) {
-      return counts;
+      return previews;
     }
     throw readsError || messagesError;
   }
 
   const readMap = new Map((reads ?? []).map((row) => [row.trip_id, row.last_read_at ? new Date(row.last_read_at).getTime() : 0]));
-  for (const row of messages ?? []) {
+  const senderIds = [...new Set((messages ?? []).map((row) => row.user_id).filter((value): value is string => Boolean(value)))];
+  const userMap = await getUserMap(senderIds);
+  const orderedMessages = [...(messages ?? [])].sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
+
+  for (const row of orderedMessages) {
+    if (row.is_system) continue;
+    const summary = previews.get(row.trip_id);
+    if (!summary) continue;
+
+    summary.latestSenderName = row.user_id ? (userMap.get(row.user_id)?.display_name ?? 'Member') : 'Member';
+    summary.latestMessageText = buildPreview(row.message_text);
+    summary.latestIsOwn = row.user_id === userId;
+    summary.latestCreatedAt = row.created_at;
+
     if (row.user_id === userId) continue;
     const lastReadAt = readMap.get(row.trip_id) ?? 0;
     const createdAt = new Date(row.created_at).getTime();
     if (createdAt > lastReadAt) {
-      counts.set(row.trip_id, (counts.get(row.trip_id) ?? 0) + 1);
+      summary.unreadCount += 1;
     }
   }
 
-  return counts;
+  return previews;
+}
+
+export async function getTripChatUnreadCountMap(userId: string, tripIds: string[]) {
+  const previews = await getTripChatPreviewMap(userId, tripIds);
+  return new Map([...previews.entries()].map(([tripId, summary]) => [tripId, summary.unreadCount]));
 }
 
 export async function getTripChatAccessMap(userId: string, tripIds: string[]) {
@@ -419,11 +481,26 @@ export async function getTripChatAccessMap(userId: string, tripIds: string[]) {
 
 export async function getTripChatEntryState(tripId: string, userId?: string | null) {
   const access = await getTripChatAccessState(tripId, userId);
-  const unreadCount = userId && access.canAccess ? (await getTripChatUnreadCountMap(userId, [tripId])).get(tripId) ?? 0 : 0;
+  const preview = userId && access.canAccess
+    ? (await getTripChatPreviewMap(userId, [tripId])).get(tripId) ?? {
+      unreadCount: 0,
+      latestSenderName: null,
+      latestMessageText: null,
+      latestIsOwn: false,
+      latestCreatedAt: null,
+    }
+    : {
+      unreadCount: 0,
+      latestSenderName: null,
+      latestMessageText: null,
+      latestIsOwn: false,
+      latestCreatedAt: null,
+    };
   return {
     canAccess: access.canAccess,
     canPost: access.canPost,
-    unreadCount,
+    unreadCount: preview.unreadCount,
+    preview,
     href: `/trips/${tripId}/chat`,
     status: access.status,
   };

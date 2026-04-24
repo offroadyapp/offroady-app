@@ -3,14 +3,14 @@ import PageShell from '@/app/components/PageShell';
 import TripsDashboard from '@/app/components/TripsDashboard';
 import { getSessionUser } from '@/lib/offroady/auth';
 import { getAccountOverview } from '@/lib/offroady/account';
-import { getTripChatUnreadCountMap } from '@/lib/offroady/trip-chat';
+import { getTripChatPreviewMap } from '@/lib/offroady/trip-chat';
 
 export default async function MyTripsPage() {
   const user = await getSessionUser();
   if (!user) redirect('/#member-access');
 
   const overview = await getAccountOverview(user.id);
-  const tripChatUnread = await getTripChatUnreadCountMap(user.id, overview.trips.map((trip) => trip.id)).catch(() => new Map());
+  const tripChatPreview = await getTripChatPreviewMap(user.id, overview.trips.map((trip) => trip.id)).catch(() => new Map());
 
   return (
     <PageShell>
@@ -20,7 +20,7 @@ export default async function MyTripsPage() {
           <h1 className="mt-2 text-3xl font-bold text-[#243126]">Your trip activity</h1>
           <div className="mt-6">
             {overview.trips.length ? (
-              <TripsDashboard trips={overview.trips} chatUnreadByTripId={Object.fromEntries(tripChatUnread.entries())} />
+              <TripsDashboard trips={overview.trips} chatPreviewByTripId={Object.fromEntries(tripChatPreview.entries())} />
             ) : (
               <div className="rounded-2xl bg-[#f7faf6] p-5 text-sm leading-7 text-gray-600">
                 You have not joined any trips yet. Pick a trail and jump in when something looks fun.

@@ -18,8 +18,19 @@ type Props = {
     href: string;
     canAccess: boolean;
     unreadCount: number;
+    preview?: {
+      latestSenderName: string | null;
+      latestMessageText: string | null;
+    };
   };
 };
+
+function renderChatLine(preview?: { unreadCount: number; latestSenderName: string | null; latestMessageText: string | null }) {
+  if (!preview?.latestMessageText) return 'Use this chat to coordinate timing, meeting point, and updates.';
+  const sender = preview.latestSenderName || 'Member';
+  if (preview.unreadCount > 0) return `${preview.unreadCount} unread · ${sender}: ${preview.latestMessageText}`;
+  return `Latest · ${sender}: ${preview.latestMessageText}`;
+}
 
 export default function TripDetailActions({ tripId, viewerSignedIn, isJoined, viewerRole, canLeave, shareTrip, tripChat }: Props) {
   const router = useRouter();
@@ -98,6 +109,7 @@ export default function TripDetailActions({ tripId, viewerSignedIn, isJoined, vi
                 <p className="text-sm font-semibold uppercase tracking-[0.16em] text-[#5d7d61]">Trip Chat</p>
                 <h3 className="mt-2 text-xl font-bold text-[#243126]">Coordinate timing, meeting point, trail conditions, and updates.</h3>
                 <p className="mt-3 text-sm leading-6 text-gray-600">Chat with everyone in this trip to coordinate trip planning, scheduling, meeting point details, and last-minute changes.</p>
+                <p className="mt-3 line-clamp-1 text-xs text-gray-500">{renderChatLine({ unreadCount: tripChat.unreadCount, latestSenderName: tripChat.preview?.latestSenderName ?? null, latestMessageText: tripChat.preview?.latestMessageText ?? null })}</p>
               </div>
               {tripChat.canAccess ? (
                 <div className="inline-flex items-center gap-2 rounded-full bg-[#eef5ee] px-3 py-1 text-xs font-semibold text-[#2f5d3a]">

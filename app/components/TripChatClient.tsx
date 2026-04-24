@@ -24,6 +24,12 @@ function formatTime(value: string) {
   });
 }
 
+function viewerRoleLabel(role: TripChatAccessState['viewerRole']) {
+  if (role === 'organizer') return 'You are the organizer';
+  if (role === 'participant') return 'You joined this trip';
+  return 'Trip chat';
+}
+
 export default function TripChatClient({ tripId, initialAccess, initialMessages }: Props) {
   const [access, setAccess] = useState(initialAccess);
   const [messages, setMessages] = useState(initialMessages);
@@ -130,7 +136,7 @@ export default function TripChatClient({ tripId, initialAccess, initialMessages 
 
   return (
     <div className="rounded-3xl border border-black/8 bg-white shadow-sm">
-      <div className="border-b border-black/8 px-6 py-5 sm:px-8">
+      <div className="border-b border-black/8 bg-[linear-gradient(180deg,#f7faf6_0%,#ffffff_100%)] px-6 py-5 sm:px-8">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
             <p className="text-sm font-semibold uppercase tracking-[0.16em] text-[#5d7d61]">Trip Chat</p>
@@ -139,14 +145,26 @@ export default function TripChatClient({ tripId, initialAccess, initialMessages 
               Chat with everyone in this trip to coordinate timing, meeting point, trail conditions, and last-minute updates.
             </p>
           </div>
-          <div className="inline-flex items-center rounded-full bg-[#eef5ee] px-3 py-1 text-xs font-semibold uppercase tracking-[0.12em] text-[#2f5d3a]">
-            {access.status}
+          <div className="flex flex-wrap items-center gap-2">
+            <div className="inline-flex items-center rounded-full bg-[#eef5ee] px-3 py-1 text-xs font-semibold uppercase tracking-[0.12em] text-[#2f5d3a]">
+              {access.status}
+            </div>
+            <Link href={`/trips/${tripId}`} className="inline-flex items-center rounded-full border border-[#d7e4d7] bg-white px-3 py-1 text-xs font-semibold text-[#2f5d3a] transition hover:bg-[#eef5ee]">
+              Back to trip
+            </Link>
           </div>
         </div>
-        <div className="mt-4 flex flex-wrap gap-3 text-sm text-gray-500">
-          <span>{access.tripDate}</span>
-          <span>Planner: {access.plannerName}</span>
-          <span>{messages.length} message{messages.length === 1 ? '' : 's'}</span>
+        <div className="mt-4 grid gap-3 md:grid-cols-[1.4fr_1fr]">
+          <div className="rounded-2xl border border-[#dfe9df] bg-white/90 px-4 py-3">
+            <div className="flex flex-wrap gap-x-4 gap-y-2 text-sm text-gray-600">
+              <span><span className="font-semibold text-[#243126]">Planned:</span> {access.tripDate}</span>
+              <span><span className="font-semibold text-[#243126]">Participants:</span> {access.participantCount}</span>
+              <span><span className="font-semibold text-[#243126]">Planner:</span> {access.plannerName}</span>
+            </div>
+          </div>
+          <div className="rounded-2xl bg-[#eef5ee] px-4 py-3 text-sm font-semibold text-[#2f5d3a]">
+            {viewerRoleLabel(access.viewerRole)}
+          </div>
         </div>
       </div>
 
@@ -181,6 +199,7 @@ export default function TripChatClient({ tripId, initialAccess, initialMessages 
           <div className="rounded-2xl bg-white p-6 text-center text-sm leading-6 text-gray-600 shadow-sm">
             <div className="text-base font-semibold text-[#243126]">No messages yet</div>
             <p className="mt-2">Be the first to confirm timing, meetup details, trail conditions, or what to bring.</p>
+            <p className="mt-2 text-xs text-gray-500">Use this chat to coordinate timing, meeting point, and updates.</p>
           </div>
         )}
       </div>
@@ -216,6 +235,11 @@ export default function TripChatClient({ tripId, initialAccess, initialMessages 
           </form>
         )}
         {error ? <div className="mt-3 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</div> : null}
+        {messages.length > 0 && messages.length < 3 ? (
+          <div className="mt-3 rounded-xl bg-[#f7faf6] px-4 py-3 text-xs text-gray-600">
+            Use this chat to coordinate timing, meeting point, and updates.
+          </div>
+        ) : null}
         <div className="mt-3 text-xs text-gray-500">
           Only the trip planner and joined participants can read this chat. <Link href={`/trips/${tripId}`} className="font-medium text-[#2f5d3a]">Back to trip details</Link>
         </div>

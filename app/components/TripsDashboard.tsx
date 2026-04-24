@@ -4,13 +4,23 @@ import Link from 'next/link';
 import FavoriteToggleButton from './FavoriteToggleButton';
 import LeaveActionButton from './LeaveActionButton';
 import type { TripMembershipSummary } from '@/lib/offroady/account';
+import type { TripChatPreview } from '@/lib/offroady/trip-chat';
 
 type Props = {
   trips: TripMembershipSummary[];
-  chatUnreadByTripId?: Record<string, number>;
+  chatPreviewByTripId?: Record<string, TripChatPreview>;
 };
 
-export default function TripsDashboard({ trips, chatUnreadByTripId = {} }: Props) {
+function renderChatLine(preview?: TripChatPreview) {
+  if (!preview?.latestMessageText) return 'Chat ready';
+  const sender = preview.latestSenderName || 'Member';
+  if (preview.unreadCount > 0) {
+    return `${preview.unreadCount} unread · ${sender}: ${preview.latestMessageText}`;
+  }
+  return `Latest · ${sender}: ${preview.latestMessageText}`;
+}
+
+export default function TripsDashboard({ trips, chatPreviewByTripId = {} }: Props) {
   return (
     <div className="space-y-4">
       {trips.map((trip) => (
@@ -23,16 +33,21 @@ export default function TripsDashboard({ trips, chatUnreadByTripId = {} }: Props
               {trip.tripNote ? <p className="mt-3 text-sm leading-6 text-gray-600">{trip.tripNote}</p> : null}
             </div>
             <div className="flex flex-col items-end gap-3">
-              <Link href={`/trips/${trip.id}/chat`} className="inline-flex items-center gap-2 rounded-lg border border-[#2f5d3a]/20 bg-white px-4 py-2 text-sm font-semibold text-[#243126] transition hover:bg-[#eef5ee]">
-                <span>Open Chat</span>
-                {(chatUnreadByTripId[trip.id] ?? 0) > 0 ? (
-                  <span className="inline-flex items-center gap-1 rounded-full bg-[#2f5d3a] px-2 py-0.5 text-xs font-bold text-white">
-                    <span className="h-2 w-2 rounded-full bg-white" />
-                    {chatUnreadByTripId[trip.id]} unread
-                  </span>
-                ) : (
-                  <span className="rounded-full bg-[#eef5ee] px-2 py-0.5 text-xs font-bold text-[#2f5d3a]">Chat ready</span>
-                )}
+              <Link href={`/trips/${trip.id}/chat`} className="max-w-[320px] rounded-xl border border-[#2f5d3a]/20 bg-white px-4 py-3 text-left transition hover:bg-[#eef5ee]">
+                <div className="flex items-center gap-2 text-sm font-semibold text-[#243126]">
+                  <span>Open Chat</span>
+                  {(chatPreviewByTripId[trip.id]?.unreadCount ?? 0) > 0 ? (
+                    <span className="inline-flex items-center gap-1 rounded-full bg-[#2f5d3a] px-2 py-0.5 text-xs font-bold text-white">
+                      <span className="h-2 w-2 rounded-full bg-white" />
+                      {chatPreviewByTripId[trip.id]?.unreadCount} unread
+                    </span>
+                  ) : (
+                    <span className="rounded-full bg-[#eef5ee] px-2 py-0.5 text-xs font-bold text-[#2f5d3a]">Chat ready</span>
+                  )}
+                </div>
+                <div className="mt-2 line-clamp-1 text-xs text-gray-600">
+                  {renderChatLine(chatPreviewByTripId[trip.id])}
+                </div>
               </Link>
               <FavoriteToggleButton apiPath={`/api/trips/${trip.id}/favorite`} initialFavorite={trip.isFavorite} refreshOnSuccess={true} />
               {trip.canLeave ? (

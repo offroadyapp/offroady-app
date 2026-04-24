@@ -12,7 +12,14 @@ export default async function TripDetailPage({ params }: { params: Promise<{ tri
   const viewer = await getSessionUser();
   const trip = await getTripDetail(tripId, viewer?.id);
   if (!trip) notFound();
-  const chat = await getTripChatEntryState(tripId, viewer?.id).catch(() => ({ canAccess: false, canPost: false, unreadCount: 0, href: `/trips/${tripId}/chat`, status: trip.status }));
+  const chat = await getTripChatEntryState(tripId, viewer?.id).catch(() => ({
+    canAccess: false,
+    canPost: false,
+    unreadCount: 0,
+    preview: { latestSenderName: null, latestMessageText: null, latestIsOwn: false, latestCreatedAt: null },
+    href: `/trips/${tripId}/chat`,
+    status: trip.status,
+  }));
 
   return (
     <PageShell>
@@ -70,6 +77,7 @@ export default async function TripDetailPage({ params }: { params: Promise<{ tri
               href: chat.href,
               canAccess: chat.canAccess,
               unreadCount: chat.unreadCount,
+              preview: chat.preview,
             }}
           />
         </div>

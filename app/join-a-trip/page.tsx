@@ -14,10 +14,10 @@ function formatTripDate(value: string) {
 }
 
 function renderChatLine(preview?: { unreadCount: number; latestSenderName: string | null; latestMessageText: string | null }) {
-  if (!preview?.latestMessageText) return 'Chat ready';
+  if (!preview?.latestMessageText) return 'Quiet for now';
   const sender = preview.latestSenderName || 'Member';
   if (preview.unreadCount > 0) return `${preview.unreadCount} unread · ${sender}: ${preview.latestMessageText}`;
-  return `Latest · ${sender}: ${preview.latestMessageText}`;
+  return `Latest note · ${sender}: ${preview.latestMessageText}`;
 }
 
 export const dynamic = 'force-dynamic';

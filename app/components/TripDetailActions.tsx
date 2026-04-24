@@ -26,10 +26,10 @@ type Props = {
 };
 
 function renderChatLine(preview?: { unreadCount: number; latestSenderName: string | null; latestMessageText: string | null }) {
-  if (!preview?.latestMessageText) return 'Use this chat to coordinate timing, meeting point, and updates.';
+  if (!preview?.latestMessageText) return 'Use this chat to sort timing, meetup details, and trail updates.';
   const sender = preview.latestSenderName || 'Member';
   if (preview.unreadCount > 0) return `${preview.unreadCount} unread · ${sender}: ${preview.latestMessageText}`;
-  return `Latest · ${sender}: ${preview.latestMessageText}`;
+  return `Latest note · ${sender}: ${preview.latestMessageText}`;
 }
 
 export default function TripDetailActions({ tripId, viewerSignedIn, isJoined, viewerRole, canLeave, shareTrip, tripChat }: Props) {
@@ -107,8 +107,8 @@ export default function TripDetailActions({ tripId, viewerSignedIn, isJoined, vi
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div>
                 <p className="text-sm font-semibold uppercase tracking-[0.16em] text-[#5d7d61]">Trip Chat</p>
-                <h3 className="mt-2 text-xl font-bold text-[#243126]">Coordinate timing, meeting point, trail conditions, and updates.</h3>
-                <p className="mt-3 text-sm leading-6 text-gray-600">Chat with everyone in this trip to coordinate trip planning, scheduling, meeting point details, and last-minute changes.</p>
+                <h3 className="mt-2 text-xl font-bold text-[#243126]">Keep the run lined up on timing, meetup details, trail conditions, and updates.</h3>
+                <p className="mt-3 text-sm leading-6 text-gray-600">This is where everyone in the trip can sort the plan, confirm the meetup, and share trail updates before wheels roll.</p>
                 <p className="mt-3 line-clamp-1 text-xs text-gray-500">{renderChatLine({ unreadCount: tripChat.unreadCount, latestSenderName: tripChat.preview?.latestSenderName ?? null, latestMessageText: tripChat.preview?.latestMessageText ?? null })}</p>
               </div>
               {tripChat.canAccess ? (
@@ -156,8 +156,8 @@ export default function TripDetailActions({ tripId, viewerSignedIn, isJoined, vi
           </div>
           <div className="mt-6 rounded-2xl border border-black/8 bg-white p-5">
             <p className="text-sm font-semibold uppercase tracking-[0.16em] text-[#5d7d61]">Trip Chat</p>
-            <h3 className="mt-2 text-xl font-bold text-[#243126]">Coordinate timing, meeting point, trail conditions, and updates.</h3>
-            <p className="mt-3 text-sm leading-6 text-gray-600">Trip Chat is private to the planner and joined participants. Log in, join the trip, and then chat with everyone in the run.</p>
+            <h3 className="mt-2 text-xl font-bold text-[#243126]">Keep the run lined up on timing, meetup details, trail conditions, and updates.</h3>
+            <p className="mt-3 text-sm leading-6 text-gray-600">Trip Chat is private to the planner and joined participants. Log in, join the trip, and then use it to sort the plan with everyone in the run.</p>
             <div className="mt-4">
               <a href="#member-access" className="inline-flex rounded-lg border border-gray-300 px-5 py-3 font-semibold text-gray-800 transition hover:bg-gray-50">
                 Log in to join and chat

@@ -12,12 +12,12 @@ type Props = {
 };
 
 function renderChatLine(preview?: TripChatPreview) {
-  if (!preview?.latestMessageText) return 'Chat ready';
+  if (!preview?.latestMessageText) return 'Quiet for now';
   const sender = preview.latestSenderName || 'Member';
   if (preview.unreadCount > 0) {
     return `${preview.unreadCount} unread · ${sender}: ${preview.latestMessageText}`;
   }
-  return `Latest · ${sender}: ${preview.latestMessageText}`;
+  return `Latest note · ${sender}: ${preview.latestMessageText}`;
 }
 
 export default function TripsDashboard({ trips, chatPreviewByTripId = {} }: Props) {

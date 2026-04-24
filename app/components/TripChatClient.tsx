@@ -142,7 +142,7 @@ export default function TripChatClient({ tripId, initialAccess, initialMessages 
             <p className="text-sm font-semibold uppercase tracking-[0.16em] text-[#5d7d61]">Trip Chat</p>
             <h1 className="mt-2 text-3xl font-bold text-[#243126]">{access.tripTitle}</h1>
             <p className="mt-3 text-sm leading-6 text-gray-600">
-              Chat with everyone in this trip to coordinate timing, meeting point, trail conditions, and last-minute updates.
+              Use this space to line up timing, confirm the meetup, share trail conditions, and keep the run on track.
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-2">
@@ -199,7 +199,7 @@ export default function TripChatClient({ tripId, initialAccess, initialMessages 
           <div className="rounded-2xl bg-white p-6 text-center text-sm leading-6 text-gray-600 shadow-sm">
             <div className="text-base font-semibold text-[#243126]">No messages yet</div>
             <p className="mt-2">Be the first to confirm timing, meetup details, trail conditions, or what to bring.</p>
-            <p className="mt-2 text-xs text-gray-500">Use this chat to coordinate timing, meeting point, and updates.</p>
+            <p className="mt-2 text-xs text-gray-500">Use this chat to sort timing, the meetup spot, and trail updates.</p>
           </div>
         )}
       </div>
@@ -237,7 +237,7 @@ export default function TripChatClient({ tripId, initialAccess, initialMessages 
         {error ? <div className="mt-3 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</div> : null}
         {messages.length > 0 && messages.length < 3 ? (
           <div className="mt-3 rounded-xl bg-[#f7faf6] px-4 py-3 text-xs text-gray-600">
-            Use this chat to coordinate timing, meeting point, and updates.
+            Use this chat to sort timing, the meetup spot, and updates before the run.
           </div>
         ) : null}
         <div className="mt-3 text-xs text-gray-500">

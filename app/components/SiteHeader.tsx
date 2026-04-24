@@ -15,48 +15,41 @@ const navItems = [
   { href: '/about', label: 'About' },
 ];
 
-const proposeTrailHref = '/propose-a-trail';
-const joinTripHref = '/join-a-trip';
-
 export default function SiteHeader({ viewer }: Props) {
   return (
     <header className="sticky top-0 z-30 border-b border-black/10 bg-white/95 backdrop-blur">
-      <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
-        <Link href="/" className="flex items-center gap-3">
-          <img
-            src="/icon.png"
-            alt="Offroady logo"
-            className="h-11 w-11 rounded-xl object-cover shadow-sm"
-          />
-          <div>
-            <div className="flex items-baseline gap-2">
-              <div className="text-lg font-bold tracking-tight text-[#243126]">Offroady</div>
-              <div className="text-sm font-semibold text-[#2f5d3a]">越野搭子</div>
+      <div className="mx-auto max-w-7xl px-4 py-4 sm:px-6 lg:px-8">
+        <div className="flex items-start justify-between gap-4">
+          <Link href="/" className="flex min-w-0 items-center gap-3">
+            <img
+              src="/icon.png"
+              alt="Offroady logo"
+              className="h-11 w-11 rounded-xl object-cover shadow-sm"
+            />
+            <div className="min-w-0">
+              <div className="flex items-baseline gap-2">
+                <div className="text-lg font-bold tracking-tight text-[#243126]">Offroady</div>
+                <div className="text-sm font-semibold text-[#2f5d3a]">越野搭子</div>
+              </div>
+              <div className="truncate text-xs text-gray-500">Trail-based off-road community in BC</div>
             </div>
-            <div className="text-xs text-gray-500">Trail-based off-road community in BC</div>
-          </div>
-        </Link>
-        <div className="flex items-center gap-4">
-          <nav className="hidden items-center gap-6 text-sm text-gray-600 md:flex">
-            {navItems.map((item) => (
-              <Link key={item.href} href={item.href} className="transition hover:text-[#2f5d3a]">
-                {item.label}
-              </Link>
-            ))}
-            <Link href={proposeTrailHref} className="rounded-full border border-[#2f5d3a]/20 bg-[#eef5ee] px-4 py-2 font-semibold text-[#2f5d3a] transition hover:bg-[#e3efe4]">
-              Propose a Trail
-            </Link>
-          </nav>
-          <div className="flex items-center gap-3">
-            <Link href={joinTripHref} className="inline-flex rounded-full border border-[#2f5d3a]/20 bg-white px-4 py-2 text-sm font-semibold text-[#2f5d3a] transition hover:bg-[#eef5ee] md:hidden">
-              Join a Trip
-            </Link>
-            <Link href={proposeTrailHref} className="inline-flex rounded-full bg-[#2f5d3a] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#264d30] md:hidden">
-              Propose a Trail
-            </Link>
+          </Link>
+          <div className="shrink-0">
             <AuthMenu viewer={viewer} />
           </div>
         </div>
+
+        <nav className="mt-4 flex gap-2 overflow-x-auto pb-1 text-sm text-gray-600 md:mt-3 md:flex-wrap md:gap-6 md:overflow-visible md:pb-0">
+          {navItems.map((item) => (
+            <Link
+              key={item.href}
+              href={item.href}
+              className="whitespace-nowrap rounded-full border border-black/5 bg-white px-3 py-2 transition hover:border-[#2f5d3a]/20 hover:text-[#2f5d3a] md:rounded-none md:border-0 md:bg-transparent md:px-0 md:py-0"
+            >
+              {item.label}
+            </Link>
+          ))}
+        </nav>
       </div>
     </header>
   );

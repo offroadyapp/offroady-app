@@ -7,10 +7,10 @@ type Props = {
 };
 
 const navItems = [
-  { href: '/trail-of-the-week', label: 'Trail of the Week' },
+  { href: '/trail-of-the-week', label: 'Trail of the Week', title: "This week's featured run" },
   { href: '/join-a-trip', label: 'Join a Trip' },
   { href: '/community', label: 'Community' },
-  { href: '/#more-trails', label: 'More Trails' },
+  { href: '/#more-trails', label: 'More Trails', title: 'Browse all trails' },
   { href: '/about', label: 'About' },
 ];
 
@@ -43,6 +43,7 @@ export default function SiteHeader({ viewer }: Props) {
             <Link
               key={item.href}
               href={item.href}
+              title={item.title}
               className="whitespace-nowrap rounded-full border border-black/5 bg-white px-3 py-2 transition hover:border-[#2f5d3a]/20 hover:text-[#2f5d3a] md:rounded-none md:border-0 md:bg-transparent md:px-0 md:py-0"
             >
               {item.label}

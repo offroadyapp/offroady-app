@@ -33,16 +33,25 @@ export default async function WeeklyDigestPage({ params }: { params: Promise<{ s
             <div className="max-w-3xl">
               <div className="flex flex-wrap items-center gap-3">
                 <div className="inline-flex rounded-full border border-white/20 bg-white/10 px-4 py-2 text-sm backdrop-blur">Weekly trail digest</div>
+                <div className="inline-flex rounded-full border border-white/20 bg-white/10 px-4 py-2 text-sm backdrop-blur">Start here</div>
                 <Link href="/#weekly-digest-signup" className="rounded-full border border-white/25 bg-white/10 px-4 py-2 text-sm font-semibold text-white backdrop-blur transition hover:bg-white/20">
                   Subscribe
                 </Link>
               </div>
               <h1 className="mt-5 text-4xl font-bold tracking-tight sm:text-5xl">{digest.headline}</h1>
               <p className="mt-5 text-lg leading-8 text-white/90">{digest.introText}</p>
+              <p className="mt-4 max-w-2xl text-sm leading-6 text-white/80">
+                Trail of the Week is the guided starting point. It gives you one curated run, the current trip context, and the fastest way to get moving this week.
+              </p>
               <div className="mt-6 flex flex-wrap gap-3 text-sm text-white/90">
                 <span className="rounded-full bg-white/10 px-3 py-1 backdrop-blur">Featured trail: {digest.featuredTrail.title}</span>
                 <span className="rounded-full bg-white/10 px-3 py-1 backdrop-blur">Member trips first</span>
                 <span className="rounded-full bg-white/10 px-3 py-1 backdrop-blur">Manual community events</span>
+              </div>
+              <div className="mt-6 flex flex-wrap gap-3">
+                <Link href="/#more-trails" className="rounded-lg border border-white/20 px-4 py-2.5 text-sm font-semibold text-white/90 transition hover:bg-white/10">
+                  Explore more trails
+                </Link>
               </div>
             </div>
           </div>

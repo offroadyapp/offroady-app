@@ -283,9 +283,12 @@ export default function TrailCommunityClient({ trailSlug, trailTitle, initialSna
             <p className="text-sm font-semibold uppercase tracking-[0.16em] text-[#9dc2a2]">
               Offroady MVP
             </p>
-            <h2 className="mt-2 text-2xl font-bold">See more trails, then unlock the rest.</h2>
+            <h2 className="mt-2 text-2xl font-bold">Browse more trails, then unlock the rest.</h2>
             <p className="mt-2 max-w-3xl text-sm leading-6 text-white/80">
-              This section is really about discovering more verified BC trails. Once you sign up or log in, you can open full trail details and use Plan a Trip.
+              This section is for exploring more verified BC trail options at your own pace. Once you sign up or log in, you can open full trail details and use Plan a Trip.
+            </p>
+            <p className="mt-2 text-sm leading-6 text-white/70">
+              Not sure where to start? Check Trail of the Week first, then come back here to explore more options.
             </p>
           </div>
           {!community.dbReady ? (
@@ -306,9 +309,12 @@ export default function TrailCommunityClient({ trailSlug, trailTitle, initialSna
             <p className="text-sm font-semibold uppercase tracking-[0.16em] text-[#5d7d61]">More trails</p>
             <h3 className="mt-2 text-2xl font-bold text-[#243126]">Want to browse beyond this week&apos;s pick?</h3>
             <p className="mt-3 max-w-2xl text-sm leading-6 text-gray-600">
-              Offroady already has {availableTrailCount} BC trail entries in the backend, and more are being added. Full trail content and Plan a Trip are member-only. Sign up or log in to unlock them.
+              Offroady already has {availableTrailCount} BC trail entries in the backend, and more are being added. This is the browse-and-explore side of the product. Full trail content and Plan a Trip are member-only. Sign up or log in to unlock them.
             </p>
-            <p className="mt-3 text-sm leading-6 text-gray-600">Know a good trail? Propose it here.</p>
+            <p className="mt-3 text-sm leading-6 text-gray-600">
+              Not sure where to start? <Link href="/trail-of-the-week" className="font-semibold text-[#2f5d3a] hover:text-[#264d30]">Check Trail of the Week</Link>.
+            </p>
+            <p className="mt-2 text-sm leading-6 text-gray-600">Know a good trail? Propose it here.</p>
           </div>
           <div className="flex flex-wrap gap-3">
             <a

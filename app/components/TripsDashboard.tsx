@@ -11,19 +11,40 @@ type Props = {
   chatPreviewByTripId?: Record<string, TripChatPreview>;
 };
 
+function hoursUntilTrip(value: string) {
+  const tripTime = new Date(`${value}T12:00:00`).getTime();
+  return (tripTime - Date.now()) / (1000 * 60 * 60);
+}
+
+function formatActivityAge(value: string | null) {
+  if (!value) return null;
+  const diffMs = Date.now() - new Date(value).getTime();
+  if (diffMs < 0) return 'just now';
+  const diffHours = Math.round(diffMs / (1000 * 60 * 60));
+  if (diffHours < 1) return 'Last active under 1h ago';
+  if (diffHours < 24) return `Last active ${diffHours}h ago`;
+  const diffDays = Math.round(diffHours / 24);
+  return `Last active ${diffDays}d ago`;
+}
+
 function renderChatLine(preview?: TripChatPreview) {
   if (!preview?.latestMessageText) return 'Quiet for now';
   const sender = preview.latestSenderName || 'Member';
+  const activityAge = preview.unreadCount === 0 ? formatActivityAge(preview.latestCreatedAt) : null;
   if (preview.unreadCount > 0) {
     return `${preview.unreadCount} unread · ${sender}: ${preview.latestMessageText}`;
   }
-  return `Latest note · ${sender}: ${preview.latestMessageText}`;
+  return activityAge
+    ? `Latest note · ${sender}: ${preview.latestMessageText} · ${activityAge}`
+    : `Latest note · ${sender}: ${preview.latestMessageText}`;
 }
 
 export default function TripsDashboard({ trips, chatPreviewByTripId = {} }: Props) {
   return (
     <div className="space-y-4">
-      {trips.map((trip) => (
+      {trips.map((trip) => {
+        const tripSoon = hoursUntilTrip(trip.date) <= 48 && hoursUntilTrip(trip.date) >= 0;
+        return (
         <div key={trip.id} className="rounded-2xl border border-black/8 bg-[#f8faf8] p-5">
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div>
@@ -44,6 +65,7 @@ export default function TripsDashboard({ trips, chatPreviewByTripId = {} }: Prop
                   ) : (
                     <span className="rounded-full bg-[#eef5ee] px-2 py-0.5 text-xs font-bold text-[#2f5d3a]">Chat ready</span>
                   )}
+                  {tripSoon ? <span className="rounded-full bg-[#fff4d6] px-2 py-0.5 text-xs font-bold text-[#8a5a00]">Trip soon</span> : null}
                 </div>
                 <div className="mt-2 line-clamp-1 text-xs text-gray-600">
                   {renderChatLine(chatPreviewByTripId[trip.id])}
@@ -64,7 +86,7 @@ export default function TripsDashboard({ trips, chatPreviewByTripId = {} }: Prop
             </div>
           </div>
         </div>
-      ))}
+      )})}
     </div>
   );
 }

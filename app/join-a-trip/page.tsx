@@ -13,11 +13,28 @@ function formatTripDate(value: string) {
   });
 }
 
-function renderChatLine(preview?: { unreadCount: number; latestSenderName: string | null; latestMessageText: string | null }) {
+function hoursUntilTrip(value: string) {
+  const tripTime = new Date(`${value}T12:00:00`).getTime();
+  return (tripTime - Date.now()) / (1000 * 60 * 60);
+}
+
+function formatActivityAge(value: string | null) {
+  if (!value) return null;
+  const diffMs = Date.now() - new Date(value).getTime();
+  if (diffMs < 0) return 'just now';
+  const diffHours = Math.round(diffMs / (1000 * 60 * 60));
+  if (diffHours < 1) return 'Last active under 1h ago';
+  if (diffHours < 24) return `Last active ${diffHours}h ago`;
+  const diffDays = Math.round(diffHours / 24);
+  return `Last active ${diffDays}d ago`;
+}
+
+function renderChatLine(preview?: { unreadCount: number; latestSenderName: string | null; latestMessageText: string | null; latestCreatedAt?: string | null }) {
   if (!preview?.latestMessageText) return 'Quiet for now';
   const sender = preview.latestSenderName || 'Member';
+  const activityAge = preview.unreadCount === 0 ? formatActivityAge(preview.latestCreatedAt ?? null) : null;
   if (preview.unreadCount > 0) return `${preview.unreadCount} unread · ${sender}: ${preview.latestMessageText}`;
-  return `Latest note · ${sender}: ${preview.latestMessageText}`;
+  return activityAge ? `Latest note · ${sender}: ${preview.latestMessageText} · ${activityAge}` : `Latest note · ${sender}: ${preview.latestMessageText}`;
 }
 
 export const dynamic = 'force-dynamic';
@@ -57,7 +74,9 @@ export default async function JoinATripPage({ searchParams }: { searchParams: Pr
             </div>
 
             <div className="mt-6 space-y-4">
-              {trips.length ? trips.map((trip) => (
+              {trips.length ? trips.map((trip) => {
+                const tripSoon = hoursUntilTrip(trip.date) <= 48 && hoursUntilTrip(trip.date) >= 0;
+                return (
                 <article key={trip.id} className="overflow-hidden rounded-2xl border border-black/8 bg-[#f8faf8] shadow-sm md:grid md:grid-cols-[240px_1fr]">
                   <img src={trip.image} alt={trip.trailTitle} className="h-full min-h-[180px] w-full object-cover" />
                   <div className="p-5">
@@ -91,6 +110,7 @@ export default async function JoinATripPage({ searchParams }: { searchParams: Pr
                             ) : (
                               <span className="rounded-full bg-[#eef5ee] px-2 py-0.5 text-xs font-bold text-[#2f5d3a]">Chat ready</span>
                             )}
+                            {tripSoon ? <span className="rounded-full bg-[#fff4d6] px-2 py-0.5 text-xs font-bold text-[#8a5a00]">Trip soon</span> : null}
                           </div>
                           <div className="mt-2 line-clamp-1 text-xs text-gray-600">
                             {renderChatLine(chatPreview.get(trip.id))}
@@ -121,7 +141,7 @@ export default async function JoinATripPage({ searchParams }: { searchParams: Pr
                     </div>
                   </div>
                 </article>
-              )) : (
+              )}) : (
                 <div className="rounded-2xl bg-[#f8faf8] p-5 text-sm leading-6 text-gray-600">
                   No upcoming trips are posted yet. Check back soon, or be the one who puts the first date on the calendar.
                 </div>

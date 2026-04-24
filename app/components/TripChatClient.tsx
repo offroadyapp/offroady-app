@@ -30,6 +30,12 @@ function viewerRoleLabel(role: TripChatAccessState['viewerRole']) {
   return 'Trip chat';
 }
 
+function hoursUntilTrip(value: string) {
+  const tripTime = new Date(`${value}T12:00:00`).getTime();
+  const diffHours = (tripTime - Date.now()) / (1000 * 60 * 60);
+  return Number.isFinite(diffHours) ? diffHours : Infinity;
+}
+
 export default function TripChatClient({ tripId, initialAccess, initialMessages }: Props) {
   const [access, setAccess] = useState(initialAccess);
   const [messages, setMessages] = useState(initialMessages);
@@ -40,17 +46,39 @@ export default function TripChatClient({ tripId, initialAccess, initialMessages 
   const listRef = useRef<HTMLDivElement | null>(null);
   const inputRef = useRef<HTMLTextAreaElement | null>(null);
   const shouldStickToBottomRef = useRef(true);
+  const [showFirstReplyHint, setShowFirstReplyHint] = useState(false);
   const latestMessageId = useMemo(() => messages[messages.length - 1]?.id ?? null, [messages]);
+  const humanMessages = useMemo(() => messages.filter((message) => !message.isSystem), [messages]);
+  const hasHumanMessages = humanMessages.length > 0;
+  const hasOwnHumanMessage = humanMessages.some((message) => message.isOwn);
+  const tripSoonHours = useMemo(() => hoursUntilTrip(access.tripDate), [access.tripDate]);
+  const tripWithin24Hours = tripSoonHours <= 24 && tripSoonHours >= 0;
 
   useEffect(() => {
     fetch(`/api/trips/${tripId}/chat/read`, { method: 'POST' }).catch(() => null);
   }, [tripId, latestMessageId]);
 
   useEffect(() => {
-    if (access.canPost) {
-      inputRef.current?.focus();
-    }
+    if (!access.canPost || typeof window === 'undefined') return;
+    if (!window.matchMedia('(min-width: 768px)').matches) return;
+    inputRef.current?.focus();
   }, [access.canPost]);
+
+  useEffect(() => {
+    if (!access.canPost || !hasHumanMessages || hasOwnHumanMessage || typeof window === 'undefined') {
+      setShowFirstReplyHint(false);
+      return;
+    }
+
+    const sessionKey = `trip-chat-first-reply-hint:${tripId}`;
+    if (window.sessionStorage.getItem(sessionKey) === 'seen') {
+      setShowFirstReplyHint(false);
+      return;
+    }
+
+    window.sessionStorage.setItem(sessionKey, 'seen');
+    setShowFirstReplyHint(true);
+  }, [access.canPost, hasHumanMessages, hasOwnHumanMessage, tripId]);
 
   useEffect(() => {
     const list = listRef.current;
@@ -166,6 +194,11 @@ export default function TripChatClient({ tripId, initialAccess, initialMessages 
             {viewerRoleLabel(access.viewerRole)}
           </div>
         </div>
+        {tripWithin24Hours ? (
+          <div className="mt-3 rounded-2xl border border-[#dfe9df] bg-[#f3f8f1] px-4 py-3 text-sm text-[#36543d]">
+            Trip is coming up, now is a good time to confirm timing and meetup.
+          </div>
+        ) : null}
       </div>
 
       <div ref={listRef} className="max-h-[60vh] min-h-[360px] space-y-4 overflow-y-auto bg-[#f8faf8] px-4 py-5 scroll-smooth sm:px-6">
@@ -212,6 +245,16 @@ export default function TripChatClient({ tripId, initialAccess, initialMessages 
         ) : (
           <form onSubmit={handleSend} className="flex flex-col gap-3 sm:flex-row sm:items-end">
             <div className="flex-1">
+              {!hasHumanMessages ? (
+                <div className="mb-3 rounded-xl bg-[#f3f8f1] px-4 py-3 text-sm text-[#36543d]">
+                  No one has said anything yet, kick things off. Ask about timing or meetup.
+                </div>
+              ) : null}
+              {showFirstReplyHint ? (
+                <div className="mb-3 rounded-xl bg-[#f7faf6] px-4 py-3 text-xs text-gray-600">
+                  Say hi or confirm your timing so others know you are in.
+                </div>
+              ) : null}
               <label htmlFor="trip-chat-message" className="sr-only">Message</label>
               <textarea
                 id="trip-chat-message"

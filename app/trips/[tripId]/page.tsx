@@ -50,6 +50,22 @@ export default async function TripDetailPage({ params }: { params: Promise<{ tri
             <div>Location: {trip.locationLabel ?? trip.region ?? 'BC'}</div>
           </div>
           {trip.tripNote ? <p className="mt-6 text-sm leading-7 text-gray-700">{trip.tripNote}</p> : null}
+
+          <section className="mt-8 rounded-2xl border border-[#d7e4d7] bg-[#f7faf6] p-5">
+            <h2 className="text-lg font-bold text-[#243126]">Know the risks before you join</h2>
+            <details className="mt-3 group rounded-xl bg-white p-4">
+              <summary className="cursor-pointer list-none font-semibold text-[#2f5d3a] marker:hidden">
+                Read the trip participation and mutual waiver summary
+              </summary>
+              <div className="mt-3 space-y-3 text-sm leading-6 text-gray-700">
+                <p><strong>This is a community trip, not a guided tour.</strong> Everyone joins voluntarily and is responsible for their own safety, vehicle, gear, and decisions.</p>
+                <p>Off-road and outdoor trips come with real risks, including changing weather, rough terrain, vehicle issues, accidents, injury, property loss, and other unexpected problems. By joining, you acknowledge those risks and accept responsibility for your own participation.</p>
+                <p>Trip planners and other participants are fellow community members, not professional guides or safety guarantors. People may choose to help each other in good faith if something goes wrong, but no one is taking legal responsibility for everyone else.</p>
+                <p>By taking part in the trip, you agree that everyone joins at their own risk and releases one another from liability to the fullest extent allowed by law, except where liability cannot legally be excluded.</p>
+              </div>
+            </details>
+          </section>
+
           <div className="mt-8 flex flex-wrap gap-3">
             {viewer ? <FavoriteToggleButton apiPath={`/api/trips/${trip.id}/favorite`} initialFavorite={trip.isFavorite} /> : null}
           </div>

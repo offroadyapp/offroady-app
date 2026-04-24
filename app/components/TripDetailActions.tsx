@@ -1,7 +1,7 @@
 "use client";
 
 import Link from 'next/link';
-import { useState } from 'react';
+import { useId, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import AuthPanel from './AuthPanel';
 import TripShareButton from './TripShareButton';
@@ -34,13 +34,19 @@ function renderChatLine(preview?: { unreadCount: number; latestSenderName: strin
 
 export default function TripDetailActions({ tripId, viewerSignedIn, isJoined, viewerRole, canLeave, shareTrip, tripChat }: Props) {
   const router = useRouter();
+  const waiverCheckboxId = useId();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [waiverAccepted, setWaiverAccepted] = useState(false);
 
   async function handleMembership(action: 'join' | 'leave') {
     setLoading(true);
     setError('');
     try {
+      if (action === 'join' && !waiverAccepted) {
+        throw new Error('Please confirm the trip risk notice before joining.');
+      }
+
       const response = await fetch(`/api/trips/${tripId}/membership`, {
         method: action === 'join' ? 'POST' : 'DELETE',
       });
@@ -89,11 +95,28 @@ export default function TripDetailActions({ tripId, viewerSignedIn, isJoined, vi
               <p className="mt-3 text-sm leading-6 text-gray-600">
                 Join the trip when you are ready. Offroady will add you to the participant list and let the organizer know someone new is in.
               </p>
+              <div className="mt-5 rounded-xl border border-[#d7e4d7] bg-white px-4 py-3 text-sm text-gray-700">
+                <label htmlFor={waiverCheckboxId} className="flex items-start gap-3">
+                  <input
+                    id={waiverCheckboxId}
+                    type="checkbox"
+                    checked={waiverAccepted}
+                    onChange={(event) => setWaiverAccepted(event.target.checked)}
+                    className="mt-1 h-4 w-4 rounded border-gray-300 text-[#2f5d3a] focus:ring-[#2f5d3a]"
+                  />
+                  <span>
+                    I understand this is a voluntary community trip, I join at my own risk, and I agree to the mutual liability waiver above.
+                  </span>
+                </label>
+              </div>
+              <p className="mt-3 text-xs leading-5 text-gray-500">
+                This is a community trip, not a guided tour. Please review the risk summary above before joining.
+              </p>
               <div className="mt-5 flex flex-wrap gap-3">
                 <button
                   type="button"
                   onClick={() => handleMembership('join')}
-                  disabled={loading}
+                  disabled={loading || !waiverAccepted}
                   className="inline-flex rounded-lg bg-[#2f5d3a] px-5 py-3 font-semibold text-white transition hover:bg-[#264d30] disabled:opacity-70"
                 >
                   {loading ? 'Joining...' : 'Join this Trip'}

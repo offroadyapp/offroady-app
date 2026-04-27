@@ -234,5 +234,95 @@
     "sourcePage": "https://ihikebc.com/trips/2014/trip069ChilliwackFoleyForestServiceRoad.htm",
     "sourceImage": "https://ihikebc.com/picsnew/2014/8772-River-View-Chilliwack-Foley-FSR-BC-Canada.JPG",
     "needsBetterSource": false
+  },
+  "lava-ridge-1": {
+    "cardImage": "/images/trails/lava-ridge-1.webp",
+    "imageKind": "region-fallback",
+    "locationContext": "Squamish / Diamond Head",
+    "notes": "Reused an existing local Offroady image from squamish-valley-fsr as a nearby regional fallback for this shortlist candidate; replace later with trail-specific imagery if a better source is cleared.",
+    "sourcePage": "/plan/squamish-valley-fsr",
+    "sourceImage": "/images/trails/squamish-valley-fsr.webp",
+    "needsBetterSource": true
+  },
+  "empire-mills": {
+    "cardImage": "/images/trails/empire-mills.webp",
+    "imageKind": "region-fallback",
+    "locationContext": "Squamish / Diamond Head",
+    "notes": "Reused an existing local Offroady image from indian-river-fsr-turnoff-from-mamquam as a nearby regional fallback for this shortlist candidate; replace later with trail-specific imagery if a better source is cleared.",
+    "sourcePage": "/plan/indian-river-fsr-turnoff-from-mamquam",
+    "sourceImage": "/images/trails/indian-river-fsr-turnoff-from-mamquam.webp",
+    "needsBetterSource": true
+  },
+  "marionette": {
+    "cardImage": "/images/trails/marionette.webp",
+    "imageKind": "region-fallback",
+    "locationContext": "Squamish / Diamond Head",
+    "notes": "Reused an existing local Offroady image from mamquam-river-fsr as a nearby regional fallback for this shortlist candidate; replace later with trail-specific imagery if a better source is cleared.",
+    "sourcePage": "/plan/mamquam-river-fsr",
+    "sourceImage": "/images/trails/mamquam-river-fsr.webp",
+    "needsBetterSource": true
+  },
+  "ring-creek-ridge": {
+    "cardImage": "/images/trails/ring-creek-ridge.webp",
+    "imageKind": "region-fallback",
+    "locationContext": "Squamish / Diamond Head",
+    "notes": "Reused an existing local Offroady image from ashlu-river-fsr as a nearby regional fallback for this shortlist candidate; replace later with trail-specific imagery if a better source is cleared.",
+    "sourcePage": "/plan/ashlu-river-fsr",
+    "sourceImage": "/images/trails/ashlu-river-fsr.webp",
+    "needsBetterSource": true
+  },
+  "holiday-hill": {
+    "cardImage": "/images/trails/holiday-hill.webp",
+    "imageKind": "region-fallback",
+    "locationContext": "Squamish / Brohm Ridge",
+    "notes": "Reused an existing local Offroady image from squamish-valley-fsr as a nearby regional fallback for this shortlist candidate; replace later with trail-specific imagery if a better source is cleared.",
+    "sourcePage": "/plan/squamish-valley-fsr",
+    "sourceImage": "/images/trails/squamish-valley-fsr.webp",
+    "needsBetterSource": true
+  },
+  "come-as-you-are": {
+    "cardImage": "/images/trails/come-as-you-are.webp",
+    "imageKind": "region-fallback",
+    "locationContext": "Squamish / Brohm Ridge",
+    "notes": "Reused an existing local Offroady image from ashlu-river-fsr as a nearby regional fallback for this shortlist candidate; replace later with trail-specific imagery if a better source is cleared.",
+    "sourcePage": "/plan/ashlu-river-fsr",
+    "sourceImage": "/images/trails/ashlu-river-fsr.webp",
+    "needsBetterSource": true
+  },
+  "fern-turns": {
+    "cardImage": "/images/trails/fern-turns.webp",
+    "imageKind": "region-fallback",
+    "locationContext": "Squamish / Brohm Ridge",
+    "notes": "Reused an existing local Offroady image from indian-river-fsr-turnoff-from-mamquam as a nearby regional fallback for this shortlist candidate; replace later with trail-specific imagery if a better source is cleared.",
+    "sourcePage": "/plan/indian-river-fsr-turnoff-from-mamquam",
+    "sourceImage": "/images/trails/indian-river-fsr-turnoff-from-mamquam.webp",
+    "needsBetterSource": true
+  },
+  "ground-control": {
+    "cardImage": "/images/trails/ground-control.webp",
+    "imageKind": "region-fallback",
+    "locationContext": "Pemberton / Green River",
+    "notes": "Reused an existing local Offroady image from owl-creek-fsr as a nearby regional fallback for this shortlist candidate; replace later with trail-specific imagery if a better source is cleared.",
+    "sourcePage": "/plan/owl-creek-fsr",
+    "sourceImage": "/images/trails/owl-creek-fsr.webp",
+    "needsBetterSource": true
+  },
+  "institutionalized": {
+    "cardImage": "/images/trails/institutionalized.webp",
+    "imageKind": "region-fallback",
+    "locationContext": "Pemberton / Green River",
+    "notes": "Reused an existing local Offroady image from owl-creek-fsr as a nearby regional fallback for this shortlist candidate; replace later with trail-specific imagery if a better source is cleared.",
+    "sourcePage": "/plan/owl-creek-fsr",
+    "sourceImage": "/images/trails/owl-creek-fsr.webp",
+    "needsBetterSource": true
+  },
+  "lost-airplane-ridge": {
+    "cardImage": "/images/trails/lost-airplane-ridge.webp",
+    "imageKind": "region-fallback",
+    "locationContext": "Duffey / Seton area",
+    "notes": "Reused an existing local Offroady image from nahatlatch-fsr as a nearby regional fallback for this shortlist candidate; replace later with trail-specific imagery if a better source is cleared.",
+    "sourcePage": "/plan/nahatlatch-fsr",
+    "sourceImage": "/images/trails/nahatlatch-fsr.webp",
+    "needsBetterSource": true
   }
 }

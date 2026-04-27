@@ -22,6 +22,8 @@ type Props = {
     best_for: string[];
     vehicle_recommendation: string;
     route_condition_note: string;
+    latitude?: number | null;
+    longitude?: number | null;
     technical_rating?: number | null;
     distance_miles?: number | null;
   };
@@ -67,6 +69,9 @@ export default function TrailDetailActions({
 
   const shareUrl = useMemo(() => pageUrl || `/plan/${trail.slug}`, [pageUrl, trail.slug]);
   const sharePack = useMemo(() => buildTrailSharePack({ trail, trailUrl: shareUrl, hasUpcomingTrip }), [trail, shareUrl, hasUpcomingTrip]);
+  const googleMapsUrl = trail.latitude != null && trail.longitude != null
+    ? `https://www.google.com/maps?q=${trail.latitude},${trail.longitude}`
+    : null;
 
   function getCurrentUrl() {
     if (typeof window !== 'undefined' && window.location.href) return window.location.href;
@@ -179,6 +184,17 @@ export default function TrailDetailActions({
             >
               Plan Another Trip
             </Link>
+          ) : null}
+
+          {googleMapsUrl ? (
+            <a
+              href={googleMapsUrl}
+              target="_blank"
+              rel="noreferrer"
+              className={`inline-flex rounded-lg px-5 py-3 text-sm font-semibold transition ${compact ? 'border border-gray-300 text-gray-800 hover:bg-gray-50' : 'border border-white/30 bg-white/5 text-white hover:bg-white/10'}`}
+            >
+              Show on Map
+            </a>
           ) : null}
 
           <button

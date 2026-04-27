@@ -191,7 +191,7 @@ export default function TrailDetailActions({
               href={googleMapsUrl}
               target="_blank"
               rel="noreferrer"
-              className={`inline-flex rounded-lg px-5 py-3 text-sm font-semibold transition ${compact ? 'border border-gray-300 text-gray-800 hover:bg-gray-50' : 'border border-white/30 bg-white/5 text-white hover:bg-white/10'}`}
+              className={`inline-flex rounded-lg px-5 py-3 text-sm font-semibold transition ${compact ? 'border border-amber-300 text-amber-700 hover:bg-amber-50' : 'border border-amber-300/70 bg-amber-400/15 text-amber-200 hover:bg-amber-400/25'}`}
             >
               Show on Map
             </a>

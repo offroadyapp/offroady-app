@@ -98,6 +98,24 @@ export default function TrailCommunityClient({ trailSlug, trailTitle, initialSna
     () => community.participants.map((participant) => participant.displayName).join(' · '),
     [community.participants]
   );
+  const trailSections = useMemo(() => {
+    const grouped = new Map<string, LocalTrail[]>();
+
+    for (const item of moreTrails) {
+      const regionLabel = item.region?.trim() || 'Other BC trails';
+      const current = grouped.get(regionLabel) ?? [];
+      current.push(item);
+      grouped.set(regionLabel, current);
+    }
+
+    return Array.from(grouped.entries())
+      .map(([region, trails]) => ({
+        region,
+        trails: [...trails].sort((a, b) => a.title.localeCompare(b.title)),
+      }))
+      .sort((a, b) => a.region.localeCompare(b.region));
+  }, [moreTrails]);
+  const availableRegionCount = trailSections.length;
   const hasPlannedTrips = community.trips.length > 0;
   const leavingTrip = community.trips.find((trip) => trip.id === tripToLeave) || null;
   const leavingCrew = community.crews.find((crew) => crew.id === crewToLeave) || null;
@@ -324,9 +342,9 @@ export default function TrailCommunityClient({ trailSlug, trailTitle, initialSna
         <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div>
             <p className="text-sm font-semibold uppercase tracking-[0.16em] text-[#5d7d61]">More trails</p>
-            <h3 className="mt-2 text-2xl font-bold text-[#243126]">Want to browse beyond this week&apos;s pick?</h3>
+            <h3 className="mt-2 text-2xl font-bold text-[#243126]">Browse trails by region.</h3>
             <p className="mt-3 max-w-2xl text-sm leading-6 text-gray-600">
-              Offroady already has {availableTrailCount} BC trail entries in the backend, and more are being added. This is the browse-and-explore side of the product. Full trail content and Plan a Trip are member-only. Sign up or log in to unlock them.
+              Offroady currently has {availableTrailCount} BC trail entries across {availableRegionCount} regions. Browse by region below, then open a trail when you are ready to plan a run.
             </p>
             <p className="mt-3 text-sm leading-6 text-gray-600">
               Not sure where to start? <Link href="/trail-of-the-week" className="font-semibold text-[#2f5d3a] hover:text-[#264d30]">Check Trail of the Week</Link>.
@@ -355,63 +373,88 @@ export default function TrailCommunityClient({ trailSlug, trailTitle, initialSna
           </div>
         </div>
 
-        <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-          {moreTrails.map((item) => {
-            const upcomingTrips = tripCountsBySlug[item.slug] ?? 0;
-            return (
-            <article key={item.slug} className="overflow-hidden rounded-2xl border border-black/8 bg-[#f8faf8] shadow-sm">
-              <div className="relative">
-                <img src={item.card_image} alt={item.title} className={`h-48 w-full object-cover ${hasUnlockedTrails ? '' : 'blur-[2px]'}`} />
-                {!hasUnlockedTrails ? (
-                  <div className="absolute inset-0 flex items-center justify-center bg-black/35">
-                    <div className="rounded-full bg-white px-4 py-2 text-sm font-semibold text-[#243126]">Sign up or log in to unlock</div>
-                  </div>
-                ) : null}
-              </div>
-              <div className="p-4">
-                <div className="flex items-start justify-between gap-3">
-                  <h4 className="text-lg font-bold text-[#243126]">{item.title}</h4>
-                  {item.region ? (
-                    <span className="rounded-full bg-white px-2.5 py-1 text-xs text-gray-500">{item.region}</span>
-                  ) : null}
-                </div>
-                <p className="mt-3 text-sm leading-6 text-gray-600">
-                  {hasUnlockedTrails ? item.card_blurb : 'Trail details and trip planning unlock after you create an account or log in.'}
-                </p>
-                <div className="mt-3 flex flex-wrap gap-2 text-xs text-gray-500">
-                  <span className="rounded-full bg-white px-2.5 py-1 capitalize">{item.difficulty}</span>
-                  {item.best_for.slice(0, 2).map((tag) => (
-                    <span key={tag} className="rounded-full bg-white px-2.5 py-1">{tag}</span>
-                  ))}
-                  <span className="rounded-full bg-[#eef5ee] px-2.5 py-1 font-semibold text-[#2f5d3a]">
-                    {upcomingTrips ? `${upcomingTrips} planned trip${upcomingTrips === 1 ? '' : 's'}` : 'No trips yet, start one'}
-                  </span>
-                </div>
-                <div className="mt-4 flex flex-wrap gap-3">
-                  <a
-                    href={`/plan/${item.slug}`}
-                    className="inline-flex rounded-lg border border-gray-300 px-4 py-2.5 text-sm font-semibold text-gray-800 transition hover:bg-gray-50"
-                  >
-                    View Details
-                  </a>
-                  <a
-                    href={upcomingTrips ? `/join-a-trip?trail=${encodeURIComponent(item.slug)}` : (hasUnlockedTrails ? `/plan/${item.slug}` : '/#member-access')}
-                    className="inline-flex rounded-lg bg-[#2f5d3a] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#264d30]"
-                  >
-                    {upcomingTrips ? 'Join Trip' : (hasUnlockedTrails ? 'Plan a Trip' : 'Sign up or log in to plan')}
-                  </a>
-                  {upcomingTrips ? (
-                    <a
-                      href={hasUnlockedTrails ? `/plan/${item.slug}` : '/#member-access'}
-                      className="inline-flex rounded-lg border border-gray-300 px-4 py-2.5 text-sm font-semibold text-gray-800 transition hover:bg-gray-50"
-                    >
-                      {hasUnlockedTrails ? 'Plan Another Trip' : 'Log in to plan another'}
-                    </a>
-                  ) : null}
+        <div className="mt-6 flex flex-wrap gap-2">
+          {trailSections.map((section) => (
+            <a
+              key={section.region}
+              href={`#region-${section.region.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`}
+              className="rounded-full bg-[#eef5ee] px-3 py-1.5 text-xs font-semibold text-[#2f5d3a] transition hover:bg-[#e2eee3]"
+            >
+              {section.region} · {section.trails.length}
+            </a>
+          ))}
+        </div>
+
+        <div className="mt-8 space-y-8">
+          {trailSections.map((section) => (
+            <div key={section.region} id={`region-${section.region.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`} className="scroll-mt-28">
+              <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
+                <div>
+                  <h4 className="text-xl font-bold text-[#243126]">{section.region}</h4>
+                  <p className="mt-1 text-sm text-gray-600">
+                    {section.trails.length} trail{section.trails.length === 1 ? '' : 's'} in this section
+                  </p>
                 </div>
               </div>
-            </article>
-          )})}
+
+              <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+                {section.trails.map((item) => {
+                  const upcomingTrips = tripCountsBySlug[item.slug] ?? 0;
+                  return (
+                    <article key={item.slug} className="overflow-hidden rounded-2xl border border-black/8 bg-[#f8faf8] shadow-sm">
+                      <div className="relative">
+                        <img src={item.card_image} alt={item.title} className={`h-48 w-full object-cover ${hasUnlockedTrails ? '' : 'blur-[2px]'}`} />
+                        {!hasUnlockedTrails ? (
+                          <div className="absolute inset-0 flex items-center justify-center bg-black/35">
+                            <div className="rounded-full bg-white px-4 py-2 text-sm font-semibold text-[#243126]">Sign up or log in to unlock</div>
+                          </div>
+                        ) : null}
+                      </div>
+                      <div className="p-4">
+                        <div className="flex items-start justify-between gap-3">
+                          <h4 className="text-lg font-bold text-[#243126]">{item.title}</h4>
+                          <span className="rounded-full bg-white px-2.5 py-1 text-xs text-gray-500 capitalize">{item.difficulty}</span>
+                        </div>
+                        <p className="mt-3 text-sm leading-6 text-gray-600">
+                          {hasUnlockedTrails ? item.card_blurb : 'Trail details and trip planning unlock after you create an account or log in.'}
+                        </p>
+                        <div className="mt-3 flex flex-wrap gap-2 text-xs text-gray-500">
+                          {item.best_for.slice(0, 2).map((tag) => (
+                            <span key={tag} className="rounded-full bg-white px-2.5 py-1">{tag}</span>
+                          ))}
+                          <span className="rounded-full bg-[#eef5ee] px-2.5 py-1 font-semibold text-[#2f5d3a]">
+                            {upcomingTrips ? `${upcomingTrips} planned trip${upcomingTrips === 1 ? '' : 's'}` : 'No trips yet, start one'}
+                          </span>
+                        </div>
+                        <div className="mt-4 flex flex-wrap gap-3">
+                          <a
+                            href={`/plan/${item.slug}`}
+                            className="inline-flex rounded-lg border border-gray-300 px-4 py-2.5 text-sm font-semibold text-gray-800 transition hover:bg-gray-50"
+                          >
+                            View Details
+                          </a>
+                          <a
+                            href={upcomingTrips ? `/join-a-trip?trail=${encodeURIComponent(item.slug)}` : (hasUnlockedTrails ? `/plan/${item.slug}` : '/#member-access')}
+                            className="inline-flex rounded-lg bg-[#2f5d3a] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#264d30]"
+                          >
+                            {upcomingTrips ? 'Join Trip' : (hasUnlockedTrails ? 'Plan a Trip' : 'Sign up or log in to plan')}
+                          </a>
+                          {upcomingTrips ? (
+                            <a
+                              href={hasUnlockedTrails ? `/plan/${item.slug}` : '/#member-access'}
+                              className="inline-flex rounded-lg border border-gray-300 px-4 py-2.5 text-sm font-semibold text-gray-800 transition hover:bg-gray-50"
+                            >
+                              {hasUnlockedTrails ? 'Plan Another Trip' : 'Log in to plan another'}
+                            </a>
+                          ) : null}
+                        </div>
+                      </div>
+                    </article>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
         </div>
       </div>
 

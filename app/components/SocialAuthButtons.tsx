@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 import { getBrowserSupabase } from '@/lib/supabase/browser';
 import {
   OAUTH_PROVIDERS,
@@ -30,7 +30,6 @@ function getProviderAccent(provider: OAuthProvider) {
 }
 
 export default function SocialAuthButtons({ mode, onError }: Props) {
-  const supabase = useMemo(() => getBrowserSupabase(), []);
   const [pendingProvider, setPendingProvider] = useState<OAuthProvider | null>(null);
 
   async function handleOAuth(provider: OAuthProvider) {
@@ -38,6 +37,7 @@ export default function SocialAuthButtons({ mode, onError }: Props) {
     onError?.('');
 
     try {
+      const supabase = getBrowserSupabase();
       const nextPath = `${window.location.pathname}${window.location.search}${window.location.hash}` || '/';
       const redirectTo = new URL('/auth/callback', window.location.origin);
       redirectTo.searchParams.set('next', nextPath);

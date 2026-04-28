@@ -50,7 +50,13 @@ export default function AuthMenu({ viewer }: Props) {
 
   async function handleLogout() {
     await fetch('/api/auth/logout', { method: 'POST' });
-    await getBrowserSupabase().auth.signOut({ scope: 'local' });
+
+    try {
+      await getBrowserSupabase().auth.signOut({ scope: 'local' });
+    } catch {
+      // Ignore client-side Supabase config issues here because the server logout already cleared Offroady auth cookies.
+    }
+
     window.location.href = '/';
   }
 

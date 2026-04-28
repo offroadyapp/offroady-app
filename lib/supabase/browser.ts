@@ -1,15 +1,19 @@
 import { createClient } from '@supabase/supabase-js';
+import type { OAuthProvider } from '@/lib/offroady/oauth';
 
-type BrowserSupabaseConfig = {
+type BrowserAuthConfig = {
   url: string;
   anonKey: string;
+  availableProviders: OAuthProvider[];
+  providerAvailability: Partial<Record<OAuthProvider, boolean>>;
+  requestedProviders: OAuthProvider[];
 };
 
-let browserSupabaseConfigPromise: Promise<BrowserSupabaseConfig> | null = null;
+let browserAuthConfigPromise: Promise<BrowserAuthConfig> | null = null;
 
-async function getBrowserSupabaseConfig() {
-  if (!browserSupabaseConfigPromise) {
-    browserSupabaseConfigPromise = fetch('/api/auth/config', {
+export async function getBrowserAuthConfig() {
+  if (!browserAuthConfigPromise) {
+    browserAuthConfigPromise = fetch('/api/auth/config', {
       method: 'GET',
       credentials: 'same-origin',
       cache: 'no-store',
@@ -22,21 +26,28 @@ async function getBrowserSupabaseConfig() {
 
         const url = String(payload.url || '').trim();
         const anonKey = String(payload.anonKey || '').trim();
-        if (!url) throw new Error('Supabase auth configuration is missing a URL');
-        if (!anonKey) throw new Error('Supabase auth configuration is missing an anon key');
+        if (!url || !anonKey) {
+          throw new Error('Missing NEXT_PUBLIC_SUPABASE_URL or NEXT_PUBLIC_SUPABASE_ANON_KEY');
+        }
 
-        return { url, anonKey };
+        return {
+          url,
+          anonKey,
+          availableProviders: Array.isArray(payload.availableProviders) ? payload.availableProviders : [],
+          providerAvailability: payload.providerAvailability || {},
+          requestedProviders: Array.isArray(payload.requestedProviders) ? payload.requestedProviders : [],
+        } as BrowserAuthConfig;
       })
       .catch((error) => {
-        browserSupabaseConfigPromise = null;
+        browserAuthConfigPromise = null;
         throw error;
       });
   }
 
-  return browserSupabaseConfigPromise;
+  return browserAuthConfigPromise;
 }
 
 export async function getBrowserSupabase() {
-  const { url, anonKey } = await getBrowserSupabaseConfig();
+  const { url, anonKey } = await getBrowserAuthConfig();
   return createClient(url, anonKey);
 }

@@ -627,12 +627,7 @@ export default function TrailCommunityClient({ trailSlug, trailTitle, initialSna
               </div>
             ) : (
               <div className="mt-5 space-y-4">
-                <SocialAuthButtons mode="signup" onError={setSignupError} />
-                <div className="flex items-center gap-3 text-[11px] font-semibold uppercase tracking-[0.14em] text-gray-400">
-                  <span className="h-px flex-1 bg-gray-200" />
-                  or sign up with email
-                  <span className="h-px flex-1 bg-gray-200" />
-                </div>
+                <SocialAuthButtons mode="signup" dividerText="or sign up with email" onError={setSignupError} />
                 <form onSubmit={handleSignup} className="space-y-3">
                   <input
                     value={identity.displayName}

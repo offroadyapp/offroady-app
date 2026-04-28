@@ -160,6 +160,8 @@ type ExternalEventRow = {
   updated_at: string;
 };
 
+const EXTERNAL_EVENT_SELECT = 'id, title, starts_at, ends_at, location_name, region, summary, source_label, source_url, cta_label, status, created_at, updated_at';
+
 type TrailRow = {
   id: string;
   slug: string;
@@ -468,7 +470,7 @@ async function getUpcomingExternalEvents(weekStart: string, _weekEnd: string): P
   const endIso = new Date(`${formatDateOnly(eventWindowEnd)}T23:59:59.999Z`).toISOString();
   const { data, error } = await supabase
     .from('external_events')
-    .select('id, title, starts_at, ends_at, location_name, region, summary, source_label, source_url, cta_label, status, created_at, updated_at')
+    .select(EXTERNAL_EVENT_SELECT)
     .eq('status', 'published')
     .gte('starts_at', startIso)
     .lte('starts_at', endIso)
@@ -1004,7 +1006,7 @@ export async function listExternalEventsForAdmin() {
   const supabase = getServiceSupabase();
   const { data, error } = await supabase
     .from('external_events')
-    .select('id, title, starts_at, ends_at, location_name, region, summary, source_label, source_url, cta_label, status, created_at, updated_at')
+    .select(EXTERNAL_EVENT_SELECT)
     .order('starts_at', { ascending: true });
 
   if (error) throw error;
@@ -1048,11 +1050,93 @@ export async function createExternalEvent(input: {
   const { data, error } = await supabase
     .from('external_events')
     .insert(payload)
-    .select('id, title, starts_at, ends_at, location_name, region, summary, source_label, source_url, cta_label, status, created_at, updated_at')
+    .select(EXTERNAL_EVENT_SELECT)
     .single();
 
   if (error) throw error;
   return mapExternalEvent(data as ExternalEventRow);
+}
+
+export async function upsertExternalEvent(input: {
+  title: string;
+  startsAt: string;
+  endsAt?: string | null;
+  locationName: string;
+  region?: string | null;
+  summary?: string | null;
+  sourceLabel?: string | null;
+  sourceUrl?: string | null;
+  ctaLabel?: string | null;
+  status?: ExternalEventStatus;
+}) {
+  const supabase = getServiceSupabase();
+  const startsAt = ensureText(input.startsAt, 'Start time', 40);
+  const payload = {
+    title: ensureText(input.title, 'Title', 140),
+    starts_at: startsAt,
+    ends_at: input.endsAt?.trim() || null,
+    location_name: ensureText(input.locationName, 'Location', 140),
+    region: input.region?.trim() || null,
+    summary: input.summary?.trim() || null,
+    source_label: input.sourceLabel?.trim() || null,
+    source_url: input.sourceUrl?.trim() || null,
+    cta_label: input.ctaLabel?.trim() || null,
+    status: input.status ?? 'draft',
+  };
+
+  let existing: ExternalEventRow | null = null;
+
+  if (payload.source_url) {
+    const { data, error } = await supabase
+      .from('external_events')
+      .select(EXTERNAL_EVENT_SELECT)
+      .eq('source_url', payload.source_url)
+      .order('updated_at', { ascending: false })
+      .limit(1);
+
+    if (error) throw error;
+    existing = ((data ?? [])[0] as ExternalEventRow | undefined) ?? null;
+  }
+
+  if (!existing) {
+    const { data, error } = await supabase
+      .from('external_events')
+      .select(EXTERNAL_EVENT_SELECT)
+      .eq('title', payload.title)
+      .eq('starts_at', payload.starts_at)
+      .order('updated_at', { ascending: false })
+      .limit(1);
+
+    if (error) throw error;
+    existing = ((data ?? [])[0] as ExternalEventRow | undefined) ?? null;
+  }
+
+  if (existing) {
+    const { data, error } = await supabase
+      .from('external_events')
+      .update({ ...payload, updated_at: new Date().toISOString() })
+      .eq('id', existing.id)
+      .select(EXTERNAL_EVENT_SELECT)
+      .single();
+
+    if (error) throw error;
+    return {
+      syncAction: 'updated' as const,
+      event: mapExternalEvent(data as ExternalEventRow),
+    };
+  }
+
+  const { data, error } = await supabase
+    .from('external_events')
+    .insert(payload)
+    .select(EXTERNAL_EVENT_SELECT)
+    .single();
+
+  if (error) throw error;
+  return {
+    syncAction: 'created' as const,
+    event: mapExternalEvent(data as ExternalEventRow),
+  };
 }
 
 export async function updateExternalEventStatus(eventId: string, status: ExternalEventStatus) {
@@ -1061,7 +1145,7 @@ export async function updateExternalEventStatus(eventId: string, status: Externa
     .from('external_events')
     .update({ status, updated_at: new Date().toISOString() })
     .eq('id', eventId)
-    .select('id, title, starts_at, ends_at, location_name, region, summary, source_label, source_url, cta_label, status, created_at, updated_at')
+    .select(EXTERNAL_EVENT_SELECT)
     .single();
 
   if (error) throw error;

@@ -6,7 +6,7 @@ import type { CommunitySnapshot } from '@/lib/offroady/community';
 import type { LocalTrail } from '@/lib/offroady/trails';
 import ConfirmModal from './ConfirmModal';
 import ActionToast from './ActionToast';
-import SocialAuthButtons from './SocialAuthButtons';
+
 
 type Identity = {
   displayName: string;
@@ -627,7 +627,6 @@ export default function TrailCommunityClient({ trailSlug, trailTitle, initialSna
               </div>
             ) : (
               <div className="mt-5 space-y-4">
-                <SocialAuthButtons mode="signup" dividerText="or sign up with email" onError={setSignupError} />
                 <form onSubmit={handleSignup} className="space-y-3">
                   <input
                     value={identity.displayName}

@@ -1,5 +1,3 @@
-import { OAUTH_PROVIDERS, type OAuthProvider } from '@/lib/offroady/oauth';
-
 function decodeJwtPayload(token: string) {
   const parts = token.split('.');
   if (parts.length < 2) return null;
@@ -58,18 +56,3 @@ export function getSupabaseServiceRoleKey() {
   return value;
 }
 
-function isEnabledFlag(name: string, defaultValue = true) {
-  const raw = process.env[name];
-  if (raw == null || raw.trim() === '') return defaultValue;
-  return ['1', 'true', 'yes', 'on'].includes(raw.trim().toLowerCase());
-}
-
-export function getRequestedOAuthProviders() {
-  const envNames: Record<OAuthProvider, string> = {
-    google: 'NEXT_PUBLIC_ENABLE_GOOGLE_AUTH',
-    facebook: 'NEXT_PUBLIC_ENABLE_FACEBOOK_AUTH',
-    apple: 'NEXT_PUBLIC_ENABLE_APPLE_AUTH',
-  };
-
-  return OAUTH_PROVIDERS.filter((provider) => isEnabledFlag(envNames[provider]));
-}

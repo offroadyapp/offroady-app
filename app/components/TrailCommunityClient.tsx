@@ -6,6 +6,7 @@ import type { CommunitySnapshot } from '@/lib/offroady/community';
 import type { LocalTrail } from '@/lib/offroady/trails';
 import ConfirmModal from './ConfirmModal';
 import ActionToast from './ActionToast';
+import SocialAuthButtons from './SocialAuthButtons';
 
 type Identity = {
   displayName: string;
@@ -625,57 +626,65 @@ export default function TrailCommunityClient({ trailSlug, trailTitle, initialSna
                 You are signed in as <span className="font-semibold">{viewer.displayName}</span>. Your member access is already active.
               </div>
             ) : (
-              <form onSubmit={handleSignup} className="mt-5 space-y-3">
-                <input
-                  value={identity.displayName}
-                  onChange={(event) => updateIdentity('displayName', event.target.value)}
-                  placeholder="Display name"
-                  className="w-full rounded-lg border border-gray-300 px-4 py-3 outline-none transition focus:border-[#2f5d3a]"
-                />
-                <input
-                  value={identity.email}
-                  onChange={(event) => updateIdentity('email', event.target.value)}
-                  placeholder="Email"
-                  type="email"
-                  className="w-full rounded-lg border border-gray-300 px-4 py-3 outline-none transition focus:border-[#2f5d3a]"
-                />
-                <input
-                  value={identity.phone}
-                  onChange={(event) => updateIdentity('phone', event.target.value)}
-                  placeholder="Phone (optional)"
-                  type="tel"
-                  className="w-full rounded-lg border border-gray-300 px-4 py-3 outline-none transition focus:border-[#2f5d3a]"
-                />
-                <input
-                  value={signupPassword}
-                  onChange={(event) => {
-                    setSignupPassword(event.target.value);
-                    if (signupError === 'Passwords do not match.') setSignupError('');
-                  }}
-                  placeholder="Password"
-                  type="password"
-                  className="w-full rounded-lg border border-gray-300 px-4 py-3 outline-none transition focus:border-[#2f5d3a]"
-                />
-                <input
-                  value={signupConfirmPassword}
-                  onChange={(event) => {
-                    setSignupConfirmPassword(event.target.value);
-                    if (signupError === 'Passwords do not match.') setSignupError('');
-                  }}
-                  placeholder="Confirm Password"
-                  type="password"
-                  className="w-full rounded-lg border border-gray-300 px-4 py-3 outline-none transition focus:border-[#2f5d3a]"
-                />
-                {signupError ? <p className="text-sm text-red-700">{signupError}</p> : null}
-                <button
-                  type="submit"
-                  disabled={signupLoading}
-                  className="w-full rounded-lg bg-[#2f5d3a] py-3 font-semibold text-white transition hover:bg-[#264d30] disabled:cursor-not-allowed disabled:opacity-70"
-                >
-                  {signupLoading ? 'Saving...' : 'Sign up for Offroady'}
-                </button>
-                {signupStatus ? <p className="text-sm text-[#2f5d3a]">{signupStatus}</p> : null}
-              </form>
+              <div className="mt-5 space-y-4">
+                <SocialAuthButtons mode="signup" onError={setSignupError} />
+                <div className="flex items-center gap-3 text-[11px] font-semibold uppercase tracking-[0.14em] text-gray-400">
+                  <span className="h-px flex-1 bg-gray-200" />
+                  or sign up with email
+                  <span className="h-px flex-1 bg-gray-200" />
+                </div>
+                <form onSubmit={handleSignup} className="space-y-3">
+                  <input
+                    value={identity.displayName}
+                    onChange={(event) => updateIdentity('displayName', event.target.value)}
+                    placeholder="Display name"
+                    className="w-full rounded-lg border border-gray-300 px-4 py-3 outline-none transition focus:border-[#2f5d3a]"
+                  />
+                  <input
+                    value={identity.email}
+                    onChange={(event) => updateIdentity('email', event.target.value)}
+                    placeholder="Email"
+                    type="email"
+                    className="w-full rounded-lg border border-gray-300 px-4 py-3 outline-none transition focus:border-[#2f5d3a]"
+                  />
+                  <input
+                    value={identity.phone}
+                    onChange={(event) => updateIdentity('phone', event.target.value)}
+                    placeholder="Phone (optional)"
+                    type="tel"
+                    className="w-full rounded-lg border border-gray-300 px-4 py-3 outline-none transition focus:border-[#2f5d3a]"
+                  />
+                  <input
+                    value={signupPassword}
+                    onChange={(event) => {
+                      setSignupPassword(event.target.value);
+                      if (signupError === 'Passwords do not match.') setSignupError('');
+                    }}
+                    placeholder="Password"
+                    type="password"
+                    className="w-full rounded-lg border border-gray-300 px-4 py-3 outline-none transition focus:border-[#2f5d3a]"
+                  />
+                  <input
+                    value={signupConfirmPassword}
+                    onChange={(event) => {
+                      setSignupConfirmPassword(event.target.value);
+                      if (signupError === 'Passwords do not match.') setSignupError('');
+                    }}
+                    placeholder="Confirm Password"
+                    type="password"
+                    className="w-full rounded-lg border border-gray-300 px-4 py-3 outline-none transition focus:border-[#2f5d3a]"
+                  />
+                  {signupError ? <p className="text-sm text-red-700">{signupError}</p> : null}
+                  <button
+                    type="submit"
+                    disabled={signupLoading}
+                    className="w-full rounded-lg bg-[#2f5d3a] py-3 font-semibold text-white transition hover:bg-[#264d30] disabled:cursor-not-allowed disabled:opacity-70"
+                  >
+                    {signupLoading ? 'Saving...' : 'Sign up for Offroady'}
+                  </button>
+                  {signupStatus ? <p className="text-sm text-[#2f5d3a]">{signupStatus}</p> : null}
+                </form>
+              </div>
             )}
           </div>
 

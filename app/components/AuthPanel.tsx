@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
+import SocialAuthButtons from './SocialAuthButtons';
 
 type Mode = 'login' | 'signup' | 'reset';
 
@@ -110,6 +111,17 @@ export default function AuthPanel({ initialMode = 'signup' }: Props) {
         <div className="rounded-3xl border border-black/8 bg-white p-8 shadow-sm">
           <h3 className="text-2xl font-bold text-[#243126]">{title}</h3>
           <p className="mt-2 text-sm leading-6 text-gray-600">{intro}</p>
+
+          {mode !== 'reset' ? (
+            <div className="mt-6 space-y-4">
+              <SocialAuthButtons mode={mode} onError={setError} />
+              <div className="flex items-center gap-3 text-xs font-semibold uppercase tracking-[0.14em] text-gray-400">
+                <span className="h-px flex-1 bg-gray-200" />
+                or continue with email
+                <span className="h-px flex-1 bg-gray-200" />
+              </div>
+            </div>
+          ) : null}
 
           <form onSubmit={handleSubmit} className="mt-6 space-y-3">
             {mode === 'signup' ? (

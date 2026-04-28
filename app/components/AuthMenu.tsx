@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { useMemo, useState } from 'react';
+import { getBrowserSupabase } from '@/lib/supabase/browser';
 
 type Viewer = {
   displayName: string;
@@ -49,6 +50,7 @@ export default function AuthMenu({ viewer }: Props) {
 
   async function handleLogout() {
     await fetch('/api/auth/logout', { method: 'POST' });
+    await getBrowserSupabase().auth.signOut({ scope: 'local' });
     window.location.href = '/';
   }
 

@@ -48,6 +48,17 @@ type SessionCookieResponse = {
   };
 };
 
+type AuthUserLike = {
+  id: string;
+  email?: string | null;
+  phone?: string | null;
+  user_metadata?: Record<string, unknown> | null;
+  identities?: Array<{
+    provider?: string | null;
+    identity_data?: Record<string, unknown> | null;
+  }> | null;
+};
+
 function normalizeEmail(email: string) {
   return email.trim().toLowerCase();
 }
@@ -64,6 +75,51 @@ function ensurePassword(password: string) {
   if (value.length < 6) throw new Error('Password must be at least 6 characters');
   if (value.length > 100) throw new Error('Password is too long');
   return value;
+}
+
+function ensureSessionToken(token: string, field: string) {
+  const value = token.trim();
+  if (!value) throw new Error(`${field} is required`);
+  return value;
+}
+
+function readMetadataString(user: AuthUserLike, keys: string[]) {
+  const sources = [
+    user.user_metadata,
+    ...(Array.isArray(user.identities)
+      ? user.identities
+          .map((identity) => identity.identity_data)
+          .filter((value): value is Record<string, unknown> => Boolean(value))
+      : []),
+  ];
+
+  for (const source of sources) {
+    for (const key of keys) {
+      const value = source?.[key];
+      if (typeof value === 'string' && value.trim()) return value.trim();
+    }
+  }
+
+  return null;
+}
+
+function resolveAuthDisplayName(user: AuthUserLike) {
+  const fullName = readMetadataString(user, ['display_name', 'full_name', 'name', 'user_name', 'preferred_username']);
+  if (fullName) return fullName;
+
+  const firstName = readMetadataString(user, ['given_name', 'first_name']);
+  const lastName = readMetadataString(user, ['family_name', 'last_name']);
+  const combinedName = [firstName, lastName].filter(Boolean).join(' ').trim();
+  if (combinedName) return combinedName;
+
+  const email = user.email?.trim();
+  if (email) return email.split('@')[0];
+
+  return `member-${user.id.slice(0, 8)}`;
+}
+
+function resolveAuthPhone(user: AuthUserLike) {
+  return user.phone?.trim() || readMetadataString(user, ['phone', 'phone_number']) || null;
 }
 
 function mapUser(data: UserRow): SessionUser {
@@ -281,10 +337,48 @@ export async function loginAccount(emailInput: string, passwordInput: string) {
   if (error) throw error;
   if (!data.user || !data.session) throw new Error('Invalid email or password');
 
-  const metadata = data.user.user_metadata || {};
   const profile = await getProfileForAuthUser(data.user.id, {
     email: data.user.email,
-    displayName: typeof metadata.display_name === 'string' ? metadata.display_name : null,
+    displayName: resolveAuthDisplayName(data.user as AuthUserLike),
+  });
+
+  await ensureEmailPreferencesForUser(profile.email, profile.id);
+  await claimInvitesForEmail(profile.email, profile.id);
+
+  return {
+    user: profile,
+    session: data.session,
+  };
+}
+
+export async function completeOAuthSession(input: {
+  accessToken: string;
+  refreshToken: string;
+}) {
+  const authSupabase = getServerAuthSupabase();
+  const accessToken = ensureSessionToken(input.accessToken, 'Access token');
+  const refreshToken = ensureSessionToken(input.refreshToken, 'Refresh token');
+
+  const { data, error } = await authSupabase.auth.setSession({
+    access_token: accessToken,
+    refresh_token: refreshToken,
+  });
+
+  if (error) throw error;
+  if (!data.user || !data.session) throw new Error('Failed to establish social login session');
+
+  const resolvedUser = data.user as AuthUserLike;
+  const email = ensureText(
+    normalizeEmail(data.user.email || readMetadataString(resolvedUser, ['email']) || ''),
+    'Email',
+    160,
+  );
+
+  const profile = await upsertProfileForAuthUser({
+    authUserId: data.user.id,
+    displayName: resolveAuthDisplayName(resolvedUser),
+    email,
+    phone: resolveAuthPhone(resolvedUser),
   });
 
   await ensureEmailPreferencesForUser(profile.email, profile.id);
@@ -301,10 +395,9 @@ export async function getSessionUser() {
   const { data, error } = await supabase.auth.getUser();
   if (error || !data.user) return null;
 
-  const metadata = data.user.user_metadata || {};
   return getProfileForAuthUser(data.user.id, {
     email: data.user.email,
-    displayName: typeof metadata.display_name === 'string' ? metadata.display_name : null,
+    displayName: resolveAuthDisplayName(data.user as AuthUserLike),
   });
 }
 

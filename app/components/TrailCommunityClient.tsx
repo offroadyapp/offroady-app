@@ -46,6 +46,18 @@ function formatTripDate(value: string) {
   });
 }
 
+function clamp(value: number, min: number, max: number) {
+  return Math.min(max, Math.max(min, value));
+}
+
+function hashSeed(value: string) {
+  let hash = 0;
+  for (let index = 0; index < value.length; index += 1) {
+    hash = (hash * 31 + value.charCodeAt(index)) % 10007;
+  }
+  return hash;
+}
+
 export default function TrailCommunityClient({ trailSlug, trailTitle, initialSnapshot, moreTrails, availableTrailCount, tripCountsBySlug = {}, viewer = null }: Props) {
   const [identity, setIdentity] = useState<Identity>(emptyIdentity);
   const [arrivedHighlight, setArrivedHighlight] = useState(false);
@@ -67,6 +79,7 @@ export default function TrailCommunityClient({ trailSlug, trailTitle, initialSna
   const [signupPassword, setSignupPassword] = useState('');
   const [signupConfirmPassword, setSignupConfirmPassword] = useState('');
   const [signupError, setSignupError] = useState('');
+  const [selectedMapTrailSlug, setSelectedMapTrailSlug] = useState<string | null>(trailSlug);
 
   useEffect(() => {
     const saved = window.localStorage.getItem('offroady.identity');
@@ -116,6 +129,42 @@ export default function TrailCommunityClient({ trailSlug, trailTitle, initialSna
       .sort((a, b) => a.region.localeCompare(b.region));
   }, [moreTrails]);
   const availableRegionCount = trailSections.length;
+  const trailMapPoints = useMemo(() => {
+    const trailsWithCoordinates = moreTrails.filter(
+      (item): item is LocalTrail & { latitude: number; longitude: number } => typeof item.latitude === 'number' && typeof item.longitude === 'number'
+    );
+
+    if (!trailsWithCoordinates.length) return [];
+
+    const latitudes = trailsWithCoordinates.map((item) => item.latitude);
+    const longitudes = trailsWithCoordinates.map((item) => item.longitude);
+    const minLat = Math.min(...latitudes);
+    const maxLat = Math.max(...latitudes);
+    const minLng = Math.min(...longitudes);
+    const maxLng = Math.max(...longitudes);
+    const latPadding = (maxLat - minLat) * 0.08 || 0.12;
+    const lngPadding = (maxLng - minLng) * 0.08 || 0.12;
+    const paddedMinLat = minLat - latPadding;
+    const paddedMaxLat = maxLat + latPadding;
+    const paddedMinLng = minLng - lngPadding;
+    const paddedMaxLng = maxLng + lngPadding;
+
+    return trailsWithCoordinates.map((item) => {
+      const xRatio = (item.longitude - paddedMinLng) / (paddedMaxLng - paddedMinLng || 1);
+      const yRatio = (item.latitude - paddedMinLat) / (paddedMaxLat - paddedMinLat || 1);
+      const seed = hashSeed(item.slug);
+      const x = clamp(6 + xRatio * 88 + ((seed % 7) - 3) * 0.22, 4, 96);
+      const y = clamp(8 + (1 - yRatio) * 84 + (((Math.floor(seed / 7)) % 7) - 3) * 0.22, 4, 96);
+
+      return {
+        trail: item,
+        x,
+        y,
+        googleMapsHref: `https://www.google.com/maps?q=${item.latitude},${item.longitude}`,
+      };
+    });
+  }, [moreTrails]);
+  const selectedMapTrail = trailMapPoints.find((item) => item.trail.slug === selectedMapTrailSlug) ?? trailMapPoints[0] ?? null;
   const hasPlannedTrips = community.trips.length > 0;
   const leavingTrip = community.trips.find((trip) => trip.id === tripToLeave) || null;
   const leavingCrew = community.crews.find((crew) => crew.id === crewToLeave) || null;
@@ -203,6 +252,13 @@ export default function TrailCommunityClient({ trailSlug, trailTitle, initialSna
       window.removeEventListener('hashchange', triggerHashHighlight);
     };
   }, []);
+
+  useEffect(() => {
+    if (!trailMapPoints.length) return;
+    if (!selectedMapTrailSlug || !trailMapPoints.some((item) => item.trail.slug === selectedMapTrailSlug)) {
+      setSelectedMapTrailSlug(trailMapPoints[0].trail.slug);
+    }
+  }, [selectedMapTrailSlug, trailMapPoints]);
 
   async function handleTripMembership(tripId: string, action: 'join' | 'leave') {
     if (!viewer) {
@@ -372,6 +428,104 @@ export default function TrailCommunityClient({ trailSlug, trailTitle, initialSna
             )}
           </div>
         </div>
+
+        {trailMapPoints.length ? (
+          <div className="mt-6 rounded-2xl border border-black/8 bg-[#f7faf6] p-5 shadow-sm">
+            <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
+              <div>
+                <p className="text-sm font-semibold uppercase tracking-[0.16em] text-[#5d7d61]">Trail map overview</p>
+                <h4 className="mt-2 text-2xl font-bold text-[#243126]">See all {trailMapPoints.length} trails on one map.</h4>
+                <p className="mt-3 max-w-3xl text-sm leading-6 text-gray-600">
+                  This is a coordinate-based overview of the full trail list. Click a marker to focus a trail, then jump to Google Maps or open the detail page.
+                </p>
+              </div>
+              <div className="flex flex-wrap gap-2 text-xs text-gray-600">
+                <span className="rounded-full bg-white px-3 py-1.5">Easy = green</span>
+                <span className="rounded-full bg-white px-3 py-1.5">Medium = amber</span>
+                <span className="rounded-full bg-white px-3 py-1.5">Hard = red</span>
+              </div>
+            </div>
+
+            <div className="mt-5 grid gap-4 xl:grid-cols-[1.35fr_0.65fr]">
+              <div className="overflow-hidden rounded-2xl border border-[#d5dfd2] bg-white">
+                <div className="relative aspect-[16/10] overflow-hidden bg-[linear-gradient(180deg,#dce9d8_0%,#edf4eb_46%,#d7e0d8_100%)]">
+                  <div className="absolute inset-0 opacity-50 [background-image:linear-gradient(to_right,rgba(47,93,58,0.10)_1px,transparent_1px),linear-gradient(to_bottom,rgba(47,93,58,0.10)_1px,transparent_1px)] [background-size:64px_64px]" />
+                  <div className="pointer-events-none absolute inset-x-0 top-3 flex justify-between px-4 text-[11px] font-medium uppercase tracking-[0.14em] text-[#48604a]/70">
+                    <span>West</span>
+                    <span>East</span>
+                  </div>
+                  <div className="pointer-events-none absolute inset-y-0 left-3 flex flex-col justify-between py-4 text-[11px] font-medium uppercase tracking-[0.14em] text-[#48604a]/70">
+                    <span>North</span>
+                    <span>South</span>
+                  </div>
+                  <div className="pointer-events-none absolute right-4 top-4 rounded-full bg-white/90 px-3 py-1.5 text-xs font-semibold text-[#2f5d3a] shadow-sm">
+                    {trailMapPoints.length} trails pinned
+                  </div>
+
+                  {trailMapPoints.map((item) => {
+                    const markerTone = item.trail.difficulty === 'hard'
+                      ? 'border-red-200 bg-red-500'
+                      : item.trail.difficulty === 'easy'
+                        ? 'border-emerald-200 bg-emerald-500'
+                        : 'border-amber-200 bg-amber-400';
+                    const isSelected = selectedMapTrail?.trail.slug === item.trail.slug;
+
+                    return (
+                      <button
+                        key={item.trail.slug}
+                        type="button"
+                        onClick={() => setSelectedMapTrailSlug(item.trail.slug)}
+                        title={`${item.trail.title} · ${item.trail.region ?? 'BC'}`}
+                        className={`absolute h-4 w-4 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 shadow-lg transition hover:scale-110 ${markerTone} ${isSelected ? 'z-20 scale-125 ring-4 ring-white/80' : 'z-10 opacity-95'}`}
+                        style={{ left: `${item.x}%`, top: `${item.y}%` }}
+                      >
+                        <span className="sr-only">Focus {item.trail.title} on the map</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <div className="rounded-2xl border border-[#d5dfd2] bg-white p-5 shadow-sm">
+                {selectedMapTrail ? (
+                  <>
+                    <p className="text-sm font-semibold uppercase tracking-[0.16em] text-[#5d7d61]">Focused trail</p>
+                    <h4 className="mt-2 text-2xl font-bold text-[#243126]">{selectedMapTrail.trail.title}</h4>
+                    <p className="mt-2 text-sm text-gray-600">{selectedMapTrail.trail.region ?? 'BC'}</p>
+                    <p className="mt-4 text-sm leading-6 text-gray-700">{selectedMapTrail.trail.card_blurb}</p>
+                    <div className="mt-4 flex flex-wrap gap-2 text-xs text-gray-600">
+                      <span className="rounded-full bg-[#eef5ee] px-3 py-1 capitalize text-[#2f5d3a]">{selectedMapTrail.trail.difficulty}</span>
+                      {selectedMapTrail.trail.best_for.slice(0, 3).map((tag) => (
+                        <span key={tag} className="rounded-full bg-gray-100 px-3 py-1">{tag}</span>
+                      ))}
+                    </div>
+                    <div className="mt-4 rounded-xl bg-[#f7faf6] px-4 py-3 text-sm text-gray-700">
+                      {selectedMapTrail.trail.latitude.toFixed(5)}, {selectedMapTrail.trail.longitude.toFixed(5)}
+                    </div>
+                    <div className="mt-5 flex flex-wrap gap-3">
+                      <a
+                        href={`/plan/${selectedMapTrail.trail.slug}`}
+                        className="inline-flex rounded-lg border border-gray-300 px-4 py-2.5 text-sm font-semibold text-gray-800 transition hover:bg-gray-50"
+                      >
+                        View Details
+                      </a>
+                      <a
+                        href={selectedMapTrail.googleMapsHref}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="inline-flex rounded-lg bg-[#2f5d3a] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#264d30]"
+                      >
+                        Open in Google Maps
+                      </a>
+                    </div>
+                  </>
+                ) : (
+                  <div className="rounded-xl bg-[#f7faf6] p-4 text-sm text-gray-600">No trail coordinates available yet.</div>
+                )}
+              </div>
+            </div>
+          </div>
+        ) : null}
 
         <div className="mt-6 flex flex-wrap gap-2">
           {trailSections.map((section) => (

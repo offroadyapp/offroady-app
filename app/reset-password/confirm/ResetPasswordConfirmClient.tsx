@@ -16,7 +16,7 @@ export default function ResetPasswordConfirmClient({ code, type }: Props) {
 
   useEffect(() => {
     async function validateLink() {
-      const supabase = getBrowserSupabase();
+      const supabase = await getBrowserSupabase();
       const hashParams = new URLSearchParams(window.location.hash.replace(/^#/, ''));
       const accessToken = hashParams.get('access_token');
       const refreshToken = hashParams.get('refresh_token');
@@ -58,7 +58,7 @@ export default function ResetPasswordConfirmClient({ code, type }: Props) {
     setMessage('Updating your password...');
 
     try {
-      const supabase = getBrowserSupabase();
+      const supabase = await getBrowserSupabase();
       const { error } = await supabase.auth.updateUser({ password });
       if (error) throw error;
       setStatus('success');

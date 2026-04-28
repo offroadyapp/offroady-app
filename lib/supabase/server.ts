@@ -1,18 +1,11 @@
 import { cookies } from 'next/headers';
 import { createClient } from '@supabase/supabase-js';
-
-function getEnv(name: string) {
-  const value = process.env[name];
-  if (!value) {
-    throw new Error(`Missing environment variable: ${name}`);
-  }
-  return value;
-}
+import { getSupabaseAnonKey, getSupabaseServiceRoleKey, getSupabaseUrl } from '@/lib/supabase/env';
 
 export function getServiceSupabase() {
   return createClient(
-    getEnv('NEXT_PUBLIC_SUPABASE_URL'),
-    getEnv('SUPABASE_SERVICE_ROLE_KEY'),
+    getSupabaseUrl(),
+    getSupabaseServiceRoleKey(),
     {
       auth: {
         autoRefreshToken: false,
@@ -24,8 +17,8 @@ export function getServiceSupabase() {
 
 export function getServerAuthSupabase() {
   return createClient(
-    getEnv('NEXT_PUBLIC_SUPABASE_URL'),
-    getEnv('NEXT_PUBLIC_SUPABASE_ANON_KEY'),
+    getSupabaseUrl(),
+    getSupabaseAnonKey(),
     {
       auth: {
         autoRefreshToken: false,

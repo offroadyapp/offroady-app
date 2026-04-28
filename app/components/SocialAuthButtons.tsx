@@ -37,7 +37,7 @@ export default function SocialAuthButtons({ mode, onError }: Props) {
     onError?.('');
 
     try {
-      const supabase = getBrowserSupabase();
+      const supabase = await getBrowserSupabase();
       const nextPath = `${window.location.pathname}${window.location.search}${window.location.hash}` || '/';
       const redirectTo = new URL('/auth/callback', window.location.origin);
       redirectTo.searchParams.set('next', nextPath);

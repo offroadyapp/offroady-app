@@ -28,7 +28,7 @@ export default function OAuthCallbackClient({ code, type, error, errorDescriptio
       }
 
       try {
-        const supabase = getBrowserSupabase();
+        const supabase = await getBrowserSupabase();
         const hashParams = new URLSearchParams(window.location.hash.replace(/^#/, ''));
         const hashError = hashParams.get('error');
         const hashErrorDescription = hashParams.get('error_description');

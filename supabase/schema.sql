@@ -1362,7 +1362,7 @@ with check (
     where u.id = community_trip_invites.receiver_user_id
       and u.auth_user_id = auth.uid()
   )
-  and new.status in ('accepted', 'declined')
+  and status in ('accepted', 'declined')
 );
 
 -- Community direct messages: sender/receiver visibility

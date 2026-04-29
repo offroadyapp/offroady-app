@@ -461,7 +461,7 @@ with check (
       and u.auth_user_id = auth.uid()
   )
   -- only allow updating status/responded_at
-  and new.status in ('accepted', 'declined')
+  and status in ('accepted', 'declined')
 );
 
 -- ===============================================================

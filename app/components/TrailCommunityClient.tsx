@@ -1,11 +1,13 @@
 "use client";
 
 import Link from 'next/link';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import type { CommunitySnapshot } from '@/lib/offroady/community';
 import type { LocalTrail } from '@/lib/offroady/trails';
 import ConfirmModal from './ConfirmModal';
 import ActionToast from './ActionToast';
+import L from 'leaflet';
+import 'leaflet/dist/leaflet.css';
 
 
 type Identity = {
@@ -435,9 +437,9 @@ export default function TrailCommunityClient({ trailSlug, trailTitle, initialSna
             <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
               <div>
                 <p className="text-sm font-semibold uppercase tracking-[0.16em] text-[#5d7d61]">Trail map overview</p>
-                <h4 className="mt-2 text-2xl font-bold text-[#243126]">See all {trailMapPoints.length} trails on one map.</h4>
+                <h4 className="mt-2 text-2xl font-bold text-[#243126]">See all {trailMapPoints.length} trails on an interactive map.</h4>
                 <p className="mt-3 max-w-3xl text-sm leading-6 text-gray-600">
-                  This is a coordinate-based overview of the full trail list. Click a marker to focus a trail, then jump to Google Maps or open the detail page.
+                  This is a live OpenStreetMap overlay of all {trailMapPoints.length} trail coordinates. Drag to pan, scroll to zoom. Click a marker for quick details, then jump to the trail page or Google Maps.
                 </p>
               </div>
               <div className="flex flex-wrap gap-2 text-xs text-gray-600">
@@ -449,42 +451,11 @@ export default function TrailCommunityClient({ trailSlug, trailTitle, initialSna
 
             <div className="mt-5 grid gap-4 xl:grid-cols-[1.35fr_0.65fr]">
               <div className="overflow-hidden rounded-2xl border border-[#d5dfd2] bg-white">
-                <div className="relative aspect-[16/10] overflow-hidden bg-[linear-gradient(180deg,#dce9d8_0%,#edf4eb_46%,#d7e0d8_100%)]">
-                  <div className="absolute inset-0 opacity-50 [background-image:linear-gradient(to_right,rgba(47,93,58,0.10)_1px,transparent_1px),linear-gradient(to_bottom,rgba(47,93,58,0.10)_1px,transparent_1px)] [background-size:64px_64px]" />
-                  <div className="pointer-events-none absolute inset-x-0 top-3 flex justify-between px-4 text-[11px] font-medium uppercase tracking-[0.14em] text-[#48604a]/70">
-                    <span>West</span>
-                    <span>East</span>
-                  </div>
-                  <div className="pointer-events-none absolute inset-y-0 left-3 flex flex-col justify-between py-4 text-[11px] font-medium uppercase tracking-[0.14em] text-[#48604a]/70">
-                    <span>North</span>
-                    <span>South</span>
-                  </div>
-                  <div className="pointer-events-none absolute right-4 top-4 rounded-full bg-white/90 px-3 py-1.5 text-xs font-semibold text-[#2f5d3a] shadow-sm">
-                    {trailMapPoints.length} trails pinned
-                  </div>
-
-                  {trailMapPoints.map((item) => {
-                    const markerTone = item.trail.difficulty === 'hard'
-                      ? 'border-red-200 bg-red-500'
-                      : item.trail.difficulty === 'easy'
-                        ? 'border-emerald-200 bg-emerald-500'
-                        : 'border-amber-200 bg-amber-400';
-                    const isSelected = selectedMapTrail?.trail.slug === item.trail.slug;
-
-                    return (
-                      <button
-                        key={item.trail.slug}
-                        type="button"
-                        onClick={() => setSelectedMapTrailSlug(item.trail.slug)}
-                        title={`${item.trail.title} · ${item.trail.region ?? 'BC'}`}
-                        className={`absolute h-4 w-4 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 shadow-lg transition hover:scale-110 ${markerTone} ${isSelected ? 'z-20 scale-125 ring-4 ring-white/80' : 'z-10 opacity-95'}`}
-                        style={{ left: `${item.x}%`, top: `${item.y}%` }}
-                      >
-                        <span className="sr-only">Focus {item.trail.title} on the map</span>
-                      </button>
-                    );
-                  })}
-                </div>
+                <LeafletMap
+                  trailMapPoints={trailMapPoints}
+                  selectedSlug={selectedMapTrail?.trail.slug ?? null}
+                  onSelect={setSelectedMapTrailSlug}
+                />
               </div>
 
               <div className="rounded-2xl border border-[#d5dfd2] bg-white p-5 shadow-sm">
@@ -999,5 +970,126 @@ export default function TrailCommunityClient({ trailSlug, trailTitle, initialSna
       />
       <ActionToast message={toast} />
     </section>
+  );
+}
+
+// Single-marker icon builder — avoids the default Leaflet icon path issue
+const markerIcon = (color: 'green' | 'amber' | 'red') => {
+  const colors: Record<string, string> = {
+    green: '#22c55e',
+    amber: '#f59e0b',
+    red: '#ef4444',
+  };
+  return L.divIcon({
+    className: '',
+    html: `<div style="width:16px;height:16px;border-radius:50%;background:${colors[color]};border:2px solid white;box-shadow:0 2px 6px rgba(0,0,0,0.3);"></div>`,
+    iconSize: [16, 16],
+    iconAnchor: [8, 8],
+  });
+};
+
+type MapPoint = {
+  trail: LocalTrail & { latitude: number; longitude: number };
+  googleMapsHref: string;
+};
+
+function LeafletMap({ trailMapPoints, selectedSlug, onSelect }: {
+  trailMapPoints: MapPoint[];
+  selectedSlug: string | null;
+  onSelect: (slug: string) => void;
+}) {
+  const mapRef = useRef<HTMLDivElement>(null);
+  const instanceRef = useRef<L.Map | null>(null);
+  const markersRef = useRef<Map<string, L.Marker>>(new Map());
+
+  useEffect(() => {
+    if (!mapRef.current || instanceRef.current) return;
+
+    const map = L.map(mapRef.current, {
+      zoomControl: true,
+      scrollWheelZoom: true,
+      attributionControl: false,
+    });
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 18,
+    }).addTo(map);
+
+    instanceRef.current = map;
+
+    return () => {
+      map.remove();
+      instanceRef.current = null;
+    };
+  }, []);
+
+  useEffect(() => {
+    const map = instanceRef.current;
+    if (!map) return;
+
+    const markers = markersRef.current;
+
+    // Clear old markers
+    markers.forEach((m) => map.removeLayer(m));
+    markers.clear();
+
+    if (!trailMapPoints.length) return;
+
+    const bounds: [number, number][] = [];
+    const tooltipOptions: L.TooltipOptions = { direction: 'top', offset: [0, -12], className: 'leaflet-map-trail-tooltip' };
+
+    for (const pt of trailMapPoints) {
+      const latlng: [number, number] = [pt.trail.latitude, pt.trail.longitude];
+      bounds.push(latlng);
+
+      const difficulty = pt.trail.difficulty || 'medium';
+      const iconColor = difficulty === 'hard' ? 'red' : difficulty === 'easy' ? 'green' : 'amber';
+      const isSelected = selectedSlug === pt.trail.slug;
+
+      const marker = L.marker(latlng, {
+        icon: markerIcon(iconColor),
+        zIndexOffset: isSelected ? 1000 : 0,
+      });
+
+      marker.bindTooltip(pt.trail.title, tooltipOptions);
+
+      marker.on('click', () => {
+        onSelect(pt.trail.slug);
+        marker.openTooltip();
+      });
+
+      marker.addTo(map);
+      markers.set(pt.trail.slug, marker);
+    }
+
+    if (bounds.length === 1) {
+      map.setView(bounds[0], 10);
+    } else {
+      map.fitBounds(bounds, { padding: [40, 40], maxZoom: 12 });
+    }
+  }, [trailMapPoints, selectedSlug, onSelect]);
+
+  useEffect(() => {
+    const markers = markersRef.current;
+    const map = instanceRef.current;
+    if (!map) return;
+    markers.forEach((m, slug) => {
+      const isSelected = selectedSlug === slug;
+      if (isSelected) {
+        m.setZIndexOffset(1000);
+        m.openTooltip();
+      } else {
+        m.setZIndexOffset(0);
+        m.closeTooltip();
+      }
+    });
+  }, [selectedSlug]);
+
+  return (
+    <div
+      ref={mapRef}
+      className="h-80 w-full"
+      style={{ minHeight: '320px' }}
+    />
   );
 }

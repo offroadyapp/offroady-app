@@ -419,6 +419,20 @@ alter table public.user_sessions enable row level security;
 alter table public.trip_plans enable row level security;
 alter table public.trip_invites enable row level security;
 
+-- Append-patch tables that were created without enable row level security
+alter table if exists public.favorite_trips enable row level security;
+alter table if exists public.favorite_crews enable row level security;
+alter table if exists public.favorite_members enable row level security;
+alter table if exists public.user_email_preferences enable row level security;
+alter table if exists public.email_preference_tokens enable row level security;
+alter table if exists public.site_notifications enable row level security;
+alter table if exists public.community_trip_invites enable row level security;
+alter table if exists public.community_direct_messages enable row level security;
+alter table if exists public.weekly_digests enable row level security;
+alter table if exists public.external_events enable row level security;
+alter table if exists public.weekly_digest_items enable row level security;
+alter table if exists public.weekly_digest_outputs enable row level security;
+
 -- Minimal read-only public policies.
 -- Public writes are intentionally NOT enabled here.
 -- Use Next.js server routes with SUPABASE_SERVICE_ROLE_KEY for writes.
@@ -487,7 +501,150 @@ using (
   )
 );
 
--- users table remains server-write/server-read for now, no public select policy
+-- Users table policies
+-- authenticated users can read/update their own profile
+-- anon+auth can read visible profiles
+drop policy if exists "users_owner_select" on public.users;
+create policy "users_owner_select"
+on public.users
+for select
+to authenticated
+using (
+  auth_user_id = auth.uid()
+);
+
+drop policy if exists "users_owner_update" on public.users;
+create policy "users_owner_update"
+on public.users
+for update
+to authenticated
+using (
+  auth_user_id = auth.uid()
+)
+with check (
+  auth_user_id = auth.uid()
+);
+
+drop policy if exists "users_public_read_visible" on public.users;
+create policy "users_public_read_visible"
+on public.users
+for select
+to anon, authenticated
+using (
+  is_visible = true
+);
+
+-- User sessions: owner only
+drop policy if exists "user_sessions_owner_select" on public.user_sessions;
+create policy "user_sessions_owner_select"
+on public.user_sessions
+for select
+to authenticated
+using (
+  exists (
+    select 1 from public.users u
+    where u.id = user_sessions.user_id
+      and u.auth_user_id = auth.uid()
+  )
+);
+
+-- Trail proposals
+drop policy if exists "trail_proposals_public_read" on public.trail_proposals;
+create policy "trail_proposals_public_read"
+on public.trail_proposals
+for select
+to anon, authenticated
+using (
+  is_visible = true
+);
+
+drop policy if exists "trail_proposals_owner_select" on public.trail_proposals;
+create policy "trail_proposals_owner_select"
+on public.trail_proposals
+for select
+to authenticated
+using (
+  exists (
+    select 1 from public.users u
+    where u.id = trail_proposals.submitted_by_user_id
+      and u.auth_user_id = auth.uid()
+  )
+);
+
+drop policy if exists "trail_proposals_authenticated_insert" on public.trail_proposals;
+create policy "trail_proposals_authenticated_insert"
+on public.trail_proposals
+for insert
+to authenticated
+with check (
+  exists (
+    select 1 from public.users u
+    where u.id = trail_proposals.submitted_by_user_id
+      and u.auth_user_id = auth.uid()
+  )
+);
+
+drop policy if exists "trail_proposals_owner_update" on public.trail_proposals;
+create policy "trail_proposals_owner_update"
+on public.trail_proposals
+for update
+to authenticated
+using (
+  exists (
+    select 1 from public.users u
+    where u.id = trail_proposals.submitted_by_user_id
+      and u.auth_user_id = auth.uid()
+  )
+)
+with check (
+  exists (
+    select 1 from public.users u
+    where u.id = trail_proposals.submitted_by_user_id
+      and u.auth_user_id = auth.uid()
+  )
+);
+
+-- Trail proposal images
+drop policy if exists "trail_proposal_images_public_read" on public.trail_proposal_images;
+create policy "trail_proposal_images_public_read"
+on public.trail_proposal_images
+for select
+to anon, authenticated
+using (
+  exists (
+    select 1 from public.trail_proposals tp
+    where tp.id = trail_proposal_images.proposal_id
+      and tp.is_visible = true
+  )
+);
+
+drop policy if exists "trail_proposal_images_owner_select" on public.trail_proposal_images;
+create policy "trail_proposal_images_owner_select"
+on public.trail_proposal_images
+for select
+to authenticated
+using (
+  exists (
+    select 1 from public.trail_proposals tp
+    join public.users u on u.id = tp.submitted_by_user_id
+    where tp.id = trail_proposal_images.proposal_id
+      and u.auth_user_id = auth.uid()
+  )
+);
+
+drop policy if exists "trail_proposal_images_authenticated_insert" on public.trail_proposal_images;
+create policy "trail_proposal_images_authenticated_insert"
+on public.trail_proposal_images
+for insert
+to authenticated
+with check (
+  exists (
+    select 1 from public.trail_proposals tp
+    join public.users u on u.id = tp.submitted_by_user_id
+    where tp.id = trail_proposal_images.proposal_id
+      and u.auth_user_id = auth.uid()
+  )
+);
 
 -- APPEND PATCH: trip_plans hardening / retry-safe append
 create table if not exists public.trip_plans (
@@ -676,17 +833,183 @@ where ti.status = 'claimed'
 
 alter table public.trip_memberships enable row level security;
 
+-- Authenticated users see their own memberships or those for trips they organize
 drop policy if exists "public can read trip memberships" on public.trip_memberships;
-create policy "public can read trip memberships"
+drop policy if exists "trip_memberships_authenticated_select" on public.trip_memberships;
+create policy "trip_memberships_authenticated_select"
 on public.trip_memberships
 for select
+to authenticated
 using (
   exists (
-    select 1
-    from public.trip_plans tp
+    select 1 from public.users u
+    where u.id = trip_memberships.user_id
+      and u.auth_user_id = auth.uid()
+  )
+  or
+  exists (
+    select 1 from public.trip_plans tp
+    join public.users u on u.id = tp.created_by_user_id
+    where tp.id = trip_memberships.trip_plan_id
+      and u.auth_user_id = auth.uid()
+  )
+);
+
+-- Anon users see membership counts on published trips (aggregate, no personal info)
+drop policy if exists "trip_memberships_anon_select" on public.trip_memberships;
+create policy "trip_memberships_anon_select"
+on public.trip_memberships
+for select
+to anon
+using (
+  exists (
+    select 1 from public.trip_plans tp
     join public.trails t on t.slug = tp.trail_slug
-    where tp.id = trip_plan_id
+    where tp.id = trip_memberships.trip_plan_id
       and t.is_published = true
+  )
+);
+
+-- Trip plans: add missing policies (RLS was enabled but no policies defined)
+drop policy if exists "trip_plans_public_read" on public.trip_plans;
+create policy "trip_plans_public_read"
+on public.trip_plans
+for select
+to anon, authenticated
+using (
+  exists (
+    select 1 from public.trails t
+    where t.slug = trip_plans.trail_slug
+      and t.is_published = true
+  )
+);
+
+drop policy if exists "trip_plans_organizer_insert" on public.trip_plans;
+create policy "trip_plans_organizer_insert"
+on public.trip_plans
+for insert
+to authenticated
+with check (
+  exists (
+    select 1 from public.users u
+    where u.id = trip_plans.created_by_user_id
+      and u.auth_user_id = auth.uid()
+  )
+);
+
+drop policy if exists "trip_plans_organizer_update" on public.trip_plans;
+create policy "trip_plans_organizer_update"
+on public.trip_plans
+for update
+to authenticated
+using (
+  exists (
+    select 1 from public.users u
+    where u.id = trip_plans.created_by_user_id
+      and u.auth_user_id = auth.uid()
+  )
+)
+with check (
+  exists (
+    select 1 from public.users u
+    where u.id = trip_plans.created_by_user_id
+      and u.auth_user_id = auth.uid()
+  )
+);
+
+-- Trip invites: participant visibility
+drop policy if exists "trip_invites_participant_select" on public.trip_invites;
+create policy "trip_invites_participant_select"
+on public.trip_invites
+for select
+to authenticated
+using (
+  exists (
+    select 1 from public.users u
+    where u.id = trip_invites.invited_by_user_id
+      and u.auth_user_id = auth.uid()
+  )
+  or
+  exists (
+    select 1 from public.users u
+    where u.id = trip_invites.claimed_by_user_id
+      and u.auth_user_id = auth.uid()
+  )
+  or
+  exists (
+    select 1 from public.users u
+    where u.email = trip_invites.invited_email
+      and u.auth_user_id = auth.uid()
+  )
+);
+
+-- Crews: owner insert
+drop policy if exists "crews_owner_insert" on public.crews;
+create policy "crews_owner_insert"
+on public.crews
+for insert
+to authenticated
+with check (
+  exists (
+    select 1 from public.users u
+    where u.id = crews.created_by_user_id
+      and u.auth_user_id = auth.uid()
+  )
+);
+
+-- Crew members: self-insert
+drop policy if exists "crew_members_owner_insert" on public.crew_members;
+create policy "crew_members_owner_insert"
+on public.crew_members
+for insert
+to authenticated
+with check (
+  exists (
+    select 1 from public.users u
+    where u.id = crew_members.user_id
+      and u.auth_user_id = auth.uid()
+  )
+  and role = 'member'
+);
+
+-- Comments: authenticated insert
+drop policy if exists "comments_authenticated_insert" on public.comments;
+create policy "comments_authenticated_insert"
+on public.comments
+for insert
+to authenticated
+with check (
+  exists (
+    select 1 from public.users u
+    where u.id = comments.user_id
+      and u.auth_user_id = auth.uid()
+  )
+);
+
+-- Favorite trails: owner write
+drop policy if exists "favorite_trails_owner_insert" on public.favorite_trails;
+create policy "favorite_trails_owner_insert"
+on public.favorite_trails
+for insert
+to authenticated
+with check (
+  exists (
+    select 1 from public.users u
+    where u.id = favorite_trails.user_id
+      and u.auth_user_id = auth.uid()
+  )
+);
+
+drop policy if exists "favorite_trails_owner_delete" on public.favorite_trails;
+create policy "favorite_trails_owner_delete"
+on public.favorite_trails
+for delete
+to authenticated
+using (
+  exists (
+    select 1 from public.users u
+    where u.id = favorite_trails.user_id
+      and u.auth_user_id = auth.uid()
   )
 );
 
@@ -806,6 +1129,261 @@ create table if not exists public.community_direct_messages (
 create index if not exists idx_community_direct_messages_sender_created_at on public.community_direct_messages (sender_user_id, created_at desc);
 create index if not exists idx_community_direct_messages_receiver_created_at on public.community_direct_messages (receiver_user_id, created_at desc);
 
+-- =============================================================
+-- Policies for user-control and community tables
+-- These tables were added via append patches without RLS policies.
+-- =============================================================
+
+-- Favorite trips: owner-only CRUD
+drop policy if exists "favorite_trips_owner_select" on public.favorite_trips;
+create policy "favorite_trips_owner_select"
+on public.favorite_trips
+for select
+to authenticated
+using (
+  exists (
+    select 1 from public.users u
+    where u.id = favorite_trips.user_id
+      and u.auth_user_id = auth.uid()
+  )
+);
+
+drop policy if exists "favorite_trips_owner_insert" on public.favorite_trips;
+create policy "favorite_trips_owner_insert"
+on public.favorite_trips
+for insert
+to authenticated
+with check (
+  exists (
+    select 1 from public.users u
+    where u.id = favorite_trips.user_id
+      and u.auth_user_id = auth.uid()
+  )
+);
+
+drop policy if exists "favorite_trips_owner_delete" on public.favorite_trips;
+create policy "favorite_trips_owner_delete"
+on public.favorite_trips
+for delete
+to authenticated
+using (
+  exists (
+    select 1 from public.users u
+    where u.id = favorite_trips.user_id
+      and u.auth_user_id = auth.uid()
+  )
+);
+
+-- Favorite crews: owner-only CRUD
+drop policy if exists "favorite_crews_owner_select" on public.favorite_crews;
+create policy "favorite_crews_owner_select"
+on public.favorite_crews
+for select
+to authenticated
+using (
+  exists (
+    select 1 from public.users u
+    where u.id = favorite_crews.user_id
+      and u.auth_user_id = auth.uid()
+  )
+);
+
+drop policy if exists "favorite_crews_owner_insert" on public.favorite_crews;
+create policy "favorite_crews_owner_insert"
+on public.favorite_crews
+for insert
+to authenticated
+with check (
+  exists (
+    select 1 from public.users u
+    where u.id = favorite_crews.user_id
+      and u.auth_user_id = auth.uid()
+  )
+);
+
+drop policy if exists "favorite_crews_owner_delete" on public.favorite_crews;
+create policy "favorite_crews_owner_delete"
+on public.favorite_crews
+for delete
+to authenticated
+using (
+  exists (
+    select 1 from public.users u
+    where u.id = favorite_crews.user_id
+      and u.auth_user_id = auth.uid()
+  )
+);
+
+-- Favorite members: owner-only CRUD
+drop policy if exists "favorite_members_owner_select" on public.favorite_members;
+create policy "favorite_members_owner_select"
+on public.favorite_members
+for select
+to authenticated
+using (
+  exists (
+    select 1 from public.users u
+    where u.id = favorite_members.user_id
+      and u.auth_user_id = auth.uid()
+  )
+);
+
+drop policy if exists "favorite_members_owner_insert" on public.favorite_members;
+create policy "favorite_members_owner_insert"
+on public.favorite_members
+for insert
+to authenticated
+with check (
+  exists (
+    select 1 from public.users u
+    where u.id = favorite_members.user_id
+      and u.auth_user_id = auth.uid()
+  )
+  and (select u.id from public.users u where u.auth_user_id = auth.uid()) <> (select u2.id from public.users u2 where u2.id = favorite_members.member_user_id)
+);
+
+drop policy if exists "favorite_members_owner_delete" on public.favorite_members;
+create policy "favorite_members_owner_delete"
+on public.favorite_members
+for delete
+to authenticated
+using (
+  exists (
+    select 1 from public.users u
+    where u.id = favorite_members.user_id
+      and u.auth_user_id = auth.uid()
+  )
+);
+
+-- User email preferences: owner-only read/update
+drop policy if exists "user_email_preferences_owner_select" on public.user_email_preferences;
+create policy "user_email_preferences_owner_select"
+on public.user_email_preferences
+for select
+to authenticated
+using (
+  exists (
+    select 1 from public.users u
+    where u.id = user_email_preferences.user_id
+      and u.auth_user_id = auth.uid()
+  )
+);
+
+drop policy if exists "user_email_preferences_owner_update" on public.user_email_preferences;
+create policy "user_email_preferences_owner_update"
+on public.user_email_preferences
+for update
+to authenticated
+using (
+  exists (
+    select 1 from public.users u
+    where u.id = user_email_preferences.user_id
+      and u.auth_user_id = auth.uid()
+  )
+)
+with check (
+  exists (
+    select 1 from public.users u
+    where u.id = user_email_preferences.user_id
+      and u.auth_user_id = auth.uid()
+  )
+);
+
+-- Email preference tokens: intentionally NO policies (service-role only)
+
+-- Site notifications: owner-only read/update
+drop policy if exists "site_notifications_owner_select" on public.site_notifications;
+create policy "site_notifications_owner_select"
+on public.site_notifications
+for select
+to authenticated
+using (
+  exists (
+    select 1 from public.users u
+    where u.id = site_notifications.user_id
+      and u.auth_user_id = auth.uid()
+  )
+);
+
+drop policy if exists "site_notifications_owner_update" on public.site_notifications;
+create policy "site_notifications_owner_update"
+on public.site_notifications
+for update
+to authenticated
+using (
+  exists (
+    select 1 from public.users u
+    where u.id = site_notifications.user_id
+      and u.auth_user_id = auth.uid()
+  )
+)
+with check (
+  exists (
+    select 1 from public.users u
+    where u.id = site_notifications.user_id
+      and u.auth_user_id = auth.uid()
+  )
+);
+
+-- Community trip invites: sender/receiver visibility
+drop policy if exists "community_trip_invites_participant_select" on public.community_trip_invites;
+create policy "community_trip_invites_participant_select"
+on public.community_trip_invites
+for select
+to authenticated
+using (
+  exists (
+    select 1 from public.users u
+    where u.id = community_trip_invites.sender_user_id
+      and u.auth_user_id = auth.uid()
+  )
+  or exists (
+    select 1 from public.users u
+    where u.id = community_trip_invites.receiver_user_id
+      and u.auth_user_id = auth.uid()
+  )
+);
+
+drop policy if exists "community_trip_invites_receiver_update" on public.community_trip_invites;
+create policy "community_trip_invites_receiver_update"
+on public.community_trip_invites
+for update
+to authenticated
+using (
+  exists (
+    select 1 from public.users u
+    where u.id = community_trip_invites.receiver_user_id
+      and u.auth_user_id = auth.uid()
+  )
+)
+with check (
+  exists (
+    select 1 from public.users u
+    where u.id = community_trip_invites.receiver_user_id
+      and u.auth_user_id = auth.uid()
+  )
+  and new.status in ('accepted', 'declined')
+);
+
+-- Community direct messages: sender/receiver visibility
+drop policy if exists "community_direct_messages_participant_select" on public.community_direct_messages;
+create policy "community_direct_messages_participant_select"
+on public.community_direct_messages
+for select
+to authenticated
+using (
+  exists (
+    select 1 from public.users u
+    where u.id = community_direct_messages.sender_user_id
+      and u.auth_user_id = auth.uid()
+  )
+  or exists (
+    select 1 from public.users u
+    where u.id = community_direct_messages.receiver_user_id
+      and u.auth_user_id = auth.uid()
+  )
+);
+
 -- APPEND PATCH: weekly digest pipeline
 create table if not exists public.weekly_digests (
   id uuid primary key default gen_random_uuid(),
@@ -898,6 +1476,50 @@ create trigger trg_weekly_digest_outputs_updated_at
 before update on public.weekly_digest_outputs
 for each row execute function public.set_updated_at();
 
+-- Weekly digest pipeline: public read for published items
+drop policy if exists "weekly_digests_public_read" on public.weekly_digests;
+create policy "weekly_digests_public_read"
+on public.weekly_digests
+for select
+to anon, authenticated
+using (
+  status = 'published'
+);
+
+drop policy if exists "external_events_public_read" on public.external_events;
+create policy "external_events_public_read"
+on public.external_events
+for select
+to anon, authenticated
+using (
+  status = 'published'
+);
+
+drop policy if exists "weekly_digest_items_public_read" on public.weekly_digest_items;
+create policy "weekly_digest_items_public_read"
+on public.weekly_digest_items
+for select
+to anon, authenticated
+using (
+  exists (
+    select 1 from public.weekly_digests wd
+    where wd.id = weekly_digest_items.digest_id
+      and wd.status = 'published'
+  )
+);
+
+drop policy if exists "weekly_digest_outputs_public_read" on public.weekly_digest_outputs;
+create policy "weekly_digest_outputs_public_read"
+on public.weekly_digest_outputs
+for select
+to anon, authenticated
+using (
+  exists (
+    select 1 from public.weekly_digests wd
+    where wd.id = weekly_digest_outputs.digest_id
+      and wd.status = 'published'
+  )
+);
 
 -- APPEND PATCH: trip chat mvp
 create table if not exists public.trip_chat_messages (

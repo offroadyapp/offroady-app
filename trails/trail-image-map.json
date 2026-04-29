@@ -324,5 +324,12 @@
     "sourcePage": "/plan/nahatlatch-fsr",
     "sourceImage": "/images/trails/nahatlatch-fsr.webp",
     "needsBetterSource": true
+  },
+  "mount-cheam-peak-trailhead": {
+    "cardImage": "/images/trails/mount-cheam-peak-trailhead.webp",
+    "imageKind": "trail-context",
+    "locationContext": "Mount Cheam Peak trailhead, Chilliwack / Fraser Valley",
+    "notes": "Generated placeholder; replace with actual trailhead or Cheam Peak photo soon.",
+    "needsBetterSource": true
   }
 }

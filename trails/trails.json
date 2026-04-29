@@ -1456,5 +1456,40 @@
     "dedupe_status": "new_candidate",
     "dedupe_note": "No obvious overlap with the current known Offroady trail list by exact name.",
     "shortlist_tier": "tier_1"
+  },
+  {
+    "id": "mount-cheam-peak-trailhead",
+    "slug": "mount-cheam-peak-trailhead",
+    "title": "Mount Cheam Peak Trailhead",
+    "region": "Chilliwack",
+    "location_label": "Chilliwack / Fraser Valley",
+    "latitude": 49.16883626564188,
+    "longitude": -121.69399500201129,
+    "facebook_post_url": null,
+    "coordinate_source": "User-provided trailhead coordinates / BC backroad knowledge",
+    "summary_zh": "Mount Cheam Peak 是 Chilliwack / Fraser Valley 地区非常著名的山景目的地。通往 trailhead 的 FSR 路况较差，适合 4x4 high-clearance 车辆。到达 trailhead 后可徒步登顶，欣赏开阔的高山草甸景色。这条路线对 Offroady 来说很适合，因为结合了越野驾驶和徒步登山的双重体验。",
+    "notes": "Manual addition by request on 2026-04-29. Distinct from the existing mount-cheam-fsr-access entry (FSR approach at lower elevation). This is the actual trailhead parking area from which the hiking route to Cheam Peak begins.",
+    "verification_level": "manual-import-review",
+    "source_type": "manual-addition",
+    "featured_candidate": true,
+    "hero_image": "/images/cheam-lookout.jpg",
+    "card_image": "/images/trails/mount-cheam-peak-trailhead.webp",
+    "card_blurb": "A classic Fraser Valley mountain destination where a rough 4x4 access road leads to the Mount Cheam Peak trailhead, with the option to hike onward for panoramic alpine views.",
+    "access_type": "trailhead",
+    "difficulty": "hard",
+    "best_for": [
+      "4x4",
+      "high-clearance",
+      "trailhead",
+      "hiking",
+      "mountain-views",
+      "alpine-access"
+    ],
+    "vehicle_recommendation": "4x4 high-clearance vehicle strongly recommended. Low-clearance vehicles should not attempt this road. Snow, washouts, loose rock, and narrow sections may be present.",
+    "route_condition_note": "Road conditions vary significantly by season and recent weather. High-clearance 4x4 required. Check current road and trail conditions before going. Snow may persist into late spring. Hiking beyond the trailhead requires proper footwear, water, weather protection, and backcountry preparation.",
+    "members_only_view": true,
+    "members_only_plan_trip": true,
+    "plan_trip_enabled": true,
+    "referral_sharing_enabled": true
   }
 ]

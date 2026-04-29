@@ -11,6 +11,7 @@ create extension if not exists pgcrypto;
 create or replace function public.set_updated_at()
 returns trigger
 language plpgsql
+set search_path = public, pg_temp
 as $$
 begin
   new.updated_at = now();
@@ -1550,6 +1551,7 @@ create or replace function public.viewer_user_id()
 returns uuid
 language sql
 stable
+set search_path = public, pg_temp
 as $$
   select u.id
   from public.users u
@@ -1561,6 +1563,7 @@ create or replace function public.can_access_trip_chat(p_trip_id uuid)
 returns boolean
 language sql
 stable
+set search_path = public, pg_temp
 as $$
   select exists (
     select 1
@@ -1581,6 +1584,7 @@ create or replace function public.is_trip_chat_organizer(p_trip_id uuid)
 returns boolean
 language sql
 stable
+set search_path = public, pg_temp
 as $$
   select exists (
     select 1

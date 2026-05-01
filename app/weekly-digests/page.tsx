@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import PageShell from '@/app/components/PageShell';
+import WeeklyDigestSignupForm from '@/app/components/WeeklyDigestSignupForm';
 import { getLatestWeeklyDigest, listWeeklyDigestsForAdmin } from '@/lib/offroady/weekly-digests';
 
 export const dynamic = 'force-dynamic';
@@ -79,20 +80,8 @@ export default async function WeeklyDigestsIndexPage() {
             )}
           </section>
 
-          <section className="mt-8 rounded-3xl border border-black/8 bg-white p-8 shadow-sm">
-            <p className="text-sm font-semibold uppercase tracking-[0.16em] text-[#5d7d61]">Subscribe</p>
-            <h2 className="mt-2 text-3xl font-bold text-[#243126]">Get the weekly digest by email</h2>
-            <p className="mt-3 max-w-3xl leading-7 text-gray-700">
-              Want these updates in your inbox? Subscribe to receive the weekly trail digest, featuring the Trail of the Week, upcoming member trips, and community events.
-            </p>
-            <div className="mt-6 flex flex-wrap gap-3">
-              <Link href="/weekly-digest-subscriptions" className="inline-flex rounded-lg bg-[#2f5d3a] px-5 py-3 font-semibold text-white transition hover:bg-[#264d30]">
-                Subscribe
-              </Link>
-              <Link href="/email-preferences" className="inline-flex rounded-lg border border-gray-300 px-5 py-3 font-semibold text-gray-800 transition hover:bg-gray-50">
-                Email Preferences
-              </Link>
-            </div>
+          <section className="mt-8">
+            <WeeklyDigestSignupForm />
           </section>
         </main>
       </div>

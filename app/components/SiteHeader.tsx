@@ -8,9 +8,9 @@ type Props = {
 
 const navItems = [
   { href: '/trail-of-the-week', label: 'Trail of the Week', title: "This week's featured run" },
+  { href: '/#more-trails', label: 'More Trails', title: 'Browse all trails' },
   { href: '/join-a-trip', label: 'Join a Trip' },
   { href: '/community', label: 'Community' },
-  { href: '/#more-trails', label: 'More Trails', title: 'Browse all trails' },
   { href: '/about', label: 'About' },
 ];
 

@@ -1,37 +1,37 @@
 {
   "mamquam-river-fsr": {
-    "cardImage": "/images/trails/mamquam-river-fsr.webp",
-    "imageKind": "trail-context",
+    "cardImage": "/images/trails/mamquam-river-fsr.png",
+    "imageKind": "gpt-image-2",
     "locationContext": "Mamquam River valley, Squamish",
-    "notes": "Stored generated image based on the specific trail corridor and region context.",
+    "notes": "GPT-Image-2 generated: photorealistic gravel FSR winding through coastal temperate rainforest with mountain views, 4x4 vehicle in distance.",
     "needsBetterSource": false
   },
   "indian-river-fsr-turnoff-from-mamquam": {
-    "cardImage": "/images/trails/indian-river-fsr-turnoff-from-mamquam.webp",
-    "imageKind": "trail-context",
+    "cardImage": "/images/trails/indian-river-fsr-turnoff-from-mamquam.png",
+    "imageKind": "gpt-image-2",
     "locationContext": "Indian River turnoff, Squamish backroads",
-    "notes": "Stored generated image based on the specific trail corridor and region context.",
+    "notes": "GPT-Image-2 generated: gravel road branching off into dense coastal temperate rainforest with tall conifers and forest road sign.",
     "needsBetterSource": false
   },
   "squamish-valley-fsr": {
-    "cardImage": "/images/trails/squamish-valley-fsr.webp",
-    "imageKind": "trail-context",
+    "cardImage": "/images/trails/squamish-valley-fsr.png",
+    "imageKind": "gpt-image-2",
     "locationContext": "Squamish Valley FSR",
-    "notes": "Stored generated image based on the specific trail corridor and region context.",
+    "notes": "GPT-Image-2 generated: wide gravel road alongside Squamish River with snow-capped coastal mountain peaks and tall evergreens.",
     "needsBetterSource": false
   },
   "ashlu-river-fsr": {
-    "cardImage": "/images/trails/ashlu-river-fsr.webp",
-    "imageKind": "trail-context",
+    "cardImage": "/images/trails/ashlu-river-fsr.png",
+    "imageKind": "gpt-image-2",
     "locationContext": "Ashlu River corridor, Squamish",
-    "notes": "Stored generated image based on the specific trail corridor and region context.",
+    "notes": "GPT-Image-2 generated: narrow gravel road following Ashlu River canyon with dense rainforest and 4x4 parked at pullout.",
     "needsBetterSource": false
   },
   "harrison-east-fsr": {
-    "cardImage": "/images/trails/harrison-east-fsr.webp",
-    "imageKind": "trail-context",
+    "cardImage": "/images/trails/harrison-east-fsr.png",
+    "imageKind": "gpt-image-2",
     "locationContext": "Harrison East lakeside road",
-    "notes": "Stored generated image based on the specific trail corridor and region context.",
+    "notes": "GPT-Image-2 generated: gravel road along Harrison Lake shoreline with lake views, mountains, SUV driving on lakeside road.",
     "needsBetterSource": false
   },
   "west-harrison-stsailes-west-fsr-approach": {
@@ -42,10 +42,10 @@
     "needsBetterSource": false
   },
   "norrish-creek-fsr": {
-    "cardImage": "/images/trails/norrish-creek-fsr.webp",
-    "imageKind": "trail-context",
+    "cardImage": "/images/trails/norrish-creek-fsr.png",
+    "imageKind": "gpt-image-2",
     "locationContext": "Norrish Creek valley, Mission",
-    "notes": "Stored generated image based on the specific trail corridor and region context.",
+    "notes": "GPT-Image-2 generated: gravel road winding through lush coastal valley with creek, mossy cedars and firs, 4x4 driving.",
     "needsBetterSource": false
   },
   "florence-lake-fsr": {
@@ -77,10 +77,10 @@
     "needsBetterSource": false
   },
   "chehalis-forest-service-road": {
-    "cardImage": "/images/trails/chehalis-forest-service-road.webp",
-    "imageKind": "trail-context",
+    "cardImage": "/images/trails/chehalis-forest-service-road.png",
+    "imageKind": "gpt-image-2",
     "locationContext": "Chehalis forest valley",
-    "notes": "Stored generated image based on the specific trail corridor and region context.",
+    "notes": "GPT-Image-2 generated: gravel road through wide forested valley, Chehalis River area, ATV stopped on road, overcast sky.",
     "needsBetterSource": false
   },
   "mystery-creek-fsr-approach": {
@@ -91,10 +91,10 @@
     "needsBetterSource": false
   },
   "nahatlatch-fsr": {
-    "cardImage": "/images/trails/nahatlatch-fsr.webp",
-    "imageKind": "trail-context",
+    "cardImage": "/images/trails/nahatlatch-fsr.png",
+    "imageKind": "gpt-image-2",
     "locationContext": "Nahatlatch Valley near Boston Bar",
-    "notes": "Stored generated image based on the specific trail corridor and region context.",
+    "notes": "GPT-Image-2 generated: remote valley gravel road with Nahatlatch River, pine/fir forests, mountain peaks, 4x4 driving.",
     "needsBetterSource": false
   },
   "nahatlatch-fire-lookout-access": {
@@ -112,10 +112,10 @@
     "needsBetterSource": false
   },
   "mount-cheam-fsr-access": {
-    "cardImage": "/images/trails/mount-cheam-fsr-access.webp",
-    "imageKind": "trail-context",
+    "cardImage": "/images/trails/mount-cheam-fsr-access.png",
+    "imageKind": "gpt-image-2",
     "locationContext": "Mount Cheam approach road",
-    "notes": "Stored generated image based on the specific trail corridor and region context.",
+    "notes": "GPT-Image-2 generated: steep winding gravel road climbing mountainside through Pacific Northwest forest, 4x4 truck navigating.",
     "needsBetterSource": false
   },
   "bridal-falls-fsr": {
@@ -140,10 +140,10 @@
     "needsBetterSource": false
   },
   "whipsaw-creek-forest-service-road": {
-    "cardImage": "/images/trails/whipsaw-creek-forest-service-road.webp",
-    "imageKind": "trail-context",
+    "cardImage": "/images/trails/whipsaw-creek-forest-service-road.png",
+    "imageKind": "gpt-image-2",
     "locationContext": "Whipsaw Creek interior mountain route",
-    "notes": "Stored generated image based on the specific trail corridor and region context.",
+    "notes": "GPT-Image-2 generated: high-elevation interior mountain landscape with open pine forest, rocky terrain, creek canyon.",
     "needsBetterSource": false
   },
   "owl-creek-fsr": {

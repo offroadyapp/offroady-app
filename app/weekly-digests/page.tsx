@@ -23,11 +23,16 @@ export default async function WeeklyDigestsIndexPage() {
       <div className="min-h-screen bg-[#f4f6f3] text-[#2b2b2b]">
         <main className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
           <section className="rounded-3xl border border-black/8 bg-[#101412] px-8 py-10 text-white shadow-sm">
-            <p className="text-sm font-semibold uppercase tracking-[0.16em] text-[#9dc2a2]">Weekly trail digests</p>
+            <p className="text-sm font-semibold uppercase tracking-[0.16em] text-[#9dc2a2]">Weekly digests</p>
             <h1 className="mt-2 text-4xl font-bold tracking-tight">Weekly Digests</h1>
             <p className="mt-4 max-w-3xl text-base leading-7 text-white/80">
               A curated weekly roundup of trails, member trips, and community events across BC.
             </p>
+            <div className="mt-6">
+              <a href="#weekly-digest-signup" className="inline-flex rounded-lg bg-[#1f5a36] px-5 py-3 font-semibold text-white shadow-lg ring-1 ring-[#2f7a4d]/70 transition hover:bg-[#18482b]">
+                Subscribe
+              </a>
+            </div>
           </section>
 
           {latest ? (

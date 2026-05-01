@@ -148,11 +148,11 @@ export default function TripDetailActions({ tripId, viewerSignedIn, isJoined, vi
                   {tripChat.unreadCount ? <span className="rounded-full bg-white px-2 py-0.5 text-xs font-bold text-[#243126]">{tripChat.unreadCount} unread</span> : null}
                 </Link>
               ) : viewerSignedIn ? (
-                <a href="#join-this-trip" className="inline-flex rounded-lg border border-gray-300 px-5 py-3 font-semibold text-gray-800 transition hover:bg-gray-50">
+                <a href="#join-this-trip" className="inline-flex rounded-lg bg-[#2f5d3a] px-5 py-3 font-semibold text-white transition hover:bg-[#264d30]">
                   Join this trip to chat
                 </a>
               ) : (
-                <a href="#member-access" className="inline-flex rounded-lg border border-gray-300 px-5 py-3 font-semibold text-gray-800 transition hover:bg-gray-50">
+                <a href="#member-access" className="inline-flex rounded-lg bg-[#2f5d3a] px-5 py-3 font-semibold text-white transition hover:bg-[#264d30]">
                   Log in to join and chat
                 </a>
               )}
@@ -182,7 +182,7 @@ export default function TripDetailActions({ tripId, viewerSignedIn, isJoined, vi
             <h3 className="mt-2 text-xl font-bold text-[#243126]">Keep the run lined up on timing, meetup details, trail conditions, and updates.</h3>
             <p className="mt-3 text-sm leading-6 text-gray-600">Trip Chat is private to the planner and joined participants. Log in, join the trip, and then use it to sort the plan with everyone in the run.</p>
             <div className="mt-4">
-              <a href="#member-access" className="inline-flex rounded-lg border border-gray-300 px-5 py-3 font-semibold text-gray-800 transition hover:bg-gray-50">
+              <a href="#member-access" className="inline-flex rounded-lg bg-[#2f5d3a] px-5 py-3 font-semibold text-white transition hover:bg-[#264d30]">
                 Log in to join and chat
               </a>
             </div>

@@ -63,10 +63,10 @@
     "needsBetterSource": false
   },
   "jones-lake-route-waypoint": {
-    "cardImage": "/images/trails/jones-lake-route-waypoint.webp",
-    "imageKind": "trail-context",
+    "cardImage": "/images/trails/jones-lake-route-waypoint.png",
+    "imageKind": "gpt-image-2",
     "locationContext": "Jones Lake route, Fraser Valley / Hope",
-    "notes": "Stored generated image based on the specific trail corridor and region context.",
+    "notes": "GPT-Image-2 generated: golden hour lakeside campsite with tent and 4x4 overlooking Jones Lake, pine-covered mountains.",
     "needsBetterSource": false
   },
   "kookipi-creek-fsr": {
@@ -119,10 +119,10 @@
     "needsBetterSource": false
   },
   "bridal-falls-fsr": {
-    "cardImage": "/images/trails/bridal-falls-fsr.webp",
-    "imageKind": "trail-context",
+    "cardImage": "/images/trails/bridal-falls-fsr.png",
+    "imageKind": "gpt-image-2",
     "locationContext": "Bridal Falls forest road area",
-    "notes": "Stored generated image based on the specific trail corridor and region context.",
+    "notes": "GPT-Image-2 generated: waterfall visible in distance from gravel FSR with creek crossing, 4x4 parked at viewpoint.",
     "needsBetterSource": false
   },
   "statlu-lake-north-side-trailhead-via-mystery-creek-north-chehalis": {
@@ -236,22 +236,18 @@
     "needsBetterSource": false
   },
   "lava-ridge-1": {
-    "cardImage": "/images/trails/lava-ridge-1.webp",
-    "imageKind": "region-fallback",
+    "cardImage": "/images/trails/lava-ridge-1.png",
+    "imageKind": "gpt-image-2",
     "locationContext": "Squamish / Diamond Head",
-    "notes": "Reused an existing local Offroady image from squamish-valley-fsr as a nearby regional fallback for this shortlist candidate; replace later with trail-specific imagery if a better source is cleared.",
-    "sourcePage": "/plan/squamish-valley-fsr",
-    "sourceImage": "/images/trails/squamish-valley-fsr.webp",
-    "needsBetterSource": true
+    "notes": "GPT-Image-2 generated: volcanic rock formations with rough dirt track through alpine terrain, view of Howe Sound in distance.",
+    "needsBetterSource": false
   },
   "empire-mills": {
-    "cardImage": "/images/trails/empire-mills.webp",
-    "imageKind": "region-fallback",
+    "cardImage": "/images/trails/empire-mills.png",
+    "imageKind": "gpt-image-2",
     "locationContext": "Squamish / Diamond Head",
-    "notes": "Reused an existing local Offroady image from indian-river-fsr-turnoff-from-mamquam as a nearby regional fallback for this shortlist candidate; replace later with trail-specific imagery if a better source is cleared.",
-    "sourcePage": "/plan/indian-river-fsr-turnoff-from-mamquam",
-    "sourceImage": "/images/trails/indian-river-fsr-turnoff-from-mamquam.webp",
-    "needsBetterSource": true
+    "notes": "GPT-Image-2 generated: abandoned mining mill with rusted metal structure, moss and ferns encroaching, gravel road passing through.",
+    "needsBetterSource": false
   },
   "marionette": {
     "cardImage": "/images/trails/marionette.webp",
@@ -263,22 +259,18 @@
     "needsBetterSource": true
   },
   "ring-creek-ridge": {
-    "cardImage": "/images/trails/ring-creek-ridge.webp",
-    "imageKind": "region-fallback",
+    "cardImage": "/images/trails/ring-creek-ridge.png",
+    "imageKind": "gpt-image-2",
     "locationContext": "Squamish / Diamond Head",
-    "notes": "Reused an existing local Offroady image from ashlu-river-fsr as a nearby regional fallback for this shortlist candidate; replace later with trail-specific imagery if a better source is cleared.",
-    "sourcePage": "/plan/ashlu-river-fsr",
-    "sourceImage": "/images/trails/ashlu-river-fsr.webp",
-    "needsBetterSource": true
+    "notes": "GPT-Image-2 generated: drone-style aerial view of FSR winding like a ribbon along mountain ridge with Howe Sound in background.",
+    "needsBetterSource": false
   },
   "holiday-hill": {
-    "cardImage": "/images/trails/holiday-hill.webp",
-    "imageKind": "region-fallback",
+    "cardImage": "/images/trails/holiday-hill.png",
+    "imageKind": "gpt-image-2",
     "locationContext": "Squamish / Brohm Ridge",
-    "notes": "Reused an existing local Offroady image from squamish-valley-fsr as a nearby regional fallback for this shortlist candidate; replace later with trail-specific imagery if a better source is cleared.",
-    "sourcePage": "/plan/squamish-valley-fsr",
-    "sourceImage": "/images/trails/squamish-valley-fsr.webp",
-    "needsBetterSource": true
+    "notes": "GPT-Image-2 generated: open high-elevation plateau with two-track road through alpine meadow, Tantalus Range glacier peaks distant.",
+    "needsBetterSource": false
   },
   "come-as-you-are": {
     "cardImage": "/images/trails/come-as-you-are.webp",
@@ -299,37 +291,31 @@
     "needsBetterSource": true
   },
   "ground-control": {
-    "cardImage": "/images/trails/ground-control.webp",
-    "imageKind": "region-fallback",
+    "cardImage": "/images/trails/ground-control.png",
+    "imageKind": "gpt-image-2",
     "locationContext": "Pemberton / Green River",
-    "notes": "Reused an existing local Offroady image from owl-creek-fsr as a nearby regional fallback for this shortlist candidate; replace later with trail-specific imagery if a better source is cleared.",
-    "sourcePage": "/plan/owl-creek-fsr",
-    "sourceImage": "/images/trails/owl-creek-fsr.webp",
-    "needsBetterSource": true
+    "notes": "GPT-Image-2 generated: FSR crossing a shallow rocky creek with clear mountain water over smooth stones, tire tracks visible.",
+    "needsBetterSource": false
   },
   "institutionalized": {
-    "cardImage": "/images/trails/institutionalized.webp",
-    "imageKind": "region-fallback",
+    "cardImage": "/images/trails/institutionalized.png",
+    "imageKind": "gpt-image-2",
     "locationContext": "Pemberton / Green River",
-    "notes": "Reused an existing local Offroady image from owl-creek-fsr as a nearby regional fallback for this shortlist candidate; replace later with trail-specific imagery if a better source is cleared.",
-    "sourcePage": "/plan/owl-creek-fsr",
-    "sourceImage": "/images/trails/owl-creek-fsr.webp",
-    "needsBetterSource": true
+    "notes": "GPT-Image-2 generated: narrow muddy 4x4 trail through dense forest tunnel with tree canopy overhead, deep ruts and ferns.",
+    "needsBetterSource": false
   },
   "lost-airplane-ridge": {
-    "cardImage": "/images/trails/lost-airplane-ridge.webp",
-    "imageKind": "region-fallback",
+    "cardImage": "/images/trails/lost-airplane-ridge.png",
+    "imageKind": "gpt-image-2",
     "locationContext": "Duffey / Seton area",
-    "notes": "Reused an existing local Offroady image from nahatlatch-fsr as a nearby regional fallback for this shortlist candidate; replace later with trail-specific imagery if a better source is cleared.",
-    "sourcePage": "/plan/nahatlatch-fsr",
-    "sourceImage": "/images/trails/nahatlatch-fsr.webp",
-    "needsBetterSource": true
+    "notes": "GPT-Image-2 generated: cliffside FSR overlooking turquoise Duffey Lake with rugged Coast Mountains and snow patches.",
+    "needsBetterSource": false
   },
   "mount-cheam-peak-trailhead": {
-    "cardImage": "/images/trails/mount-cheam-peak-trailhead.webp",
-    "imageKind": "trail-context",
+    "cardImage": "/images/trails/mount-cheam-peak-trailhead.png",
+    "imageKind": "gpt-image-2",
     "locationContext": "Mount Cheam Peak trailhead, Chilliwack / Fraser Valley",
-    "notes": "Generated placeholder; replace with actual trailhead or Cheam Peak photo soon.",
-    "needsBetterSource": true
+    "notes": "GPT-Image-2 generated: alpine meadow with wildflowers, dusty road leading toward peak trailhead, Mount Baker on horizon.",
+    "needsBetterSource": false
   }
 }

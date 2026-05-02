@@ -9,10 +9,9 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Email is required' }, { status: 400 });
     }
 
-    const baseUrl = new URL(request.url).origin;
     const supabase = getServerAuthSupabase();
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${baseUrl}/reset-password/confirm`,
+      redirectTo: `https://www.offroady.app/reset-password/confirm`,
     });
 
     if (error) throw error;

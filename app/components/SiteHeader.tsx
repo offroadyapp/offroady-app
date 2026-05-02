@@ -11,6 +11,7 @@ const navItems = [
   { href: '/#more-trails', label: 'More Trails', title: 'Browse all trails' },
   { href: '/join-a-trip', label: 'Join a Trip' },
   { href: '/community', label: 'Community' },
+  { href: '/blog', label: 'Blog' },
   { href: '/about', label: 'About' },
 ];
 

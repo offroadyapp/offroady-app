@@ -1,5 +1,26 @@
 import Link from 'next/link';
+import type { Metadata } from 'next';
 import PageShell from '@/app/components/PageShell';
+
+export const metadata: Metadata = {
+  title: '第一次越野要准备什么？新手必读装备清单 | Offroady Blog',
+  description: '在BC的森林服务土路（FSR）上，新手第一次越野应该带什么装备？自救装备、胎压放气、通讯导航、安全清单——BC老越野的经验总结。',
+  openGraph: {
+    title: '第一次越野要准备什么？新手必读装备清单',
+    description: '脱困板、拖车绳、胎压放气、急救包……BC森林土路新手越野装备全清单。',
+    url: 'https://www.offroady.app/blog',
+    siteName: 'Offroady',
+    images: [
+      {
+        url: 'https://www.offroady.app/images/blog/first-trip-gear-hero.png',
+        width: 1024,
+        height: 1024,
+      },
+    ],
+    locale: 'zh_CN',
+    type: 'article',
+  },
+};
 
 export default function BlogIndexPage() {
   return (
@@ -102,7 +123,7 @@ export default function BlogIndexPage() {
                   做好准备了就把车开上去吧。BC的森林服务土路是这个省最好的秘密——开阔的景色、安静的山谷、只有你和你朋友在路上。第一次碎石路开完回来，你肯定会开始计划下一次。
                 </p>
                 <p className="font-semibold text-[#2f5d3a]">
-                  在BC，去哪儿玩？和谁去？可以多看看 www.offroady.app。
+                  在BC，去哪儿玩？和谁去？可以多看看 <a href="https://www.offroady.app" className="underline decoration-[#9dc2a2] underline-offset-4 hover:decoration-[#2f5d3a]">www.offroady.app</a>。
                 </p>
               </div>
             </div>

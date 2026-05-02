@@ -15,41 +15,66 @@ export default function ResetPasswordConfirmClient({ code, type }: Props) {
   const [message, setMessage] = useState('Validating your reset link...');
 
   useEffect(() => {
-    async function validateLink() {
-      const supabase = await getBrowserSupabase();
-      const hashParams = new URLSearchParams(window.location.hash.replace(/^#/, ''));
-      const accessToken = hashParams.get('access_token');
-      const refreshToken = hashParams.get('refresh_token');
-      const resolvedType = hashParams.get('type') || type;
+    const supabase = getBrowserSupabase();
 
-      try {
+    // Let Supabase auto-detect the session from the URL hash (PKCE or recovery flow).
+    // Once detected, we check if we now have a valid session with the user.
+    async function waitForSession() {
+      // Give Supabase's detectSessionInUrl a moment to process the URL
+      await new Promise((r) => setTimeout(r, 1500));
+
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+
+      if (session?.user) {
+        setStatus('ready');
+        setMessage('Link verified. You can now set a new password.');
+      } else {
+        // If still no session and we have a code, try exchanging it explicitly
         if (code) {
-          const { error } = await supabase.auth.exchangeCodeForSession(code);
-          if (error) throw error;
-          setStatus('ready');
-          setMessage('Link verified. You can now set a new password.');
-          return;
+          try {
+            const { error } = await supabase.auth.exchangeCodeForSession(code);
+            if (error) throw error;
+            setStatus('ready');
+            setMessage('Link verified. You can now set a new password.');
+            return;
+          } catch {
+            setStatus('invalid');
+            setMessage('This password reset link is invalid or expired. Please request a new one.');
+            return;
+          }
         }
+
+        // Try recovery flow with hash tokens (legacy)
+        const hashParams = new URLSearchParams(window.location.hash.replace(/^#/, ''));
+        const accessToken = hashParams.get('access_token');
+        const refreshToken = hashParams.get('refresh_token');
+        const resolvedType = hashParams.get('type') || type;
 
         if (resolvedType === 'recovery' && accessToken && refreshToken) {
-          const { error } = await supabase.auth.setSession({
-            access_token: accessToken,
-            refresh_token: refreshToken,
-          });
-          if (error) throw error;
-          setStatus('ready');
-          setMessage('Link verified. You can now set a new password.');
-          return;
+          try {
+            const { error } = await supabase.auth.setSession({
+              access_token: accessToken,
+              refresh_token: refreshToken,
+            });
+            if (error) throw error;
+            setStatus('ready');
+            setMessage('Link verified. You can now set a new password.');
+            return;
+          } catch {
+            setStatus('invalid');
+            setMessage('This password reset link is invalid or expired. Please request a new one.');
+            return;
+          }
         }
 
-        throw new Error('This reset link is invalid or expired.');
-      } catch {
         setStatus('invalid');
         setMessage('This password reset link is invalid or expired. Please request a new one.');
       }
     }
 
-    void validateLink();
+    waitForSession();
   }, [code, type]);
 
   async function handleSubmit(event: React.FormEvent) {
@@ -58,7 +83,7 @@ export default function ResetPasswordConfirmClient({ code, type }: Props) {
     setMessage('Updating your password...');
 
     try {
-      const supabase = await getBrowserSupabase();
+      const supabase = getBrowserSupabase();
       const { error } = await supabase.auth.updateUser({ password });
       if (error) throw error;
       setStatus('success');

@@ -54,7 +54,12 @@ export default function AuthPanel({ initialMode = 'signup' }: Props) {
         body: JSON.stringify({ displayName, email, phone, password }),
       });
       const payload = await response.json();
-      if (!response.ok) throw new Error(payload.error || 'Authentication failed');
+      if (!response.ok) {
+        if (payload.rateLimited) {
+          throw new Error('邮件请求过于频繁，请约一小时后重试。');
+        }
+        throw new Error(payload.error || 'Authentication failed');
+      }
       if (mode === 'reset') {
         setMessage(payload.message || 'If that email exists, a password reset link has been sent.');
         return;

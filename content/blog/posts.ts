@@ -237,6 +237,74 @@ You do not need a pre-existing friend group to run trails safely. Offroady is bu
 
 Off-roading is better with people. Safer, more fun, and you learn faster. Find your next group run on Offroady today.`,
   },
+  {
+    slug: 'trail-difficulty-explained',
+    title: 'Understanding the Trail Difficulty Rating: Is That Trail Right for You?',
+    excerpt: 'Offroady trails are rated Easy, Moderate, Difficult, and Extreme — but what does that actually mean on the ground? Here is how to match a trail to your vehicle and experience.',
+    category: 'Off-Roading Basics',
+    tags: ['difficulty rating', 'trail selection', 'beginner', 'FSR', 'BC'],
+    publishedAt: '2026-05-02T10:00:00-07:00',
+    author: 'Offroady Team',
+    seoTitle: 'Understanding Offroady Trail Difficulty Ratings: Easy to Extreme | BC Off-Road Guide',
+    seoDescription: 'Easy, Moderate, Difficult, Extreme — what each trail difficulty level means for your vehicle and driving skill. BC forest service road guide for beginners and experienced off-roaders.',
+    keywords: ['offroad trail difficulty BC', 'BC FSR trail rating', 'beginner offroad trail selection', '4x4 trail difficulty explained', 'easy moderate difficult extreme'],
+    readingTime: '5 min read',
+    status: 'published',
+    body: `Understanding the trail difficulty rating is your first step to a safe and fun off-road trip. Here is what Easy, Moderate, Difficult, and Extreme actually mean on BC FSRs.
+
+## Easy — Paved or well-maintained gravel
+Any car can handle these routes. Think Squamish Valley FSR on a dry day. No 4x4 needed, no high clearance required, no prior experience.
+
+## Moderate — Graded gravel with occasional obstacles
+Where most BC FSRs live. Loose gravel, mild washboard, occasional potholes. A creek crossing might be shallow. AWD or 4x4 recommended with 8" clearance minimum.
+
+## Difficult — Technical sections with real obstacles
+Deep ruts, rock gardens, creek crossings up to 12", steep grades. 4x4 required, 10" clearance minimum. Previous off-road experience strongly recommended.
+
+## Extreme — Expert-only terrain
+Winching likely, body damage expected. Modified 4x4 required with lockers and winch. Advanced driving skills only.
+
+## How to Pick the Right Trail
+- Start one level below your vehicle\'s capability
+- Check trail photos and recent trip reports
+- Weather can change a Moderate trail to Difficult overnight
+
+Ready to find your next trail? [Browse all trails](/trail-of-the-week) or [join a group trip](/join-a-trip).\n\n---\n\n**📬 Get trail tips in your inbox — subscribe to the Offroady Weekly Digest:**\n👉 **[Subscribe](https://www.offroady.app/weekly-digest)**`,
+  },
+  {
+    slug: 'trail-difficulty-explained-zh',
+    title: '越野难度怎么分？这条路你的车能走吗？',
+    excerpt: 'Offroady 把路线难度分为简单、中等、困难、极限四级。每个等级在地上到底意味着什么？教你看懂难度标签，选对路线。',
+    category: 'Off-Roading Basics',
+    tags: ['难度等级', '路线选择', '新手', 'FSR', 'BC'],
+    publishedAt: '2026-05-02T10:00:00-07:00',
+    author: 'Offroady Team',
+    seoTitle: '越野难度等级怎么分？从简单到极限全解析 | Offroady BC越野指南',
+    seoDescription: '简单、中等、困难、极限——每个难度等级在地面上到底意味着什么？你的车能不能走？需要多少经验？BC森林土路新手到老手的路线选择指南。',
+    keywords: ['越野难度等级', 'BC FSR路线评分', '新手越野选路', '四驱越野难度', '简单中等困难极限'],
+    readingTime: '5分钟',
+    status: 'published',
+    body: `Offroady 把路线难度分为四个等级——简单、中等、困难、极限。每个等级在路上到底是什么样？你的车能不能走？你现在的经验够不够？今天拆开讲清楚。
+
+## 简单——铺装路或维护良好的碎石路
+任何车都能走。天晴的斯阔米什河谷FSR就属于这类。不要求四驱、不要求高离地、不要求任何越野经验。
+
+## 中等——碎石路加零散障碍
+绝大多数BC森林土路都在这个范围。松动碎石、轻度搓板路、偶尔坑洼、浅水滩。建议全轮驱动或四驱，最低20厘米离地间隙。
+
+## 困难——真正需要技术了
+深车辙、碎石阵、最深30厘米溪流、陡坡。必须四驱，最低25厘米离地间隙。强烈建议有越野驾驶经验。
+
+## 极限——老手专属
+大概率要用绞盘，车身损伤正常。需要改装四驱、差速锁、绞盘。高级越野技术必备。
+
+## 选路三原则
+- 从比车的能力低一个级别开始
+- 多看路线照片和近期出行记录
+- 一场暴雨能让中等变困难
+
+想找下一条路线？[浏览全部路线](/trail-of-the-week)或[跟经验丰富的成员组队出发](/join-a-trip)。\n\n---\n\n**📬 每周越野快报直达邮箱——路线推荐、越野技巧、社群活动：**\n👉 **[立即订阅](https://www.offroady.app/weekly-digest)**`,
+  },
 ];
 
 export function getAllPublishedPosts(): BlogPost[] {

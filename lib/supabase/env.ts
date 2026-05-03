@@ -13,16 +13,14 @@ function decodeJwtPayload(token: string) {
   }
 }
 
-function firstEnv(...names: string[]) {
-  for (const name of names) {
-    const value = process.env[name];
-    if (value) return value;
-  }
-  return null;
-}
+// Next.js inlines process.env.NEXT_PUBLIC_* only with static property access.
+// Dynamic access via process.env[name] returns undefined on the client side.
+// These constants use static access so the bundler can inline them at build time.
+const NEXT_PUBLIC_SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const NEXT_PUBLIC_SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
-function inferSupabaseUrlFromKnownKeys() {
-  const token = firstEnv('NEXT_PUBLIC_SUPABASE_ANON_KEY', 'SUPABASE_ANON_KEY', 'SUPABASE_SERVICE_ROLE_KEY');
+function getSupabaseUrlFromJwt() {
+  const token = NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
   if (!token) return null;
 
   const payload = decodeJwtPayload(token);
@@ -31,18 +29,19 @@ function inferSupabaseUrlFromKnownKeys() {
 }
 
 export function getSupabaseUrl(): string | null {
-  const explicit = firstEnv('NEXT_PUBLIC_SUPABASE_URL', 'SUPABASE_URL');
-  if (explicit) return explicit;
+  // Static access: works in both server and client (inlined by bundler)
+  if (NEXT_PUBLIC_SUPABASE_URL) return NEXT_PUBLIC_SUPABASE_URL;
+  // Fallback for server-only
+  if (process.env.SUPABASE_URL) return process.env.SUPABASE_URL;
 
-  const inferred = inferSupabaseUrlFromKnownKeys();
-  if (inferred) return inferred;
-
-  return null;
+  // Last resort: infer from the JWT key
+  return getSupabaseUrlFromJwt();
 }
 
 export function getSupabaseAnonKey(): string | null {
-  const value = firstEnv('NEXT_PUBLIC_SUPABASE_ANON_KEY', 'SUPABASE_ANON_KEY');
-  return value || null;
+  if (NEXT_PUBLIC_SUPABASE_ANON_KEY) return NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  if (process.env.SUPABASE_ANON_KEY) return process.env.SUPABASE_ANON_KEY;
+  return null;
 }
 
 export function requireSupabaseUrl(): string {
@@ -64,4 +63,3 @@ export function getSupabaseServiceRoleKey() {
   }
   return value;
 }
-

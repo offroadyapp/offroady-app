@@ -41,20 +41,8 @@ export default function ResetPasswordConfirmClient({ code, type }: Props) {
       const hash = rawHash.replace(/^#/, '');
       const hashParams = new URLSearchParams(hash);
 
-      // Debug: show URL info without exposing tokens
-      const hasAccessToken = !!hashParams.get('access_token');
-      const hasRefreshToken = !!hashParams.get('refresh_token');
-      const hashType = hashParams.get('type');
-      const hashError = hashParams.get('error');
-      const hasCode = !!code;
-
-      setMessage(
-        `Debug: code=${hasCode} hashAT=${hasAccessToken} hashRT=${hasRefreshToken} type=${hashType||'null'} err=${hashError||'none'}`
-      );
-
       // Check for Supabase error in hash
-      const hashErr = hashParams.get('error');
-      const usedHashError = hashErr || hashError;
+      const usedHashError = hashParams.get('error');
       if (usedHashError) {
         const desc = hashParams.get('error_description');
         if (cancelled) return;

@@ -3,6 +3,7 @@ import { getServiceSupabase } from '@/lib/supabase/server';
 import { buildEmailFooter, listWeeklyDigestSubscribers } from '@/lib/offroady/email-preferences';
 import { sendTransactionalEmail } from '@/lib/offroady/email';
 import { resolveTripTrailReference } from '@/lib/offroady/trip-trails';
+import { getAllPublishedTrailStories } from '@/content/blog/trail-stories';
 
 export type DigestStatus = 'draft' | 'published' | 'archived';
 export type ExternalEventStatus = 'draft' | 'published' | 'cancelled';
@@ -505,6 +506,23 @@ function buildEventsFallback() {
   return 'No manual community events have been added for the next four weeks yet, so this week is all about member-planned trips.';
 }
 
+function getTrailStoryOfTheWeek(): {
+  title: string;
+  slug: string;
+  emailExcerpt: string;
+  trailSlug: string;
+} | null {
+  const stories = getAllPublishedTrailStories();
+  if (!stories.length) return null;
+  const story = stories[0];
+  return {
+    title: story.title,
+    slug: story.slug,
+    emailExcerpt: story.emailExcerpt,
+    trailSlug: story.trailSlug,
+  };
+}
+
 function buildShareLines(digest: {
   headline: string;
   introText: string;
@@ -550,12 +568,22 @@ function buildEmailOutputs(digest: {
     ? `<ul>${digest.externalEvents.map((item) => `<li><strong>${item.title}</strong> on ${formatLongDate(item.startsAt)}${item.locationName ? `, ${item.locationName}` : ''}.</li>`).join('')}</ul>`
     : `<p>${buildEventsFallback()}</p>`;
 
+  
+  const trailStory = getTrailStoryOfTheWeek();
+  const storyHtml = trailStory
+    ? `<h2>Trail Story of the Week</h2><p><strong>${trailStory.title}</strong></p><p>${trailStory.emailExcerpt}</p><p><a href="https://www.offroady.app/blog/${trailStory.slug}">Read Story →</a> · <a href="https://www.offroady.app/plan/${trailStory.trailSlug}">Plan a Trip</a></p>`
+    : '';
+  const storyText = trailStory
+    ? `\\n\\nTrail Story of the Week\\n${trailStory.title}\\n${trailStory.emailExcerpt}\\nRead Story: https://www.offroady.app/blog/${trailStory.slug}\\nPlan a Trip: https://www.offroady.app/plan/${trailStory.trailSlug}`
+    : '';
+
   const html = `
     <h1>${digest.headline}</h1>
     <p>${digest.introText}</p>
     <h2>Featured trail</h2>
     <p><strong>${digest.featuredTrail.title}</strong>${digest.featuredTrail.locationLabel ? `, ${digest.featuredTrail.locationLabel}` : ''}</p>
     <p>${digest.featuredTrail.summary ?? 'Featured BC trail for the week.'}</p>
+    ${storyHtml}
     <h2>Member-planned trips in the ${MEMBER_TRIP_WINDOW_LABEL}</h2>
     ${tripsHtml}
     <h2>External community events in the ${EXTERNAL_EVENT_WINDOW_LABEL}</h2>
@@ -575,7 +603,7 @@ function buildEmailOutputs(digest: {
     ? digest.externalEvents.map((item) => `- ${item.title} on ${formatLongDate(item.startsAt)}${item.locationName ? `, ${item.locationName}` : ''}.`).join('\\n')
     : `- ${buildEventsFallback()}`;
 
-  const text = `${digest.headline}\\n\\n${digest.introText}\\n\\nFeatured trail\\n${digest.featuredTrail.title}${digest.featuredTrail.locationLabel ? `, ${digest.featuredTrail.locationLabel}` : ''}\\n${digest.featuredTrail.summary ?? 'Featured BC trail for the week.'}\\n\\nMember-planned trips in the next 2 weeks\\n${textTrips}\\n\\nExternal community events in the next 2 weeks\\n${textEvents}\\n\\n${digest.cta.title}\\n${digest.cta.body}\\n${digest.cta.href}`;
+  const text = `${digest.headline}\\n\\n${digest.introText}\\n\\nFeatured trail\\n${digest.featuredTrail.title}${digest.featuredTrail.locationLabel ? `, ${digest.featuredTrail.locationLabel}` : ''}\\n${digest.featuredTrail.summary ?? 'Featured BC trail for the week.'}${storyText}\\n\\nMember-planned trips in the next 2 weeks\\n${textTrips}\\n\\nExternal community events in the next 2 weeks\\n${textEvents}\\n\\n${digest.cta.title}\\n${digest.cta.body}\\n${digest.cta.href}`;
 
   return { subject, html, text };
 }
@@ -646,6 +674,7 @@ function buildWebOutput(digest: {
   memberTrips: WeeklyDigestSnapshotItem[];
   externalEvents: WeeklyDigestSnapshotItem[];
 }) {
+  const trailStory = getTrailStoryOfTheWeek();
   return {
     subject: digest.headline,
     content: digest.introText,
@@ -653,6 +682,7 @@ function buildWebOutput(digest: {
       featuredTrailSlug: digest.featuredTrail.slug,
       memberTripCount: digest.memberTrips.length,
       externalEventCount: digest.externalEvents.length,
+      ...(trailStory ? { trailStorySlug: trailStory.slug, trailStoryTitle: trailStory.title } : {}),
     },
   };
 }

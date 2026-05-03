@@ -1,5 +1,6 @@
 import type { MetadataRoute } from 'next';
 import { getPublishedSlugs } from '@/content/blog/posts';
+import { getPublishedTrailStorySlugs } from '@/content/blog/trail-stories';
 
 const BASE_URL = 'https://www.offroady.app';
 
@@ -18,6 +19,7 @@ const staticRoutes = [
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const blogSlugs = getPublishedSlugs();
+  const trailStorySlugs = getPublishedTrailStorySlugs();
 
   const staticEntries: MetadataRoute.Sitemap = staticRoutes.map((route) => ({
     url: `${BASE_URL}${route}`,
@@ -33,5 +35,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: 0.7,
   }));
 
-  return [...staticEntries, ...blogEntries];
+  const storyEntries: MetadataRoute.Sitemap = trailStorySlugs.map((slug) => ({
+    url: `${BASE_URL}/blog/${slug}`,
+    lastModified: new Date(),
+    changeFrequency: 'monthly' as const,
+    priority: 0.6,
+  }));
+
+  return [...staticEntries, ...blogEntries, ...storyEntries];
 }

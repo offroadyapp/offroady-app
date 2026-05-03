@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
+import Link from 'next/link';
 import CopyCoordinatesButton from '@/app/components/CopyCoordinatesButton';
 import PageShell from '@/app/components/PageShell';
 import PlanTripClient from './PlanTripClient';
@@ -8,6 +9,7 @@ import { getLocalTrailBySlug } from '@/lib/offroady/trails';
 import { getSessionUser } from '@/lib/offroady/auth';
 import { getFavoriteTrailSlugs } from '@/lib/offroady/account';
 import { getUpcomingTripDiscovery } from '@/lib/offroady/trip-discovery';
+import { getTrailStoryByTrailSlug } from '@/content/blog/trail-stories';
 
 export const dynamic = 'force-dynamic';
 
@@ -53,6 +55,8 @@ export default async function PlanTripPage({ params }: PageProps) {
   const hasUpcomingTrips = upcomingTrips.length > 0;
   const firstTrip = upcomingTrips[0] ?? null;
   const joinHref = firstTrip ? `/trips/${firstTrip.id}#join-this-trip` : `/join-a-trip?trail=${encodeURIComponent(trail.slug)}`;
+
+  const trailStory = getTrailStoryByTrailSlug(trail.slug);
 
   return (
     <PageShell>
@@ -104,15 +108,30 @@ export default async function PlanTripPage({ params }: PageProps) {
               </div>
             </div>
 
-            <TrailDetailActions
-              trail={trail}
-              viewerSignedIn={Boolean(viewer)}
-              viewerDisplayName={viewer?.displayName ?? null}
-              initialFavorite={favoriteTrailSlugs.includes(trail.slug)}
-              hasUpcomingTrip={hasUpcomingTrips}
-              joinHref={joinHref}
-              planHref={`/plan/${trail.slug}`}
-            />
+            <div className="space-y-4">
+              {trailStory ? (
+                <Link
+                  href={`/blog/${trailStory.slug}`}
+                  className="block rounded-2xl border border-white/25 bg-white/10 p-4 backdrop-blur transition hover:bg-white/15"
+                >
+                  <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#cfe6d2]">Trail Story</p>
+                  <h3 className="mt-1 text-lg font-bold text-white">{trailStory.title}</h3>
+                  <p className="mt-1 text-sm leading-6 text-white/80">{trailStory.excerpt}</p>
+                  <span className="mt-3 inline-flex rounded-lg bg-white/20 px-4 py-2 text-sm font-semibold text-white transition hover:bg-white/30">
+                    Read the Story →
+                  </span>
+                </Link>
+              ) : null}
+              <TrailDetailActions
+                trail={trail}
+                viewerSignedIn={Boolean(viewer)}
+                viewerDisplayName={viewer?.displayName ?? null}
+                initialFavorite={favoriteTrailSlugs.includes(trail.slug)}
+                hasUpcomingTrip={hasUpcomingTrips}
+                joinHref={joinHref}
+                planHref={`/plan/${trail.slug}`}
+              />
+            </div>
           </div>
         </div>
       </section>

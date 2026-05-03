@@ -2,7 +2,7 @@
 
 ## Purpose
 
-This document defines the workflow for creating, reviewing, and publishing Offroady blog posts. The goal is to produce SEO-friendly, original, useful content for the BC off-road community — not to automate low-quality publishing.
+This document defines the workflow for creating, reviewing, and publishing Offroady blog posts and trail stories. The goal is to produce SEO-friendly, original, useful content for the BC off-road community — not to automate low-quality publishing.
 
 ## Content Principles
 
@@ -12,9 +12,11 @@ This document defines the workflow for creating, reviewing, and publishing Offro
 - No dangerous driving advice. No false trail information. No copyright infringement.
 - Do not promise Google rankings. The goal is SEO-friendly, increasing the chance of indexing and natural traffic over time.
 
-## Post Structure
+---
 
-Each post must include:
+## Blog Post Structure
+
+Each blog post lives in `content/blog/posts.ts`. Fields:
 
 | Field | Required | Description |
 |-------|----------|-------------|
@@ -37,6 +39,34 @@ Each post must include:
 
 \* `publishedAt` must be `null` for drafts. Only set a date when status changes to `published`.
 
+## Trail Story Structure
+
+Each trail story lives in `content/blog/trail-stories.ts`. Fields:
+
+| Field | Required | Description |
+|-------|----------|-------------|
+| `slug` | Yes | Short English slug (kebab-case) |
+| `title` | Yes | Catchy title |
+| `excerpt` | Yes | 1-2 sentence summary shown on /blog |
+| `trailSlug` | Yes | Slug of the related trail from `trails/trails.json` |
+| `body` | Yes | Full story markdown (600-1000 words) |
+| `emailExcerpt` | Yes | 60-100 chars for weekly digest |
+| `coverImage` | No | Path to hero image |
+| `coverAlt` | No | Alt text for cover image |
+| `publishedAt` | Yes* | ISO date string. `null` if draft |
+| `status` | Yes | `"draft"` or `"published"` |
+| `seoTitle` | Yes | Unique <title> for this page |
+| `seoDescription` | Yes | Unique <meta description> |
+| `keywords` | Yes | 3-6 target keywords |
+| `readingTime` | Yes | e.g. "5 min read" |
+| `author` | Yes | "Offroady Team" or named author |
+| `ctaText` | No | Custom CTA text |
+| `researchNotes` | No | Internal research notes (not displayed on site) |
+| `imageCredit` | No | Credit for any images used |
+| `imageLicense` | No | License for any images used |
+
+\* `publishedAt` must be `null` for drafts. Only set a date when status changes to `published`.
+
 ## Approved Categories
 
 1. Off-Roading Basics
@@ -48,7 +78,7 @@ Each post must include:
 7. Seasonal Trail Tips
 8. Community Events
 
-## How to Create a Daily Post
+## How to Create a Blog Post
 
 ### Step 1: Pick a topic
 
@@ -68,7 +98,7 @@ Add a new object to `content/blog/posts.ts`. Write the body in Markdown format.
 Internal links to include where natural:
 - `/trail-of-the-week` — featured trail
 - `/join-a-trip` — browse or join upcoming trips
-- `/[trail-slug]` — specific trail detail page
+- `/plan/[trail-slug]` — specific trail detail page
 - `/#more-trails` — browse all trails
 - `/blog` — blog index
 
@@ -76,7 +106,41 @@ Internal links to include where natural:
 
 Every new post starts as `draft`. Set `publishedAt` to `null`.
 
-### Step 5: Review checklist
+## How to Create a Trail Story
+
+### Step 1: Pick a trail
+
+Choose an existing trail from `trails/trails.json`. The trail should have enough character to support a full story (600-1000 words).
+
+### Step 2: Research-first approach
+
+Before writing, research the trail thoroughly:
+- BC Recreation Sites and Trails database
+- BRMB (Backroad Mapbooks)
+- BC Forest Service road condition reports
+- Community trip reports (BC4x4 forums, Facebook groups)
+- Weather patterns and seasonal accessibility
+
+Add findings to `researchNotes` (internal only).
+
+### Step 3: Write the story
+
+Add a new object to `content/blog/trail-stories.ts`. The story should be a **first-person narrative** or **detailed trip guide**, not a dry list of facts. Include:
+- What to expect on the drive
+- Trail conditions and notable landmarks
+- Vehicle recommendations and tips
+- Safety considerations
+- Photos or imagery descriptions
+
+### Step 4: Verify trail connection
+
+Make sure the `trailSlug` matches a slug in `trails/trails.json`. The story will automatically link to `/plan/[trailSlug]` on the blog detail page, and a "Read the Story" preview card will appear on the trail detail page.
+
+### Step 5: Set status to `"draft"`
+
+Every new trail story starts as `draft`. Set `publishedAt` to `null`.
+
+## Review Checklist (Blog Posts & Trail Stories)
 
 Before changing status to `published`, confirm:
 
@@ -92,23 +156,26 @@ Before changing status to `published`, confirm:
 - [ ] Internal links are correct
 - [ ] CTA at end is natural (not forced)
 - [ ] Article reads like a real community member wrote it
+- [ ] (Trail Story) Research notes are populated with verifiable sources
+- [ ] (Trail Story) `trailSlug` matches an existing trail in `trails/trails.json`
+- [ ] (Trail Story) `emailExcerpt` is 60-100 characters and works in digest context
 
-### Step 6: Publish
+## Publish Process
 
-Once reviewed and approved:
+### Step 1: Update status and date
 
 1. Change `status` to `"published"`
 2. Set `publishedAt` to current ISO timestamp
-3. Run `npm run build` and confirm no errors
-4. Commit and push
 
-The post will now appear on `/blog`, enter the sitemap, and be crawlable by search engines.
+### Step 2: Build and verify
 
-### Step 7: Verify
+1. Run `npm run build` and confirm no errors
+2. Check `/blog` shows the new item
+3. Check the detail page loads at `/blog/[slug]`
+4. (Trail Story) Confirm "Read the Story" card appears on the matching trail page at `/plan/[trailSlug]`
+5. Confirm the sitemap includes the new URL
 
-- Check `/blog` shows the new post
-- Check the post detail page loads at `/blog/[slug]`
-- Confirm the sitemap at `/sitemap.xml` includes the new URL
+### Step 3: Commit and push
 
 ## Draft vs Published Behavior
 
@@ -118,6 +185,26 @@ The post will now appear on `/blog`, enter the sitemap, and be crawlable by sear
 | Detail page accessible | No (404) | Yes |
 | In sitemap | No | Yes |
 | Crawlable by Google | No | Yes |
+| Trail story card on trail page | No | Yes |
+| Included in weekly digest | No | Yes |
+
+## Trail Story → Trail Detail Integration
+
+When a trail story is published:
+- A **"Read the Story"** preview card appears on the trail detail page (`/plan/[trailSlug]`)
+- The blog detail page shows a **"View Trail Details"** and **"Plan a Trip on This Trail"** link
+- The story appears on the `/blog` index page alongside regular blog posts
+- The story is included in the sitemap
+- If the story is a draft, all of the above remain hidden
+
+## Weekly Digest Integration
+
+Published trail stories can be featured in the weekly digest. The digest should include:
+- Story title and link to `/blog/[slug]`
+- `emailExcerpt` as the digest summary
+- Cover image if available
+- "Read Story" CTA button
+- "Plan a Trip" link to the related trail
 
 ## Seed Topic List (30+ topics)
 

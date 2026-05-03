@@ -14,167 +14,103 @@ export default function ResetPasswordConfirmClient({ code, type }: Props) {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [status, setStatus] = useState<'checking' | 'ready' | 'invalid' | 'saving' | 'success'>('checking');
   const [message, setMessage] = useState('Validating your reset link...');
-  const validated = useRef(false);
+  const started = useRef(false);
 
   useEffect(() => {
-    if (validated.current) return;
-    validated.current = true;
+    if (started.current) return;
+    started.current = true;
 
     let cancelled = false;
-    const supabase = getBrowserSupabase();
+    const timeoutId = setTimeout(() => {
+      if (cancelled) return;
+      setMessage('Link verification timed out. Please request a new reset link.');
+      setStatus('invalid');
+    }, 10000);
 
-    // Check for error or tokens in the URL hash
-    const rawHash = window.location.hash.replace(/^#/, '');
-    const hashParams = new URLSearchParams(rawHash);
-    const hashError = hashParams.get('error');
-    const accessToken = hashParams.get('access_token');
-    const refreshToken = hashParams.get('refresh_token');
-    const hashType = hashParams.get('type') || type;
-    const hasCode = !!code;
-    const hasHashTokens = !!(accessToken && refreshToken);
+    async function verify() {
+      const supabase = getBrowserSupabase();
+      const hash = window.location.hash.replace(/^#/, '');
+      const hashParams = new URLSearchParams(hash);
 
-    // Debug info (safe - no full tokens)
-    console.log('[reset-password]', JSON.stringify({
-      pathname: window.location.pathname,
-      hasCode,
-      hasHashTokens,
-      hashType,
-      hashError: !!hashError,
-      codeType: type,
-    }));
-
-    // Error in URL
-    if (hashError) {
-      clearHash();
-      if (!cancelled) {
-        setStatus('invalid');
+      // Check for Supabase error in hash
+      const hashError = hashParams.get('error');
+      if (hashError) {
         const desc = hashParams.get('error_description');
+        if (cancelled) return;
+        clearTimeout(timeoutId);
+        window.history.replaceState(null, '', window.location.pathname);
+        setStatus('invalid');
         setMessage(
           desc
             ? decodeURIComponent(desc.replace(/\+/g, ' '))
             : 'Your password reset link has expired or is invalid. Please request a new one.'
         );
+        return;
       }
-      return;
-    }
 
-    // No tokens at all
-    if (!hasCode && !hasHashTokens) {
-      if (!cancelled) {
-        setStatus('invalid');
-        setMessage('This does not look like a valid password reset link. Please request a new one.');
-      }
-      return;
-    }
-
-    // Listen for auth state changes (catches auto-detection and manual exchange)
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      console.log('[reset-password] auth event:', event, session ? 'has session' : 'no session');
-      
-      if (event === 'SIGNED_IN' && session?.user) {
-        clearHash();
-        if (!cancelled) {
+      // Try PKCE code exchange first (?code=xxx from server params)
+      if (code) {
+        try {
+          const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
+          if (exchangeError) throw exchangeError;
+          if (cancelled) return;
+          clearTimeout(timeoutId);
+          window.history.replaceState(null, '', window.location.pathname);
           setStatus('ready');
           setMessage('Link verified. You can now set a new password.');
-        }
-        subscription.unsubscribe();
-      }
-    });
-
-    async function processTokens() {
-      try {
-        // PKCE code flow
-        if (hasCode) {
-          console.log('[reset-password] exchanging PKCE code...');
-          const { error } = await supabase.auth.exchangeCodeForSession(code!);
-          if (error) {
-            console.log('[reset-password] exchange failed:', error.message);
-            throw error;
-          }
-          // Auth state change event should fire
-          console.log('[reset-password] exchange succeeded, waiting for session...');
-          
-          // Fallback: check if session was established after exchange
-          setTimeout(async () => {
-            if (cancelled) return;
-            const { data: { session } } = await supabase.auth.getSession();
-            if (session?.user) {
-              clearHash();
-              setStatus('ready');
-              setMessage('Link verified. You can now set a new password.');
-              subscription.unsubscribe();
-            } else {
-              setStatus('invalid');
-              setMessage('This password reset link is invalid or expired. Please request a new one.');
-            }
-          }, 2000);
           return;
-        }
-
-        // Implicit hash flow
-        if (hasHashTokens) {
-          console.log('[reset-password] setting session from hash tokens...');
-          const { error } = await supabase.auth.setSession({
-            access_token: accessToken!,
-            refresh_token: refreshToken!,
-          });
-          if (error) {
-            console.log('[reset-password] setSession failed:', error.message);
-            throw error;
-          }
-          console.log('[reset-password] setSession succeeded');
-          
-          // Auth state change event should fire
-          // Fallback: check session
-          setTimeout(async () => {
-            if (cancelled) return;
-            const { data: { session } } = await supabase.auth.getSession();
-            if (session?.user) {
-              clearHash();
-              setStatus('ready');
-              setMessage('Link verified. You can now set a new password.');
-              subscription.unsubscribe();
-            } else {
-              setStatus('invalid');
-              setMessage('This password reset link is invalid or expired. Please request a new one.');
-            }
-          }, 2000);
-          return;
-        }
-      } catch {
-        if (!cancelled) {
-          subscription.unsubscribe();
+        } catch {
+          if (cancelled) return;
+          clearTimeout(timeoutId);
           setStatus('invalid');
           setMessage('This password reset link is invalid or expired. Please request a new one.');
+          return;
         }
       }
+
+      // Try implicit hash flow: #access_token=xxx&refresh_token=***&type=recovery
+      const accessToken = hashParams.get('access_token');
+      const refreshToken = hashParams.get('refresh_token');
+      const hashType = hashParams.get('type') || type;
+
+      if (accessToken && refreshToken && hashType === 'recovery') {
+        try {
+          // setSession validates + refreshes the recovery tokens
+          const { error: sessionError, data } = await supabase.auth.setSession({
+            access_token: accessToken,
+            refresh_token: refreshToken,
+          });
+          if (sessionError) throw sessionError;
+          if (!data.session) throw new Error('No session established');
+          if (cancelled) return;
+          clearTimeout(timeoutId);
+          window.history.replaceState(null, '', window.location.pathname);
+          setStatus('ready');
+          setMessage('Link verified. You can now set a new password.');
+          return;
+        } catch {
+          if (cancelled) return;
+          clearTimeout(timeoutId);
+          setStatus('invalid');
+          setMessage('This password reset link is invalid or expired. Please request a new one.');
+          return;
+        }
+      }
+
+      // No usable tokens found
+      if (cancelled) return;
+      clearTimeout(timeoutId);
+      setStatus('invalid');
+      setMessage('This does not look like a valid password reset link. Please request a new one.');
     }
 
-    processTokens();
-
-    // Timeout: 12 seconds
-    const timeoutId = setTimeout(() => {
-      if (cancelled) return;
-      subscription.unsubscribe();
-      setStatus((prev) => {
-        if (prev === 'checking') {
-          setMessage('Link verification timed out. Please request a new reset link.');
-          return 'invalid';
-        }
-        return prev;
-      });
-    }, 12000);
+    verify();
 
     return () => {
       cancelled = true;
-      subscription.unsubscribe();
       clearTimeout(timeoutId);
     };
   }, [code, type]);
-
-  function clearHash() {
-    window.history.replaceState(null, '', window.location.pathname);
-  }
 
   async function handleSubmit(event: React.FormEvent) {
     event.preventDefault();
@@ -206,14 +142,14 @@ export default function ResetPasswordConfirmClient({ code, type }: Props) {
           <p className="mt-4 max-w-2xl text-sm leading-7 text-gray-600">{message}</p>
         </section>
 
-        {(status === 'ready' || status === 'saving') ? (
+        {(status === 'ready' || status === 'saving') && (
           <section className="rounded-3xl border border-black/8 bg-white p-8 shadow-sm">
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">New password</label>
                 <input
                   value={password}
-                  onChange={(event) => setPassword(event.target.value)}
+                  onChange={(e) => setPassword(e.target.value)}
                   placeholder="Enter your new password"
                   type="password"
                   autoComplete="new-password"
@@ -224,7 +160,7 @@ export default function ResetPasswordConfirmClient({ code, type }: Props) {
                 <label className="block text-sm font-medium text-gray-700 mb-1">Confirm new password</label>
                 <input
                   value={confirmPassword}
-                  onChange={(event) => setConfirmPassword(event.target.value)}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
                   placeholder="Re-enter your new password"
                   type="password"
                   autoComplete="new-password"
@@ -240,9 +176,9 @@ export default function ResetPasswordConfirmClient({ code, type }: Props) {
               </button>
             </form>
           </section>
-        ) : null}
+        )}
 
-        {status === 'success' ? (
+        {status === 'success' && (
           <section className="rounded-3xl border border-black/8 bg-white p-8 shadow-sm">
             <Link
               href="/#member-access"
@@ -251,9 +187,9 @@ export default function ResetPasswordConfirmClient({ code, type }: Props) {
               Back to login
             </Link>
           </section>
-        ) : null}
+        )}
 
-        {status === 'invalid' ? (
+        {status === 'invalid' && (
           <section className="rounded-3xl border border-black/8 bg-white p-8 shadow-sm">
             <div className="flex flex-col gap-3">
               <Link
@@ -270,7 +206,7 @@ export default function ResetPasswordConfirmClient({ code, type }: Props) {
               </Link>
             </div>
           </section>
-        ) : null}
+        )}
       </div>
     </main>
   );

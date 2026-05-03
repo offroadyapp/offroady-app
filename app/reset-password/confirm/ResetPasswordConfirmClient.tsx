@@ -29,12 +29,25 @@ export default function ResetPasswordConfirmClient({ code, type }: Props) {
 
     async function verify() {
       const supabase = getBrowserSupabase();
-      const hash = window.location.hash.replace(/^#/, '');
+      const rawHash = window.location.hash;
+      const hash = rawHash.replace(/^#/, '');
       const hashParams = new URLSearchParams(hash);
 
-      // Check for Supabase error in hash
+      // Debug: show URL info without exposing tokens
+      const hasAccessToken = !!hashParams.get('access_token');
+      const hasRefreshToken = !!hashParams.get('refresh_token');
+      const hashType = hashParams.get('type');
       const hashError = hashParams.get('error');
-      if (hashError) {
+      const hasCode = !!code;
+
+      setMessage(
+        `Debug: code=${hasCode} hashAT=${hasAccessToken} hashRT=${hasRefreshToken} type=${hashType||'null'} err=${hashError||'none'}`
+      );
+
+      // Check for Supabase error in hash
+      const hashErr = hashParams.get('error');
+      const usedHashError = hashErr || hashError;
+      if (usedHashError) {
         const desc = hashParams.get('error_description');
         if (cancelled) return;
         clearTimeout(timeoutId);
@@ -71,9 +84,9 @@ export default function ResetPasswordConfirmClient({ code, type }: Props) {
       // Try implicit hash flow: #access_token=xxx&refresh_token=***&type=recovery
       const accessToken = hashParams.get('access_token');
       const refreshToken = hashParams.get('refresh_token');
-      const hashType = hashParams.get('type') || type;
+      const implicitType = hashParams.get('type') || type;
 
-      if (accessToken && refreshToken && hashType === 'recovery') {
+      if (accessToken && refreshToken && implicitType === 'recovery') {
         try {
           // setSession validates + refreshes the recovery tokens
           const { error: sessionError, data } = await supabase.auth.setSession({

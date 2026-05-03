@@ -13,7 +13,7 @@ export function getBrowserSupabase() {
       auth: {
         autoRefreshToken: true,
         persistSession: true,
-        detectSessionInUrl: false,
+        detectSessionInUrl: true,
       },
     }
   );

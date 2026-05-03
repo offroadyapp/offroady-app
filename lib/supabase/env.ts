@@ -30,22 +30,31 @@ function inferSupabaseUrlFromKnownKeys() {
   return `https://${payload.ref}.supabase.co`;
 }
 
-export function getSupabaseUrl() {
+export function getSupabaseUrl(): string | null {
   const explicit = firstEnv('NEXT_PUBLIC_SUPABASE_URL', 'SUPABASE_URL');
   if (explicit) return explicit;
 
   const inferred = inferSupabaseUrlFromKnownKeys();
   if (inferred) return inferred;
 
-  throw new Error('Missing environment variable: NEXT_PUBLIC_SUPABASE_URL');
+  return null;
 }
 
-export function getSupabaseAnonKey() {
+export function getSupabaseAnonKey(): string | null {
   const value = firstEnv('NEXT_PUBLIC_SUPABASE_ANON_KEY', 'SUPABASE_ANON_KEY');
-  if (!value) {
-    throw new Error('Missing environment variable: NEXT_PUBLIC_SUPABASE_ANON_KEY');
-  }
-  return value;
+  return value || null;
+}
+
+export function requireSupabaseUrl(): string {
+  const url = getSupabaseUrl();
+  if (!url) throw new Error('Missing environment variable: NEXT_PUBLIC_SUPABASE_URL');
+  return url;
+}
+
+export function requireSupabaseAnonKey(): string {
+  const key = getSupabaseAnonKey();
+  if (!key) throw new Error('Missing environment variable: NEXT_PUBLIC_SUPABASE_ANON_KEY');
+  return key;
 }
 
 export function getSupabaseServiceRoleKey() {

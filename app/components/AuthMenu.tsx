@@ -53,7 +53,7 @@ export default function AuthMenu({ viewer }: Props) {
 
     try {
       const supabase = await getBrowserSupabase();
-      await supabase.auth.signOut({ scope: 'local' });
+      await supabase?.auth.signOut({ scope: 'local' });
     } catch {
       // Ignore client-side Supabase config issues here because the server logout already cleared Offroady auth cookies.
     }

@@ -1,10 +1,10 @@
 import { cookies } from 'next/headers';
 import { createClient } from '@supabase/supabase-js';
-import { getSupabaseAnonKey, getSupabaseServiceRoleKey, getSupabaseUrl } from '@/lib/supabase/env';
+import { getSupabaseAnonKey, getSupabaseServiceRoleKey, getSupabaseUrl, requireSupabaseUrl, requireSupabaseAnonKey } from '@/lib/supabase/env';
 
 export function getServiceSupabase() {
   return createClient(
-    getSupabaseUrl(),
+    requireSupabaseUrl(),
     getSupabaseServiceRoleKey(),
     {
       auth: {
@@ -17,8 +17,8 @@ export function getServiceSupabase() {
 
 export function getServerAuthSupabase() {
   return createClient(
-    getSupabaseUrl(),
-    getSupabaseAnonKey(),
+    requireSupabaseUrl(),
+    requireSupabaseAnonKey(),
     {
       auth: {
         autoRefreshToken: false,

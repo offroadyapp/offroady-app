@@ -28,7 +28,15 @@ export default function ResetPasswordConfirmClient({ code, type }: Props) {
     }, 10000);
 
     async function verify() {
-      const supabase = getBrowserSupabase();
+      // If supabase is unavailable (env missing), show friendly error early
+      let supabase = getBrowserSupabase();
+      if (!supabase) {
+        if (cancelled) return;
+        clearTimeout(timeoutId);
+        setStatus('invalid');
+        setMessage('Site authentication is temporarily unavailable. Please try again later.');
+        return;
+      }
       const rawHash = window.location.hash;
       const hash = rawHash.replace(/^#/, '');
       const hashParams = new URLSearchParams(hash);
@@ -136,6 +144,7 @@ export default function ResetPasswordConfirmClient({ code, type }: Props) {
 
     try {
       const supabase = getBrowserSupabase();
+      if (!supabase) throw new Error('Auth unavailable');
       const { error } = await supabase.auth.updateUser({ password });
       if (error) throw error;
       setStatus('success');

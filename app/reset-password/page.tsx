@@ -14,6 +14,16 @@ export default function ResetPasswordPage() {
             </p>
           </section>
           <AuthPanel initialMode="reset" />
+
+          <section className="rounded-3xl border border-black/8 bg-white p-8 shadow-sm">
+            <h2 className="text-lg font-semibold text-[#243126]">Troubleshooting</h2>
+            <ul className="mt-3 space-y-2 text-sm leading-6 text-gray-600">
+              <li>Check your <strong>Spam</strong>, <strong>Promotions</strong>, or <strong>Updates</strong> folder.</li>
+              <li>Add <strong>noreply@notify.offroady.app</strong> to your contacts to ensure delivery.</li>
+              <li>The reset link expires in 1 hour. Request a new one if the link has expired.</li>
+              <li>Make sure you're using the email address associated with your Offroady account.</li>
+            </ul>
+          </section>
         </div>
       </main>
     </PageShell>

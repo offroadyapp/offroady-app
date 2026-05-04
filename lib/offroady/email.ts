@@ -44,6 +44,28 @@ function getEmailConfig() {
   };
 }
 
+/**
+ * Get config for the weekly digest sender.
+ * Uses a separate sender address to isolate sending reputation.
+ * Falls back to the default transactional sender if not configured.
+ */
+function getWeeklyDigestEmailConfig() {
+  const apiKey = process.env.RESEND_API_KEY;
+  const from = process.env.OFFROADY_DIGEST_FROM_EMAIL || process.env.OFFROADY_FROM_EMAIL || process.env.EMAIL_FROM;
+  const missingConfig: string[] = [];
+
+  if (!apiKey) missingConfig.push('RESEND_API_KEY');
+  if (!from) missingConfig.push('OFFROADY_DIGEST_FROM_EMAIL|OFFROADY_FROM_EMAIL|EMAIL_FROM');
+
+  return {
+    provider: 'resend' as const,
+    from,
+    apiKey,
+    enabled: missingConfig.length === 0,
+    missingConfig,
+  };
+}
+
 function summarizeProviderPayload(payload: unknown) {
   if (payload == null) return null;
   if (typeof payload === 'string') return payload.slice(0, 400);
@@ -78,8 +100,21 @@ export function getTransactionalEmailDebugInfo(): TransactionalEmailDebugInfo {
   };
 }
 
-export async function sendTransactionalEmail(input: TransactionalEmailInput): Promise<TransactionalEmailResult> {
-  const config = getEmailConfig();
+/**
+ * Send a weekly digest email using the dedicated digest sender address.
+ * This keeps transactional and marketing sending reputations separate.
+ * Configure OFFROADY_DIGEST_FROM_EMAIL (e.g. updates@notify.offroady.app)
+ * to use a different sender from the default transactional address.
+ */
+export async function sendWeeklyDigestEmail(input: TransactionalEmailInput): Promise<TransactionalEmailResult> {
+  const config = getWeeklyDigestEmailConfig();
+  return sendEmailWithConfig(config, input);
+}
+
+async function sendEmailWithConfig(
+  config: ReturnType<typeof getEmailConfig>,
+  input: TransactionalEmailInput
+): Promise<TransactionalEmailResult> {
   if (!config.enabled || !config.apiKey || !config.from) {
     return {
       ok: false,
@@ -148,4 +183,8 @@ export async function sendTransactionalEmail(input: TransactionalEmailInput): Pr
       providerResponseSummary: null,
     };
   }
+}
+
+export async function sendTransactionalEmail(input: TransactionalEmailInput): Promise<TransactionalEmailResult> {
+  return sendEmailWithConfig(getEmailConfig(), input);
 }

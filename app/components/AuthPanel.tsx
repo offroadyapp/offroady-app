@@ -55,13 +55,11 @@ export default function AuthPanel({ initialMode = 'signup' }: Props) {
       });
       const payload = await response.json();
       if (!response.ok) {
-        if (payload.rateLimited) {
-          throw new Error('邮件请求过于频繁，请约一小时后重试。');
-        }
+        // Rate limit info is never surfaced to the user
         throw new Error(payload.error || 'Authentication failed');
       }
       if (mode === 'reset') {
-        setMessage(payload.message || 'If that email exists, a password reset link has been sent.');
+        setMessage('A reset link may already have been sent. Please wait a few minutes before requesting another one.');
         return;
       }
       window.location.reload();
@@ -177,6 +175,13 @@ export default function AuthPanel({ initialMode = 'signup' }: Props) {
 
             {error ? <div className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">{error}</div> : null}
             {message ? <div className="rounded-lg border border-green-200 bg-green-50 px-3 py-2 text-sm text-green-700">{message}</div> : null}
+
+            {mode === 'reset' ? (
+              <p className="text-xs leading-5 text-gray-500">
+                If you don't see the email, check Spam, Promotions, or Updates folder. You can also add{' '}
+                <strong>noreply@notify.offroady.app</strong> to your contacts.
+              </p>
+            ) : null}
 
             <button
               type="submit"

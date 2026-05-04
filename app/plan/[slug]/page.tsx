@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
+import { headers, cookies } from 'next/headers';
 import CopyCoordinatesButton from '@/app/components/CopyCoordinatesButton';
 import PageShell from '@/app/components/PageShell';
 import PlanTripClient from './PlanTripClient';
@@ -9,7 +10,8 @@ import { getLocalTrailBySlug } from '@/lib/offroady/trails';
 import { getSessionUser } from '@/lib/offroady/auth';
 import { getFavoriteTrailSlugs } from '@/lib/offroady/account';
 import { getUpcomingTripDiscovery } from '@/lib/offroady/trip-discovery';
-import { getTrailStoryByTrailSlug } from '@/content/blog/trail-stories';
+import { getCanonicalTrailStoryByTrailSlug } from '@/content/blog/trail-stories';
+import { getContentLanguage, buildBlogUrl, type Language } from '@/lib/offroady/language';
 
 export const dynamic = 'force-dynamic';
 
@@ -56,7 +58,43 @@ export default async function PlanTripPage({ params }: PageProps) {
   const firstTrip = upcomingTrips[0] ?? null;
   const joinHref = firstTrip ? `/trips/${firstTrip.id}#join-this-trip` : `/join-a-trip?trail=${encodeURIComponent(trail.slug)}`;
 
-  const trailStory = getTrailStoryByTrailSlug(trail.slug);
+  // Language-aware story resolution
+  const h = await headers();
+  const c = await cookies();
+  const lang: Language = getContentLanguage(
+    h.get('accept-language'),
+    c.get('offroady_lang')?.value ?? null
+  );
+  const canonicalStory = getCanonicalTrailStoryByTrailSlug(trail.slug);
+  let storySlug: string | null = null;
+  let storyTitle: string | null = null;
+  let storyExcerpt: string | null = null;
+  if (canonicalStory) {
+    // Prefer requested language
+    const pref = canonicalStory.translations[lang];
+    if (pref && pref.status === 'published') {
+      storySlug = pref.slug;
+      storyTitle = pref.title;
+      storyExcerpt = pref.excerpt;
+    } else {
+      // Fallback
+      const other: Language = lang === 'en' ? 'zh' : 'en';
+      const fallback = canonicalStory.translations[other];
+      if (fallback && fallback.status === 'published') {
+        storySlug = fallback.slug;
+        storyTitle = fallback.title;
+        storyExcerpt = fallback.excerpt;
+      }
+    }
+  }
+  const storyHref = storySlug ? buildBlogUrl(storySlug, lang) : null;
+
+  // Check if story is a fallback (different from preferred lang slug resolution)
+  let isStoryFallback = false;
+  if (canonicalStory) {
+    const pref = canonicalStory.translations[lang];
+    isStoryFallback = (!pref || pref.status !== 'published') && storySlug !== null;
+  }
 
   return (
     <PageShell>
@@ -109,16 +147,21 @@ export default async function PlanTripPage({ params }: PageProps) {
             </div>
 
             <div className="space-y-4">
-              {trailStory ? (
+              {storyHref ? (
                 <Link
-                  href={`/blog/${trailStory.slug}`}
+                  href={storyHref}
                   className="block rounded-2xl border border-white/25 bg-white/10 p-4 backdrop-blur transition hover:bg-white/15"
                 >
                   <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#cfe6d2]">Trail Story</p>
-                  <h3 className="mt-1 text-lg font-bold text-white">{trailStory.title}</h3>
-                  <p className="mt-1 text-sm leading-6 text-white/80">{trailStory.excerpt}</p>
+                  <h3 className="mt-1 text-lg font-bold text-white">{storyTitle}</h3>
+                  <p className="mt-1 text-sm leading-6 text-white/80">{storyExcerpt}</p>
+                  {isStoryFallback ? (
+                    <p className="mt-2 text-xs italic text-amber-300">
+                      {lang === 'zh' ? '这篇文章目前只有英文版。' : 'This story is currently available in Chinese only.'}
+                    </p>
+                  ) : null}
                   <span className="mt-3 inline-flex rounded-lg bg-white/20 px-4 py-2 text-sm font-semibold text-white transition hover:bg-white/30">
-                    Read the Story →
+                    {lang === 'zh' ? '阅读路线故事 →' : 'Read the Story →'}
                   </span>
                 </Link>
               ) : null}

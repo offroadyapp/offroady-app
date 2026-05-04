@@ -18,7 +18,40 @@ export type BlogPost = {
   body: string;
 };
 
+// --- Multi-language canonical structure ---
+
+export type Language = 'en' | 'zh';
+
+export type CanonicalBlogTranslation = {
+  slug: string;
+  title: string;
+  excerpt: string;
+  body: string;
+  seoTitle: string;
+  seoDescription: string;
+  keywords: string[];
+  readingTime: string;
+  status: 'draft' | 'published';
+  coverImage?: string;
+  coverAlt?: string;
+};
+
+export type CanonicalBlogPost = {
+  contentId: string;
+  category: string;
+  tags: string[];
+  publishedAt: string | null;
+  updatedAt?: string;
+  author: string;
+  relatedTrailSlug?: string;
+  translations: Partial<Record<Language, CanonicalBlogTranslation>>;
+};
+
 const posts: BlogPost[] = [
+  // Note: This array is kept for backward compatibility.
+  // The canonical content is in canonicalBlogPosts below.
+  // Existing pages that import posts directly still work.
+
   {
     slug: 'first-time-offroading-bc',
     title: '第一次越野要准备什么？新手必读装备清单',
@@ -327,3 +360,140 @@ export function getAllSlugs(): string[] {
 export function getPublishedSlugs(): string[] {
   return posts.filter((p) => p.status === 'published').map((p) => p.slug);
 }
+
+// ---------------------------------------------------------------------------
+// Canonical multi-language content registry
+// ---------------------------------------------------------------------------
+
+function t(post: BlogPost): CanonicalBlogTranslation {
+  return {
+    slug: post.slug,
+    title: post.title,
+    excerpt: post.excerpt,
+    body: post.body,
+    seoTitle: post.seoTitle,
+    seoDescription: post.seoDescription,
+    keywords: post.keywords,
+    readingTime: post.readingTime,
+    status: post.status,
+    coverImage: post.coverImage,
+    coverAlt: post.coverAlt,
+  };
+}
+
+/**
+ * Group adjacent EN/ZH pairs by their slug relationship.
+ * ZH slugs end with -zh; EN slugs don't.
+ * If no partner exists, one translation is simply empty.
+ */
+function groupCanonical(raw: BlogPost[]): CanonicalBlogPost[] {
+  const enMap = new Map<string, BlogPost>();
+  const zhMap = new Map<string, BlogPost>();
+
+  for (const p of raw) {
+    if (p.slug.endsWith('-zh')) {
+      const base = p.slug.slice(0, -3); // strip '-zh'
+      zhMap.set(base, p);
+    } else {
+      enMap.set(p.slug, p);
+    }
+  }
+
+  const allKeys = new Set<string>([...enMap.keys(), ...zhMap.keys()]);
+  const result: CanonicalBlogPost[] = [];
+
+  for (const key of allKeys) {
+    const en = enMap.get(key);
+    const zh = zhMap.get(key);
+
+    result.push({
+      contentId: key,
+      category: (en ?? zh)!.category,
+      tags: (en ?? zh)!.tags,
+      publishedAt: (en ?? zh)!.publishedAt,
+      updatedAt: (en ?? zh)!.updatedAt,
+      author: (en ?? zh)!.author,
+      relatedTrailSlug: (en ?? zh)!.relatedTrailSlug,
+      translations: {
+        ...(en ? { en: t(en) } : {}),
+        ...(zh ? { zh: t(zh) } : {}),
+      },
+    });
+  }
+
+  return result;
+}
+
+const canonicalBlogPosts: CanonicalBlogPost[] = groupCanonical(posts);
+
+export function getAllCanonicalBlogPosts(): CanonicalBlogPost[] {
+  return canonicalBlogPosts;
+}
+
+export function getCanonicalBlogPostById(contentId: string): CanonicalBlogPost | null {
+  return canonicalBlogPosts.find((p) => p.contentId === contentId) ?? null;
+}
+
+/**
+ * Get a blog translation for a specific language.
+ * Falls back to the other language if the requested one doesn't exist or is draft.
+ * Returns { translation, availableLang }.
+ */
+export function getBlogTranslation(
+  contentId: string,
+  preferredLang: Language
+): { translation: CanonicalBlogTranslation; availableLang: Language } | null {
+  const canonical = getCanonicalBlogPostById(contentId);
+  if (!canonical) return null;
+
+  const pref = canonical.translations[preferredLang];
+  if (pref && pref.status === 'published') {
+    return { translation: pref, availableLang: preferredLang };
+  }
+
+  // Fallback to other language
+  const other: Language = preferredLang === 'en' ? 'zh' : 'en';
+  const alt = canonical.translations[other];
+  if (alt && alt.status === 'published') {
+    return { translation: alt, availableLang: other };
+  }
+
+  // Still return pref even if draft, so caller can decide
+  if (pref) {
+    return { translation: pref, availableLang: preferredLang };
+  }
+
+  return null;
+}
+
+/**
+ * Get all published translations across all canonical posts.
+ * Returns flat entries with their contentId and language info.
+ */
+export function getAllPublishedBlogTranslations(): Array<{
+  contentId: string;
+  lang: Language;
+  translation: CanonicalBlogTranslation;
+}> {
+  const result: Array<{ contentId: string; lang: Language; translation: CanonicalBlogTranslation }> = [];
+
+  for (const canonical of canonicalBlogPosts) {
+    for (const [lang, translation] of Object.entries(canonical.translations)) {
+      if (translation.status === 'published') {
+        result.push({
+          contentId: canonical.contentId,
+          lang: lang as Language,
+          translation,
+        });
+      }
+    }
+  }
+
+  // Sort by publishedAt descending
+  return result.sort((a, b) => {
+    const aDate = canonicalBlogPosts.find((c) => c.contentId === a.contentId)?.publishedAt ?? '';
+    const bDate = canonicalBlogPosts.find((c) => c.contentId === b.contentId)?.publishedAt ?? '';
+    return new Date(bDate).getTime() - new Date(aDate).getTime();
+  });
+}
+

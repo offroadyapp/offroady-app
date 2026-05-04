@@ -20,6 +20,35 @@ export type TrailStory = {
   imageLicense?: string;
 };
 
+export type Language = 'en' | 'zh';
+
+export type CanonicalTrailStoryTranslation = {
+  slug: string;
+  title: string;
+  excerpt: string;
+  body: string;
+  emailExcerpt: string;
+  seoTitle: string;
+  seoDescription: string;
+  keywords: string[];
+  readingTime: string;
+  status: 'draft' | 'published';
+  coverImage?: string;
+  coverAlt?: string;
+  ctaText?: string;
+  researchNotes?: string;
+  imageCredit?: string;
+  imageLicense?: string;
+};
+
+export type CanonicalTrailStory = {
+  contentId: string;
+  trailSlug: string;
+  author: string;
+  publishedAt: string | null;
+  translations: Partial<Record<Language, CanonicalTrailStoryTranslation>>;
+};
+
 const trailStories: TrailStory[] = [
   {
     slug: 'a-day-on-mamquam-river-fsr',
@@ -347,3 +376,144 @@ export function getAllTrailStorySlugs(): string[] {
 export function getPublishedTrailStorySlugs(): string[] {
   return trailStories.filter((s) => s.status === 'published').map((s) => s.slug);
 }
+
+// ---------------------------------------------------------------------------
+// Canonical multi-language content registry
+// ---------------------------------------------------------------------------
+
+function t(story: TrailStory): CanonicalTrailStoryTranslation {
+  return {
+    slug: story.slug,
+    title: story.title,
+    excerpt: story.excerpt,
+    body: story.body,
+    emailExcerpt: story.emailExcerpt,
+    seoTitle: story.seoTitle,
+    seoDescription: story.seoDescription,
+    keywords: story.keywords,
+    readingTime: story.readingTime,
+    status: story.status,
+    coverImage: story.coverImage,
+    coverAlt: story.coverAlt,
+    ctaText: story.ctaText,
+    researchNotes: story.researchNotes,
+    imageCredit: story.imageCredit,
+    imageLicense: story.imageLicense,
+  };
+}
+
+/**
+ * Group trail stories by trailSlug (the content pairing key).
+ * A trailSlug can have EN and ZH versions of the same story.
+ */
+function groupCanonical(raw: TrailStory[]): CanonicalTrailStory[] {
+  const grouped = new Map<string, TrailStory[]>();
+
+  for (const story of raw) {
+    const existing = grouped.get(story.trailSlug) ?? [];
+    existing.push(story);
+    grouped.set(story.trailSlug, existing);
+  }
+
+  const result: CanonicalTrailStory[] = [];
+
+  for (const [trailSlug, stories] of grouped) {
+    const translations: Partial<Record<Language, CanonicalTrailStoryTranslation>> = {};
+
+    for (const story of stories) {
+      // Detect language: if slug ends with -zh, it's Chinese, else English
+      const lang: Language = story.slug.endsWith('-zh') ? 'zh' : 'en';
+      translations[lang] = t(story);
+    }
+
+    // Use the first story for canonical metadata
+    const first = stories[0];
+
+    result.push({
+      contentId: trailSlug,
+      trailSlug,
+      author: first.author,
+      publishedAt: first.publishedAt,
+      translations,
+    });
+  }
+
+  return result;
+}
+
+const canonicalTrailStories: CanonicalTrailStory[] = groupCanonical(trailStories);
+
+export function getAllCanonicalTrailStories(): CanonicalTrailStory[] {
+  return canonicalTrailStories;
+}
+
+export function getCanonicalTrailStoryByTrailSlug(trailSlug: string): CanonicalTrailStory | null {
+  return canonicalTrailStories.find((s) => s.trailSlug === trailSlug) ?? null;
+}
+
+export function getCanonicalTrailStoryByContentId(contentId: string): CanonicalTrailStory | null {
+  return canonicalTrailStories.find((s) => s.contentId === contentId) ?? null;
+}
+
+/**
+ * Get a trail story translation for a specific language.
+ * Falls back to the other language if the requested one doesn't exist or is draft.
+ */
+export function getTrailStoryTranslation(
+  trailSlug: string,
+  preferredLang: Language
+): { translation: CanonicalTrailStoryTranslation; availableLang: Language } | null {
+  const canonical = getCanonicalTrailStoryByTrailSlug(trailSlug);
+  if (!canonical) return null;
+
+  const pref = canonical.translations[preferredLang];
+  if (pref && pref.status === 'published') {
+    return { translation: pref, availableLang: preferredLang };
+  }
+
+  const other: Language = preferredLang === 'en' ? 'zh' : 'en';
+  const alt = canonical.translations[other];
+  if (alt && alt.status === 'published') {
+    return { translation: alt, availableLang: other };
+  }
+
+  if (pref) {
+    return { translation: pref, availableLang: preferredLang };
+  }
+
+  return null;
+}
+
+/**
+ * Get all published trail story translations across all canonical stories.
+ */
+export function getAllPublishedTrailStoryTranslations(): Array<{
+  contentId: string;
+  lang: Language;
+  translation: CanonicalTrailStoryTranslation;
+}> {
+  const result: Array<{
+    contentId: string;
+    lang: Language;
+    translation: CanonicalTrailStoryTranslation;
+  }> = [];
+
+  for (const canonical of canonicalTrailStories) {
+    for (const [lang, translation] of Object.entries(canonical.translations)) {
+      if (translation.status === 'published') {
+        result.push({
+          contentId: canonical.contentId,
+          lang: lang as Language,
+          translation,
+        });
+      }
+    }
+  }
+
+  return result.sort((a, b) => {
+    const aDate = canonicalTrailStories.find((c) => c.contentId === a.contentId)?.publishedAt ?? '';
+    const bDate = canonicalTrailStories.find((c) => c.contentId === b.contentId)?.publishedAt ?? '';
+    return new Date(bDate).getTime() - new Date(aDate).getTime();
+  });
+}
+

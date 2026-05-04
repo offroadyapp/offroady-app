@@ -3,7 +3,8 @@ import { getServiceSupabase } from '@/lib/supabase/server';
 import { buildEmailFooter, listWeeklyDigestSubscribers } from '@/lib/offroady/email-preferences';
 import { sendTransactionalEmail } from '@/lib/offroady/email';
 import { resolveTripTrailReference } from '@/lib/offroady/trip-trails';
-import { getAllPublishedTrailStories } from '@/content/blog/trail-stories';
+import { getAllPublishedTrailStories, getAllCanonicalTrailStories } from '@/content/blog/trail-stories';
+import { type Language } from '@/lib/offroady/language';
 
 export type DigestStatus = 'draft' | 'published' | 'archived';
 export type ExternalEventStatus = 'draft' | 'published' | 'cancelled';
@@ -506,12 +507,43 @@ function buildEventsFallback() {
   return 'No manual community events have been added for the next four weeks yet, so this week is all about member-planned trips.';
 }
 
-function getTrailStoryOfTheWeek(): {
+function getTrailStoryOfTheWeek(lang?: Language): {
   title: string;
   slug: string;
   emailExcerpt: string;
   trailSlug: string;
 } | null {
+  const canonicalStories = getAllCanonicalTrailStories();
+  if (!canonicalStories.length) return null;
+
+  // Fallback to first canonical story
+  const first = canonicalStories[0];
+  const preferredLang = lang ?? 'en';
+
+  // Try preferred language first
+  const prefTranslation = first.translations[preferredLang];
+  if (prefTranslation && prefTranslation.status === 'published') {
+    return {
+      title: prefTranslation.title,
+      slug: prefTranslation.slug,
+      emailExcerpt: prefTranslation.emailExcerpt,
+      trailSlug: first.trailSlug,
+    };
+  }
+
+  // Fallback to other language
+  const other: Language = preferredLang === 'en' ? 'zh' : 'en';
+  const altTranslation = first.translations[other];
+  if (altTranslation && altTranslation.status === 'published') {
+    return {
+      title: altTranslation.title,
+      slug: altTranslation.slug,
+      emailExcerpt: altTranslation.emailExcerpt,
+      trailSlug: first.trailSlug,
+    };
+  }
+
+  // Ultimate fallback: use old-style flat list
   const stories = getAllPublishedTrailStories();
   if (!stories.length) return null;
   const story = stories[0];
@@ -569,7 +601,7 @@ function buildEmailOutputs(digest: {
     : `<p>${buildEventsFallback()}</p>`;
 
   
-  const trailStory = getTrailStoryOfTheWeek();
+  const trailStory = getTrailStoryOfTheWeek('en');
   const storyHtml = trailStory
     ? `<h2>Trail Story of the Week</h2><p><strong>${trailStory.title}</strong></p><p>${trailStory.emailExcerpt}</p><p><a href="https://www.offroady.app/blog/${trailStory.slug}">Read Story →</a> · <a href="https://www.offroady.app/plan/${trailStory.trailSlug}">Plan a Trip</a></p>`
     : '';
@@ -674,7 +706,7 @@ function buildWebOutput(digest: {
   memberTrips: WeeklyDigestSnapshotItem[];
   externalEvents: WeeklyDigestSnapshotItem[];
 }) {
-  const trailStory = getTrailStoryOfTheWeek();
+  const trailStory = getTrailStoryOfTheWeek('en');
   return {
     subject: digest.headline,
     content: digest.introText,

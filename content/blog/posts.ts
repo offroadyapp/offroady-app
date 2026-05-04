@@ -306,8 +306,8 @@ Ready to find your next trail? [Browse all trails](/trail-of-the-week) or [join 
   },
   {
     slug: 'mount-cheam-fsr-first-offroady-trip-2026-05-03',
-    title: 'Mount Cheam 我来了！成功收获第一次 Offroady 小冒险',
-    excerpt: 'Offroady 的第一次真实组队 trail trip：原计划前往 Mount Cheam Lookout，途中遇到 washout 和倒树，最终虽然没有抵达 lookout，却收获了一次安全、有趣、真实的越野小冒险。',
+    title: 'Mount Cheam我来了！成功收获了一次 Offroady小冒险',
+    excerpt: 'Offroady 第一次真实用户组队 trail trip：原计划去 Mount Cheam Lookout，结果一路 washout、倒树、河边收尾，最后变成一次很有故事的小冒险。',
     category: 'Completed Trip',
     tags: ['Mount Cheam', 'Cheam Lookout', 'Chilliwack', 'FSR', 'Offroady Trip', 'Completed Trip', 'BC Offroad'],
     publishedAt: '2026-05-03T22:00:00-07:00',
@@ -320,77 +320,92 @@ Ready to find your next trail? [Browse all trails](/trail-of-the-week) or [join 
     relatedTrailSlug: 'mount-cheam-fsr-access',
     readingTime: '5分钟',
     status: 'published',
-    body: `## 出发前：是期待也是忐忑
+    body: `
+**Mount Cheam FSR access · 2026年5月3日**  
+Trip link: [Mount Cheam FSR access](/trips/70f24bf9-9fd8-4ff4-93d6-50ace4b05119)
 
-2026年5月3日，星期天。Offroady 的第一次真实组队出行——目标：Mount Cheam Lookout（Cheam观景台）。
+原计划很简单：  
+天气好，车友集合，沿着 Mount Cheam FSR 一路上山，去看看传说中的 Cheam Lookout。
 
-这条FSR在Chilliwack，谷歌地图上一搜就能找到——从Chilliwack沿着Browne Creek FSR一路往上，在岔路口右拐，沿着不那么好的路继续走，最终到达一个海拔落差巨大的观景台。网上说，天气好的时候，你能看到Mount Cheam本人，能看到Fraser Valley，甚至能看到Hope那边的群山。
+听起来是不是很顺？
 
-听起来很美好，对吧？
+事实证明，越野活动里，最不靠谱的就是“听起来很顺”。
 
-但Offroady的真实组队第一次出行，从来不是一帆风顺的。
+5月3日这天，天气是真的给面子。蓝天、阳光、初夏的热浪，山里温度也冲到了大约25度。大家的心情也很到位：车洗没洗不重要，轮胎够不够脏才重要。
 
-## 车队集结
+![Mount Cheam FSR trail condition 1](/images/blog/mount-cheam-fsr-20260503/c06fa6a553bbc9b2cd96c2a7f778f90e.jpg)
 
-上午，四台车在Chilliwack集合。
+![Mount Cheam FSR trail condition 2](/images/blog/mount-cheam-fsr-20260503/79031e7b96b3fa8826f22f9d52f26940.jpg)
 
-一台Rubicon 4xe带头，后面跟着几台各有特色的越野车。四台车、四个人，之前只在网上聊过，今天是第一次见面。但越野圈的人有个特点：一群陌生人只要同时把车停在一起、打开尾门聊两句，瞬间就成了朋友。
+可是山路显然有自己的剧本。
 
-![车队集结 Chilliwack](/images/blog/mount-cheam-fsr-20260503/613faf313336485109304cafd68dd840.jpg)
+最近雨季带来的山洪，把不少路面冲出了 washout。有些地方看起来像是普通坑洼，走近一看才发现：这不是坑，这是大自然亲手设计的越野考试题。
 
-## 上山！顺风顺水的前半程
+一路往前，我们遇到了一个比较大的 washout。Rubicon 来回试探一下，虽然也不是“躺着过”，但凭借离地间隙、四驱和一点点车主自信，问题不大。不过同行的皮卡如果硬过，风险就明显高了。
 
-上山前半段异常顺利。Browne Creek FSR维护得不错，碎石路、干爽、没有积雪。四台车保持通讯距离，一路向上，路边风景从农田变成了针叶林，海拔在稳步爬升。
+![Large washout on Mount Cheam FSR](/images/blog/mount-cheam-fsr-20260503/613faf313336485109304cafd68dd840.jpg)
 
-![Mount Cheam FSR路上的风景](/images/blog/mount-cheam-fsr-20260503/c06fa6a553bbc9b2cd96c2a7f778f90e.jpg)
+![Rubicon checking the washout](/images/blog/mount-cheam-fsr-20260503/3102109eb5deabfbb6124687c19ec529.jpg)
 
-车里放着音乐，手台里偶尔传来前车通报路况，一切都是那么……完美。
+于是大家做了一个很 Offroady 的决定：  
+**不是每一次出发都要硬闯到终点，安全回家才是最高级别的完成。**
 
-## 好景不长：Washout出现了
+所以，我们放弃继续冲 Lookout，掉头，准备去半山腰的一个平台做饭休息。
 
-然后，我们遇到了第一条 washout（路被冲毁的断口）。
+你以为故事到这里就进入轻松野餐模式了吗？
 
-![](/images/blog/mount-cheam-fsr-20260503/c5c08ebe9d91bd44ac8674238f597d70.jpg)
+并没有。
 
-不算特别大，但也需要小心选线。前车停下来看了一下，用手台说了一句“能过、注意右边深沟。”第一辆车慢慢过去，第二辆、第三辆、第四辆——全都安全过了。四个人在下一段平路集合，下车看了看刚才过的那个坑，笑了一下。
+我们很快又遇到了新关卡：横倒的树木。
 
-真正的惊喜在后头——越往上走，光线越亮，云层开始散开，Mount Cheam 的山脊在远处若隐若现。
+其中一根树枝还特别会找位置，直接卷进了皮卡的后轮和挡泥板之间。那一刻，大家的表情大概都是：
 
-## 倒树拦路：Offroady 的第一次团组决策
+> “嗯……这个情况，说明今天的活动含金量上来了。”
 
-然后我们遇到了倒木（fallen tree）——一根相当粗的树横在路中间。
+这时候，同行的一位美女车友直接展现了真正的行动力。她先是奋不顾身跳上去，试图把树干压下来。后来又冷静判断，建议把车底伸出来的树干部分掰断。
 
-于是四台车停了下来。四个人走出来，围在树旁边，开始进行越野活动里最常见的非驾驶环节：评估、讨论、决策、行动。
+然后大家一起动手。
 
-有人提议用锯子，有人觉得可以从旁边绕，有人建议折返。最终大家一致决定：安全第一。
+事实证明，越野路上除了 winch、recovery board、shovel，有时候还需要一项隐藏装备：  
+**集体智慧 + 一点蛮力。**
 
-这次没能抵达 Mount Cheam Lookout。倒木和 washout 告诉我们：山今天不想让我们上去。
+树枝成功掰断，皮卡终于脱困。现场掌声可以没有，但心里必须给满分。什么叫巾帼不让须眉？这就是。什么叫出来玩不能只会拍照？这也是。
 
-但我们并不觉得遗憾。
+![Clearing the fallen tree and helping the pickup](/images/blog/mount-cheam-fsr-20260503/c5c08ebe9d91bd44ac8674238f597d70.jpg)
 
-## 其实，成功的定义有很多种
+虽然最后我们没有真正到达 Mount Cheam Lookout，但半山腰的平台风景依然很美。山风、阳光、远处的山脊，还有大家终于能安稳坐下来做饭休息的那种满足感，完全不输终点。
 
-**安全返程，就是最好的结果。**
+![Mountain view from the rest stop](/images/blog/mount-cheam-fsr-20260503/f0ddb7b84fed0b5f354434a6b4d4a526.jpg)
 
-四台车、四个素未谋面的人，通过 Offroady 组队出发，开了一天的土路，经历了 BC FSR 的所有典型体验——碎石、搓板、washout、倒树、没信号、对讲机里传来的“前面路况OK”。然后一起折返、一起在山脚下拍了一张合影。
+有时候，越野最有意思的地方就在这里：  
+你计划的是 A 点到 B 点，最后记住的却是中间那些“哎呀这怎么过去”的瞬间。
 
-**这就是 Offroady 想做的事情。**
+回程的时候，我们又去了 Chilliwack River 河边。初夏的河水很猛，也很凉。大家在河边放松了一下，看着水流一路冲下去，突然觉得今天虽然路线改了、Lookout 没到、树也拦路了，但这趟完全没有白来。
 
-不需要你是什么越野老炮。不需要你有一台牧马人。不需要你认识圈子里的谁。只要你想去，在 Offroady 发一个 trip，就会有人报名跟你一起去。
+![Chilliwack River stop 1](/images/blog/mount-cheam-fsr-20260503/7bb0a8661111d71a8d59695bad4429a1.jpg)
 
----
+![Chilliwack River stop 2](/images/blog/mount-cheam-fsr-20260503/7a9321d36656eb7e2e7aeda713e06804.jpg)
 
-## 加入下一次冒险！
+![Chilliwack River stop 3](/images/blog/mount-cheam-fsr-20260503/898d64cf0a61b51337cb83722c3fabd0.jpg)
 
-[![Offroady 第一次组队成功！](/images/blog/mount-cheam-fsr-20260503/79031e7b96b3fa8826f22f9d52f26940.jpg)](/join-a-trip)
+因为这就是一次真正的 Offroady trip：
 
-Offroady 上已经有新的 planned trips 在等着组队了。去看看吧——你的第一台越野伙伴正在等你组队。
+不是打卡式完成任务，  
+不是一个人硬扛全程，  
+而是一群人一起出发，遇到情况一起判断，能过就过，该停就停，然后把意外变成故事。
 
-👉 **[浏览 upcoming trips](/join-a-trip)**
+这也是 Offroady 想做的事情。
 
-👉 **[发起你自己的 trip](https://www.offroady.app/my-trips)**
+我们不只是列出 trails，也不只是让大家收藏路线。我们更希望本地车友可以找到合适的人、合适的路线、合适的时间，一起安全地出去玩。无论你是 Rubicon、皮卡、SUV，还是刚刚开始接触 forest service road，只要你愿意加入，总能找到适合自己的 trip。
 
-跟着 Offroady，随心所欲，轻松越野！`,
+这次没有到达 Lookout。
+
+但我们完成了 Offroady 的第一次真实组队出行。
+
+而且我们已经可以很确定地说：
+
+**下次，还会更好玩。**
+`,
   },
   {
     slug: 'trail-difficulty-explained-zh',

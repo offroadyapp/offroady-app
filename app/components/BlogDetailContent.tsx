@@ -31,6 +31,32 @@ function renderBody(body: string) {
     const line = lines[i].trim();
     if (!line) {
       elements.push(<br key={key++} />);
+    } else if (line.startsWith('![')) {
+      // Markdown image: ![alt](url)
+      const match = line.match(/^!\[([^\]]*)\]\(([^)]+)\)/);
+      if (match) {
+        const alt = match[1];
+        const src = match[2];
+        elements.push(
+          <div key={key++} className="my-6 overflow-hidden rounded-2xl">
+            <img
+              src={src}
+              alt={alt || 'Blog image'}
+              className="w-full object-cover"
+              loading="lazy"
+            />
+            {alt ? (
+              <p className="mt-2 text-center text-sm text-gray-500">{alt}</p>
+            ) : null}
+          </div>
+        );
+      } else {
+        elements.push(
+          <p key={key++} className="text-base leading-8 text-gray-700">
+            {renderInlineLinks(line)}
+          </p>
+        );
+      }
     } else if (line.startsWith('## ')) {
       const text = line.replace('## ', '');
       const match = text.match(/^\[(.+)\]\((.+)\)$/);
@@ -70,6 +96,20 @@ function renderBody(body: string) {
           {renderInlineLinks(line.replace('- ', ''))}
         </li>
       );
+    } else if (line.startsWith('> ')) {
+      elements.push(
+        <blockquote key={key++} className="my-4 border-l-4 border-[#2f5d3a] bg-[#eef5ee] py-3 pl-4 pr-4 text-base leading-8 text-gray-700 italic">
+          {renderInlineLinks(line.replace('> ', ''))}
+        </blockquote>
+      );
+    } else if (line.startsWith('**') && line.endsWith('**')) {
+      elements.push(
+        <p key={key++} className="text-base font-bold leading-8 text-gray-800">
+          {renderInlineLinks(line.slice(2, -2))}
+        </p>
+      );
+    } else if (line.startsWith('---')) {
+      elements.push(<hr key={key++} className="my-8 border-gray-200" />);
     } else {
       elements.push(
         <p key={key++} className="text-base leading-8 text-gray-700">

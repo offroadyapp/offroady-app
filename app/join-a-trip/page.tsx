@@ -1,8 +1,10 @@
 import Link from 'next/link';
 import PageShell from '@/app/components/PageShell';
 import TripShareButton from '@/app/components/TripShareButton';
+import CompletedTripCard from '@/app/components/CompletedTripCard';
 import { getSessionUser } from '@/lib/offroady/auth';
 import { getUpcomingTripDiscovery } from '@/lib/offroady/trip-discovery';
+import { getRecentCompletedTrips } from '@/lib/offroady/completed-trips';
 import { getTripChatAccessMap, getTripChatPreviewMap } from '@/lib/offroady/trip-chat';
 
 function formatTripDate(value: string) {
@@ -43,6 +45,7 @@ export default async function JoinATripPage({ searchParams }: { searchParams: Pr
   const query = await searchParams;
   const viewer = await getSessionUser().catch(() => null);
   const trips = await getUpcomingTripDiscovery({ trailSlug: query.trail ?? null });
+  const completedTrips = await getRecentCompletedTrips(5).catch(() => []);
   const tripIds = trips.map((trip) => trip.id);
   const chatAccess = viewer ? await getTripChatAccessMap(viewer.id, tripIds).catch(() => new Map()) : new Map();
   const chatPreview = viewer ? await getTripChatPreviewMap(viewer.id, tripIds).catch(() => new Map()) : new Map();
@@ -151,6 +154,28 @@ export default async function JoinATripPage({ searchParams }: { searchParams: Pr
               )}
             </div>
           </section>
+
+          {completedTrips.length > 0 ? (
+            <section className="mt-8 rounded-3xl border border-black/8 bg-white p-8 shadow-sm">
+              <div className="mb-6">
+                <p className="text-sm font-semibold uppercase tracking-[0.16em] text-[#5d7d61]">
+                  Recent finishes
+                </p>
+                <h2 className="mt-2 text-2xl font-bold tracking-tight text-[#243126]">
+                  Recently Completed Trips
+                </h2>
+                <p className="mt-3 max-w-3xl text-sm leading-7 text-gray-600">
+                  Past runs that wrapped up recently. See the trips and check for any blog stories.
+                </p>
+              </div>
+
+              <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                {completedTrips.slice(0, 4).map((trip) => (
+                  <CompletedTripCard key={trip.id} trip={trip} />
+                ))}
+              </div>
+            </section>
+          ) : null}
         </main>
       </div>
     </PageShell>

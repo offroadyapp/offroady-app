@@ -1,8 +1,11 @@
 "use client";
 
 import Link from 'next/link';
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import FavoriteToggleButton from './FavoriteToggleButton';
 import LeaveActionButton from './LeaveActionButton';
+import ConfirmModal from './ConfirmModal';
 import type { TripMembershipSummary } from '@/lib/offroady/account';
 import type { TripChatPreview } from '@/lib/offroady/trip-chat';
 
@@ -14,6 +17,11 @@ type Props = {
 function hoursUntilTrip(value: string) {
   const tripTime = new Date(`${value}T12:00:00`).getTime();
   return (tripTime - Date.now()) / (1000 * 60 * 60);
+}
+
+function isPastTrip(value: string) {
+  const tripDate = new Date(`${value}T23:59:59`).getTime();
+  return tripDate < Date.now();
 }
 
 function formatActivityAge(value: string | null) {
@@ -39,23 +47,74 @@ function renderChatLine(preview?: TripChatPreview) {
     : `Latest note · ${sender}: ${preview.latestMessageText}`;
 }
 
+function MarkAsCompletedButton({ tripId }: { tripId: string }) {
+  const router = useRouter();
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+
+  async function handleMarkComplete() {
+    setLoading(true);
+    setError('');
+    try {
+      const response = await fetch(`/api/trips/${tripId}/complete`, {
+        method: 'POST',
+      });
+      const payload = await response.json();
+      if (!response.ok) throw new Error(payload.error || 'Failed to mark trip as completed');
+      router.refresh();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to mark trip as completed');
+      setLoading(false);
+    }
+  }
+
+  return (
+    <div>
+      <button
+        type="button"
+        onClick={handleMarkComplete}
+        disabled={loading}
+        className="inline-flex rounded-lg bg-[#2f5d3a] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#264d30] disabled:opacity-70"
+      >
+        {loading ? 'Marking...' : 'Mark as Completed'}
+      </button>
+      {error ? <p className="mt-1 text-xs text-red-600">{error}</p> : null}
+    </div>
+  );
+}
+
 export default function TripsDashboard({ trips, chatPreviewByTripId = {} }: Props) {
   return (
     <div className="space-y-4">
       {trips.map((trip) => {
         const tripSoon = hoursUntilTrip(trip.date) <= 48 && hoursUntilTrip(trip.date) >= 0;
+        const pastTrip = isPastTrip(trip.date);
+        const isOrganizer = trip.viewerRole === 'organizer';
+        const isCompleted = trip.status === 'completed';
+        const canMarkComplete = isOrganizer && pastTrip && !isCompleted;
         const chatPreview = chatPreviewByTripId[trip.id];
         const emphasizeChat = trip.viewerRole === 'participant' && (chatPreview?.unreadCount ?? 0) > 0;
         return (
         <div key={trip.id} className="rounded-2xl border border-black/8 bg-[#f8faf8] p-5">
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div>
-              <Link href={`/trips/${trip.id}`} className="text-lg font-semibold text-[#243126] hover:text-[#2f5d3a]">{trip.title}</Link>
+              <div className="flex flex-wrap items-center gap-2">
+                <Link href={`/trips/${trip.id}`} className="text-lg font-semibold text-[#243126] hover:text-[#2f5d3a]">{trip.title}</Link>
+                {isCompleted ? (
+                  <span className="inline-flex items-center gap-1 rounded-full bg-[#eef5ee] px-2.5 py-0.5 text-xs font-semibold text-[#2f5d3a]">
+                    <span className="h-2 w-2 rounded-full bg-[#2f5d3a]" />
+                    Completed
+                  </span>
+                ) : null}
+              </div>
               <div className="mt-1 text-sm text-gray-500">{trip.date} · {trip.participantCount} attendees · {trip.viewerRole}</div>
               <div className="mt-2 text-sm text-gray-600">Meetup: {trip.meetupArea} · Depart {trip.departureTime}</div>
               {trip.tripNote ? <p className="mt-3 text-sm leading-6 text-gray-600">{trip.tripNote}</p> : null}
             </div>
             <div className="flex flex-col items-end gap-3">
+              {canMarkComplete ? (
+                <MarkAsCompletedButton tripId={trip.id} />
+              ) : null}
               <Link href={`/trips/${trip.id}/chat`} className={`max-w-[320px] rounded-xl border px-4 py-3 text-left transition hover:bg-[#eef5ee] ${emphasizeChat ? 'border-[#2f5d3a]/35 bg-[#f3f8f1] shadow-sm' : 'border-[#2f5d3a]/20 bg-white'}`}>
                 <div className="flex items-center gap-2 text-sm font-semibold text-[#243126]">
                   <span>Open Chat</span>
@@ -82,9 +141,9 @@ export default function TripsDashboard({ trips, chatPreviewByTripId = {} }: Prop
                   apiPath={`/api/trips/${trip.id}/membership`}
                   successMessage="Left trip."
                 />
-              ) : (
+              ) : isOrganizer && !isCompleted ? (
                 <div className="max-w-[220px] text-right text-xs text-amber-700">Transfer organizer role or cancel the trip before leaving.</div>
-              )}
+              ) : null}
             </div>
           </div>
         </div>

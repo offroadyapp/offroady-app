@@ -5,6 +5,7 @@ import FavoriteTrailButton from './components/FavoriteTrailButton';
 import SiteHeader from './components/SiteHeader';
 import WeeklyDigestSignupForm from './components/WeeklyDigestSignupForm';
 import SiteFooter from './components/SiteFooter';
+import RecentCompletedTrips from './components/RecentCompletedTrips';
 import { getCommunitySnapshot } from '@/lib/offroady/community';
 import { getSessionUser } from '@/lib/offroady/auth';
 import { getFavoriteTrailSlugs } from '@/lib/offroady/account';
@@ -324,6 +325,8 @@ export default async function Home() {
             phone: viewer.phone || '',
           } : null}
         />
+
+        <RecentCompletedTrips />
       </main>
       <SiteFooter />
     </div>

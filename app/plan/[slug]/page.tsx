@@ -6,6 +6,7 @@ import CopyCoordinatesButton from '@/app/components/CopyCoordinatesButton';
 import PageShell from '@/app/components/PageShell';
 import PlanTripClient from './PlanTripClient';
 import TrailDetailActions from '@/app/components/TrailDetailActions';
+import TrailCompletedTrips from '@/app/components/TrailCompletedTrips';
 import { getLocalTrailBySlug } from '@/lib/offroady/trails';
 import { getSessionUser } from '@/lib/offroady/auth';
 import { getFavoriteTrailSlugs } from '@/lib/offroady/account';
@@ -212,6 +213,10 @@ export default async function PlanTripPage({ params }: PageProps) {
       ) : null}
 
       <PlanTripClient trail={trail} isLoggedIn={Boolean(viewer)} />
+
+      <section className="mx-auto max-w-5xl px-4 pb-8 sm:px-6 lg:px-8">
+        <TrailCompletedTrips trailSlug={trail.slug} />
+      </section>
 
       <section className="mx-auto max-w-5xl px-4 pb-16 sm:px-6 lg:px-8">
         <TrailDetailActions

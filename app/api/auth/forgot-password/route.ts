@@ -4,6 +4,8 @@ import { sendTransactionalEmail } from '@/lib/offroady/email';
 import { checkEmailRateLimit, checkIpRateLimit } from '@/lib/offroady/rate-limiter';
 import { logEmailEvent, extractDomain } from '@/lib/offroady/email-logs';
 
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.offroady.app';
+
 const GENERIC_SUCCESS_MESSAGE =
   'If this email is registered, we\'ll send a reset link shortly. Please check your inbox and spam folder.';
 
@@ -46,7 +48,7 @@ export async function POST(request: Request) {
         type: 'recovery',
         email,
         options: {
-          redirectTo: 'https://www.offroady.app/reset-password/confirm',
+          redirectTo: `${SITE_URL}/reset-password/confirm`,
         },
       });
 
@@ -98,7 +100,7 @@ export async function POST(request: Request) {
     // Supabase handles the email delivery through its own email system
     const authSupabase = getServerAuthSupabase();
     const { error: resetError } = await authSupabase.auth.resetPasswordForEmail(email, {
-      redirectTo: 'https://www.offroady.app/reset-password/confirm',
+      redirectTo: `${SITE_URL}/reset-password/confirm`,
     });
 
     if (resetError) {

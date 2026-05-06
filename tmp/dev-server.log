@@ -1,0 +1,11 @@
+▲ Next.js 16.2.3 (Turbopack)
+- Local:         http://localhost:5002
+- Network:       http://10.0.0.94:5002
+- Environments: .env.local
+✓ Ready in 923ms
+
+ POST /api/db/migrate 500 in 747ms (next.js: 590ms, application-code: 158ms)
+ POST /api/db/migrate 500 in 100ms (next.js: 7ms, application-code: 93ms)
+  Reload env: .env.local
+  Reload env: .env.local
+  Reload env: .env.local

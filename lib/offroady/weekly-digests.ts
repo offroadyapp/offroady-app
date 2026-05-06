@@ -540,45 +540,12 @@ function getTrailStoryOfTheWeek(lang?: Language): {
   emailExcerpt: string;
   trailSlug: string;
 } | null {
-  const canonicalStories = getAllCanonicalTrailStories();
-  if (!canonicalStories.length) return null;
-
-  // Fallback to first canonical story
-  const first = canonicalStories[0];
-  const preferredLang = lang ?? 'en';
-
-  // Try preferred language first
-  const prefTranslation = first.translations[preferredLang];
-  if (prefTranslation && prefTranslation.status === 'published') {
-    return {
-      title: prefTranslation.title,
-      slug: prefTranslation.slug,
-      emailExcerpt: prefTranslation.emailExcerpt,
-      trailSlug: first.trailSlug,
-    };
-  }
-
-  // Fallback to other language
-  const other: Language = preferredLang === 'en' ? 'zh' : 'en';
-  const altTranslation = first.translations[other];
-  if (altTranslation && altTranslation.status === 'published') {
-    return {
-      title: altTranslation.title,
-      slug: altTranslation.slug,
-      emailExcerpt: altTranslation.emailExcerpt,
-      trailSlug: first.trailSlug,
-    };
-  }
-
-  // Ultimate fallback: use old-style flat list
-  const stories = getAllPublishedTrailStories();
-  if (!stories.length) return null;
-  const story = stories[0];
+  // Temporarily override to point at the Mount Cheam FSR blog post
   return {
-    title: story.title,
-    slug: story.slug,
-    emailExcerpt: story.emailExcerpt,
-    trailSlug: story.trailSlug,
+    title: 'Mount Cheam FSR 小冒险：第一次 Offroady 组队越野',
+    slug: 'mount-cheam-fsr-first-offroady-trip-2026-05-03',
+    emailExcerpt: '原计划去 Mount Cheam Lookout，结果一路 washout、倒树、河边收尾，最后变成一次很有故事的小冒险。',
+    trailSlug: 'mount-cheam-fsr-access',
   };
 }
 

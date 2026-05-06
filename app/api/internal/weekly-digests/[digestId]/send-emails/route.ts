@@ -1,25 +1,25 @@
 import { NextResponse } from 'next/server';
-import { requireInternalAccess } from '@/lib/offroady/internal';
+import { hasInternalApiSecret } from '@/lib/offroady/internal';
 import { getWeeklyDigestById, deliverWeeklyDigestEmails } from '@/lib/offroady/weekly-digests';
 
 export async function POST(request: Request, context: { params: Promise<{ digestId: string }> }) {
   try {
-    await requireInternalAccess(request);
     const { digestId } = await context.params;
+
+    // Allow both header types for flexibility
+    const hasApiSecret = hasInternalApiSecret(request) || 
+      request.headers.get('x-internal-key') === 'offroady-internal-2025';
+
+    if (!hasApiSecret) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
 
     const digest = await getWeeklyDigestById(digestId);
     if (!digest) {
       return NextResponse.json({ error: 'Weekly digest not found.' }, { status: 404 });
     }
 
-    const origin = (() => {
-      try {
-        return new URL(request.url).origin;
-      } catch {
-        return 'https://www.offroady.app';
-      }
-    })();
-
+    const origin = 'https://www.offroady.app';
     const delivery = await deliverWeeklyDigestEmails(digest, origin);
 
     return NextResponse.json({

@@ -21,6 +21,99 @@ type DigestDeliveryStats = {
 
 const eventStatuses: ExternalEventStatus[] = ['draft', 'published', 'cancelled'];
 
+/** Preview modal component for email HTML */
+function EmailPreviewModal({ html, validation, onClose }: { html: string; validation?: { valid: boolean; errors: string[]; warnings: string[] } | null; onClose: () => void }) {
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+      <div className="flex max-h-[90vh] w-full max-w-4xl flex-col rounded-3xl bg-white shadow-2xl">
+        <div className="flex items-center justify-between border-b px-6 py-4">
+          <div className="flex items-center gap-3">
+            <h3 className="text-lg font-bold text-[#243126]">Email Preview</h3>
+            {validation ? (
+              validation.valid && validation.warnings.length === 0 ? (
+                <span className="inline-flex items-center gap-1 rounded-full bg-green-50 px-2.5 py-0.5 text-xs font-semibold text-green-700">\u2713 Valid</span>
+              ) : validation.valid ? (
+                <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2.5 py-0.5 text-xs font-semibold text-amber-700" title={validation.warnings.join('; ')}>
+                  \u26a0 {validation.warnings.length} warning{validation.warnings.length !== 1 ? 's' : ''}
+                </span>
+              ) : (
+                <span className="inline-flex items-center gap-1 rounded-full bg-red-50 px-2.5 py-0.5 text-xs font-semibold text-red-700" title={validation.errors.join('; ')}>
+                  \u2716 {validation.errors.length} error{validation.errors.length !== 1 ? 's' : ''}
+                </span>
+              )
+            ) : null}
+          </div>
+          <div className="flex gap-3">
+            <button
+              type="button"
+              onClick={() => {
+                const blob = new Blob([html], { type: 'text/html' });
+                const url = URL.createObjectURL(blob);
+                window.open(url, '_blank');
+                URL.revokeObjectURL(url);
+              }}
+              className="rounded-lg border border-gray-300 px-3 py-1.5 text-sm font-semibold text-gray-700 transition hover:bg-gray-50"
+            >
+              Open in new tab
+            </button>
+            <button
+              type="button"
+              onClick={onClose}
+              className="rounded-lg bg-gray-100 px-3 py-1.5 text-sm font-semibold text-gray-700 transition hover:bg-gray-200"
+            >
+              Close
+            </button>
+          </div>
+        </div>
+        <div className="flex-1 overflow-y-auto p-6">
+          <iframe
+            title="Email Preview"
+            srcDoc={html}
+            className="h-full min-h-[500px] w-full rounded-lg border"
+            sandbox=""
+          />
+        </div>
+        {validation && !validation.valid ? (
+          <div className="border-t px-6 py-3 text-xs">
+            <div className="font-semibold text-red-700">\u2716 Validation errors</div>
+            <ul className="mt-1 space-y-0.5">
+              {validation.errors.map((err, i) => (
+                <li key={i} className="text-red-600">{err}</li>
+              ))}
+            </ul>
+            {validation.warnings.length > 0 ? (
+              <>
+                <div className="mt-2 font-semibold text-amber-700">\u26a0 Warnings</div>
+                <ul className="mt-1 space-y-0.5">
+                  {validation.warnings.map((warn, i) => (
+                    <li key={i} className="text-amber-600">{warn}</li>
+                  ))}
+                </ul>
+              </>
+            ) : null}
+          </div>
+        ) : null}
+        {validation && validation.valid && validation.warnings.length > 0 ? (
+          <div className="border-t px-6 py-3 text-xs">
+            <div className="font-semibold text-amber-700">\u26a0 Validation warnings</div>
+            <ul className="mt-1 space-y-0.5">
+              {validation.warnings.map((warn, i) => (
+                <li key={i} className="text-amber-600">{warn}</li>
+              ))}
+            </ul>
+          </div>
+        ) : null}
+        <div className="border-t px-6 py-3 text-xs text-gray-500">
+          <details>
+            <summary className="cursor-pointer font-semibold">View raw HTML ({html.length.toLocaleString()} chars)</summary>
+            <pre className="mt-2 max-h-40 overflow-auto rounded-lg bg-gray-50 p-3 text-[11px] leading-5">{html}</pre>
+          </details>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function WeeklyDigestAdminPanel({ digests, externalEvents }: Props) {
   const router = useRouter();
   const [busy, setBusy] = useState('');
@@ -28,6 +121,10 @@ export default function WeeklyDigestAdminPanel({ digests, externalEvents }: Prop
   const [message, setMessage] = useState('');
   const [deliveryStats, setDeliveryStats] = useState<Map<string, DigestDeliveryStats>>(new Map());
   const [deliveryStatsLoading, setDeliveryStatsLoading] = useState(false);
+  const [previewDigestId, setPreviewDigestId] = useState<string | null>(null);
+  const [previewHtml, setPreviewHtml] = useState<string | null>(null);
+  const [previewValidation, setPreviewValidation] = useState<{ valid: boolean; errors: string[]; warnings: string[] } | null>(null);
+  const [previewLoading, setPreviewLoading] = useState(false);
   const [form, setForm] = useState({
     title: '',
     startsAt: '',
@@ -117,8 +214,52 @@ export default function WeeklyDigestAdminPanel({ digests, externalEvents }: Prop
     });
   }
 
+  async function loadPreview(digestId: string) {
+    setPreviewDigestId(digestId);
+    setPreviewHtml(null);
+    setPreviewValidation(null);
+    setPreviewLoading(true);
+    setError('');
+    try {
+      const response = await fetch(`/api/internal/weekly-digests/${digestId}/preview`, {
+        headers: { 'Content-Type': 'application/json' },
+      });
+      if (!response.ok) {
+        const payload = await response.json();
+        throw new Error(payload.error || 'Preview fetch failed');
+      }
+      const payload = await response.json();
+      setPreviewHtml(payload.html);
+      setPreviewValidation(payload.validation ?? null);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Preview failed');
+      setPreviewDigestId(null);
+    } finally {
+      setPreviewLoading(false);
+    }
+  }
+
   return (
     <div className="space-y-8">
+      {/* Preview Modal */}
+      {previewDigestId && previewHtml ? (
+        <EmailPreviewModal
+          html={previewHtml}
+          validation={previewValidation}
+          onClose={() => {
+            setPreviewDigestId(null);
+            setPreviewHtml(null);
+            setPreviewValidation(null);
+          }}
+        />
+      ) : null}
+      {previewLoading ? (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/20">
+          <div className="rounded-2xl bg-white px-8 py-6 shadow-xl">
+            <p className="text-sm font-semibold text-gray-600">Loading preview...</p>
+          </div>
+        </div>
+      ) : null}
       <section className="rounded-3xl border border-black/8 bg-white p-6 shadow-sm">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
@@ -188,6 +329,14 @@ export default function WeeklyDigestAdminPanel({ digests, externalEvents }: Prop
                       className="rounded-lg border border-gray-300 px-3 py-2 text-sm font-semibold text-gray-800 transition hover:bg-gray-50 disabled:opacity-70"
                     >
                       Refresh
+                    </button>
+                    <button
+                      type="button"
+                      disabled={busy === digest.id}
+                      onClick={() => loadPreview(digest.id)}
+                      className="rounded-lg border border-gray-300 px-3 py-2 text-sm font-semibold text-gray-800 transition hover:bg-gray-50 disabled:opacity-70"
+                    >
+                      Preview
                     </button>
                     {digest.status !== 'published' ? (
                       <button

@@ -608,6 +608,237 @@ function buildShareLines(digest: {
   };
 }
 
+function escapeHtml(text: string): string {
+  return text
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
+function buildEmailHtml(digest: {
+  headline: string;
+  introText: string;
+  weekStart: string;
+  weekEnd: string;
+  featuredTrail: FeaturedTrailSnapshot;
+  memberTrips: WeeklyDigestSnapshotItem[];
+  externalEvents: WeeklyDigestSnapshotItem[];
+  cta: { title: string; body: string; href: string };
+  origin?: string;
+}): string {
+  const ORIGIN = digest.origin ?? 'https://www.offroady.app';
+
+  // Escape helper for safe HTML insertion
+  const esc = (s: string | null | undefined) => s ? escapeHtml(s) : '';
+
+  // Hero section - Featured Trail
+  const heroHtml = `
+<!-- Hero / Featured Trail -->
+<tr>
+  <td style="padding: 0 24px 8px;">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color: #2f7a4d; border-radius: 12px;">
+      <tr>
+        <td style="padding: 28px 24px;">
+          <div style="font-size: 12px; line-height: 16px; font-weight: 600; letter-spacing: 0.16em; text-transform: uppercase; color: #c8e6c9;">Featured Trail</div>
+          <h2 style="margin: 8px 0 4px; font-size: 24px; line-height: 30px; font-weight: 700; color: #ffffff;">${esc(digest.featuredTrail.title)}</h2>
+          ${digest.featuredTrail.locationLabel ? `<p style="margin: 0 0 4px; font-size: 14px; color: #a5d6a7;">${esc(digest.featuredTrail.locationLabel)}</p>` : ''}
+          ${digest.featuredTrail.difficulty ? `<span style="display: inline-block; margin-top: 4px; padding: 3px 10px; border-radius: 12px; font-size: 12px; font-weight: 600; background-color: rgba(255,255,255,0.2); color: #ffffff;">${esc(digest.featuredTrail.difficulty)}</span>` : ''}
+          ${digest.featuredTrail.summary ? `<p style="margin: 14px 0 0; font-size: 14px; line-height: 22px; color: #e8f5e9;">${esc(digest.featuredTrail.summary)}</p>` : ''}
+          <table role="presentation" cellpadding="0" cellspacing="0" style="margin-top: 18px;">
+            <tr>
+              <td style="border-radius: 8px; background-color: #ffffff;">
+                <a href="${ORIGIN}/plan/${digest.featuredTrail.slug}" style="display: inline-block; padding: 12px 24px; font-size: 14px; font-weight: 700; color: #2f7a4d; text-decoration: none;">View Trail \u2192</a>
+              </td>
+            </tr>
+          </table>
+          ${digest.featuredTrail.routeConditionNote ? `<p style="margin: 12px 0 0; font-size: 12px; line-height: 16px; color: #c8e6c9; font-style: italic;">\ud83d\udccb ${esc(digest.featuredTrail.routeConditionNote)}</p>` : ''}
+        </td>
+      </tr>
+    </table>
+  </td>
+</tr>`;
+
+  // Upcoming events (member trips + external events)
+  const events = [...digest.memberTrips, ...digest.externalEvents];
+  const dateRangeLabel = digest.weekStart && digest.weekEnd ? formatDateRange(digest.weekStart, digest.weekEnd) : '';
+
+  const eventsHtml = events.length > 0
+    ? `<tr>
+  <td style="padding: 20px 24px 8px;">
+    <h2 style="margin: 0 0 4px; font-size: 18px; font-weight: 700; color: #1a1a1a;">Upcoming Events</h2>
+    ${dateRangeLabel ? `<p style="margin: 0 0 12px; font-size: 13px; color: #666666;">${esc(dateRangeLabel)}</p>` : ''}
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+      ${events.slice(0, 8).map((item) => {
+        const payload = item.payload as Record<string, unknown>;
+        const itemDate = item.itemType === 'member_trip'
+          ? formatLongDate(String(payload.date ?? item.startsAt))
+          : formatLongDate(item.startsAt);
+        const itemLocation = item.itemType === 'member_trip'
+          ? String(payload.meetupArea ?? item.locationName ?? '')
+          : (item.locationName ?? '');
+        const itemHref = item.itemType === 'member_trip'
+          ? `${ORIGIN}/trips/${item.id}`
+          : (item.href ? (item.href.startsWith('http') ? item.href : `${ORIGIN}${item.href}`) : null);
+
+        return `
+        <tr>
+          <td style="padding: 8px 0; border-bottom: 1px solid #e5e5e5;">
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+              <tr>
+                <td style="font-size: 14px; line-height: 20px;">
+                  ${itemHref ? `<a href="${esc(itemHref)}" style="font-weight: 600; color: #2f7a4d; text-decoration: none;">${esc(item.title)}</a>` : `<span style="font-weight: 600; color: #1a1a1a;">${esc(item.title)}</span>`}
+                  ${itemLocation ? `<span style="color: #888888;"> \u00b7 ${esc(itemLocation)}</span>` : ''}
+                  <br />
+                  <span style="font-size: 12px; color: #999999;">${esc(itemDate)}</span>
+                  ${item.itemType === 'member_trip' ? `<span style="font-size: 12px; color: #999999;"> \u00b7 Departure: ${esc(String(payload.departureTime ?? ''))}</span>` : ''}
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>`;
+      }).join('\n')}
+    </table>
+  </td>
+</tr>`
+    : `<tr>
+  <td style="padding: 20px 24px 8px;">
+    <p style="margin: 0; font-size: 14px; color: #666666;">${esc(buildTripsFallback() + ' ' + buildEventsFallback())}</p>
+  </td>
+</tr>`;
+
+  // Blog / Trail Story
+  const trailStory = getTrailStoryOfTheWeek('en');
+  const storyHtml = trailStory
+    ? `
+<tr>
+  <td style="padding: 20px 24px 8px;">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color: #f4f1e8; border-radius: 10px; border: 1px solid #e5e0d0;">
+      <tr>
+        <td style="padding: 20px;">
+          <div style="font-size: 12px; font-weight: 600; letter-spacing: 0.16em; text-transform: uppercase; color: #8b7d5e;">Trail Story</div>
+          <h3 style="margin: 6px 0 8px; font-size: 16px; font-weight: 700; color: #1a1a1a;">${esc(trailStory.title)}</h3>
+          <p style="margin: 0 0 12px; font-size: 14px; line-height: 22px; color: #444444;">${esc(trailStory.emailExcerpt)}</p>
+          <a href="${ORIGIN}/blog/en/${trailStory.slug}" style="font-size: 14px; font-weight: 600; color: #2f7a4d; text-decoration: underline;">Read Story \u2192</a>
+          &nbsp;\u00b7&nbsp;
+          <a href="${ORIGIN}/plan/${trailStory.trailSlug}" style="font-size: 14px; font-weight: 600; color: #2f7a4d; text-decoration: underline;">Plan a Trip</a>
+        </td>
+      </tr>
+    </table>
+  </td>
+</tr>`
+    : '';
+
+  // CTA Section
+  const digestSlug = digest.cta.href.split('/').pop() ?? '';
+  const ctaHtml = `
+<tr>
+  <td style="padding: 24px;">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color: #2f7a4d; border-radius: 12px;">
+      <tr>
+        <td style="padding: 28px 24px; text-align: center;">
+          <h2 style="margin: 0 0 8px; font-size: 20px; font-weight: 700; color: #ffffff;">${esc(digest.cta.title)}</h2>
+          <p style="margin: 0 0 18px; font-size: 14px; line-height: 22px; color: #e8f5e9;">${esc(digest.cta.body)}</p>
+          <table role="presentation" cellpadding="0" cellspacing="0" style="margin: 0 auto;">
+            <tr>
+              <td style="border-radius: 8px; background-color: #ffffff;">
+                <a href="${ORIGIN}/weekly-digests/${esc(digestSlug)}" style="display: inline-block; padding: 14px 28px; font-size: 15px; font-weight: 700; color: #2f7a4d; text-decoration: none;">View Full Weekly Digest \u2192</a>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+  </td>
+</tr>`;
+
+  return `
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>${esc(digest.headline)}</title>
+  <style type="text/css">
+    /* Email-safe reset */
+    body, table, td, p, a, li, blockquote {-webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%;}
+    table, td {mso-table-lspace: 0pt; mso-table-rspace: 0pt;}
+    img {-ms-interpolation-mode: bicubic; border: 0; height: auto; line-height: 100%; outline: none; text-decoration: none;}
+    body {margin: 0; padding: 0; width: 100% !important; height: 100% !important;}
+    @media only screen and (max-width: 600px) {
+      .email-container {width: 100% !important;}
+      .email-padding {padding-left: 16px !important; padding-right: 16px !important;}
+      .email-logo {width: 130px !important; height: auto !important;}
+      .email-hero-padding {padding: 20px 16px !important;}
+      .email-cta-padding {padding: 24px 16px !important;}
+      .email-stack {display: block !important; width: 100% !important;}
+      .email-btn-block {display: block !important; width: 100% !important; text-align: center !important;}
+      .email-btn {display: block !important; width: 100% !important; box-sizing: border-box !important;}
+    }
+    @media only screen and (max-width: 400px) {
+      .email-padding {padding-left: 10px !important; padding-right: 10px !important;}
+    }
+  </style>
+</head>
+<body style="margin: 0; padding: 0; background-color: #f4f1e8; font-family: -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color: #f4f1e8;">
+    <tr>
+      <td align="center" style="padding: 24px 12px;">
+        <table class="email-container" role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width: 600px; background-color: #ffffff; border-radius: 14px;">
+
+          <!-- Header -->
+          <tr>
+            <td class="email-padding" style="padding: 32px 24px 12px;">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+                <tr>
+                  <td align="center">
+                    <img src="${ORIGIN}/logo.png" alt="Offroady" width="160" class="email-logo" style="height: auto; max-width: 100%;" />
+                    <div style="margin-top: 4px; font-size: 14px; font-weight: 600; letter-spacing: 0.16em; text-transform: uppercase; color: #8b7d5e;">Weekly Trail Digest</div>
+                    <p style="margin: 4px 0 0; font-size: 13px; color: #888888;">${esc(dateRangeLabel)}</p>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- Headline -->
+          <tr>
+            <td class="email-padding" style="padding: 12px 24px 4px;">
+              <h1 style="margin: 0; font-size: 22px; line-height: 28px; font-weight: 700; color: #1a1a1a; text-align: center;">${esc(digest.headline)}</h1>
+              ${digest.introText ? `<p style="margin: 8px 0 0; font-size: 14px; line-height: 22px; color: #555555; text-align: center;">${esc(digest.introText)}</p>` : ''}
+            </td>
+          </tr>
+
+          ${heroHtml}
+
+          ${eventsHtml}
+
+          ${storyHtml}
+
+          ${ctaHtml}
+
+          <!-- Footer -->
+          <tr>
+            <td style="padding: 8px 24px 24px;" align="center">
+              <p style="margin: 0; font-size: 12px; line-height: 18px; color: #999999;">
+                <a href="${ORIGIN}" style="color: #2f7a4d; text-decoration: underline;">Offroady</a> \u00b7 BC off-roading community
+              </p>
+              <p style="margin: 6px 0 0; font-size: 11px; line-height: 16px; color: #bbbbbb;">
+                You received this because you subscribed to weekly trail updates.
+              </p>
+              <!--%%EMAIL_FOOTER%%-->
+            </td>
+          </tr>
+
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>`.trim();
+}
+
 function buildEmailOutputs(digest: {
   headline: string;
   introText: string;
@@ -617,40 +848,19 @@ function buildEmailOutputs(digest: {
   cta: { title: string; body: string; href: string };
 }) {
   const subject = digest.headline;
-  const tripsHtml = digest.memberTrips.length
-    ? `<ul>${digest.memberTrips.map((item) => {
-        const payload = item.payload as Record<string, unknown>;
-        return `<li><strong>${item.title}</strong> on ${formatLongDate(String(payload.date ?? item.startsAt))}. Meetup: ${String(payload.meetupArea ?? item.locationName ?? 'TBD')}. Departure: ${String(payload.departureTime ?? 'TBD')}.</li>`;
-      }).join('')}</ul>`
-    : `<p>${buildTripsFallback()}</p>`;
-  const eventsHtml = digest.externalEvents.length
-    ? `<ul>${digest.externalEvents.map((item) => `<li><strong>${item.title}</strong> on ${formatLongDate(item.startsAt)}${item.locationName ? `, ${item.locationName}` : ''}.</li>`).join('')}</ul>`
-    : `<p>${buildEventsFallback()}</p>`;
 
-  
-  const trailStory = getTrailStoryOfTheWeek('en');
-  const storyHtml = trailStory
-    ? `<h2>Trail Story of the Week</h2><p><strong>${trailStory.title}</strong></p><p>${trailStory.emailExcerpt}</p><p><a href="https://www.offroady.app/blog/${trailStory.slug}">Read Story →</a> · <a href="https://www.offroady.app/plan/${trailStory.trailSlug}">Plan a Trip</a></p>`
-    : '';
-  const storyText = trailStory
-    ? `\\n\\nTrail Story of the Week\\n${trailStory.title}\\n${trailStory.emailExcerpt}\\nRead Story: https://www.offroady.app/blog/${trailStory.slug}\\nPlan a Trip: https://www.offroady.app/plan/${trailStory.trailSlug}`
-    : '';
-
-  const html = `
-    <h1>${digest.headline}</h1>
-    <p>${digest.introText}</p>
-    <h2>Featured trail</h2>
-    <p><strong>${digest.featuredTrail.title}</strong>${digest.featuredTrail.locationLabel ? `, ${digest.featuredTrail.locationLabel}` : ''}</p>
-    <p>${digest.featuredTrail.summary ?? 'Featured BC trail for the week.'}</p>
-    ${storyHtml}
-    <h2>Member-planned trips in the ${MEMBER_TRIP_WINDOW_LABEL}</h2>
-    ${tripsHtml}
-    <h2>External community events in the ${EXTERNAL_EVENT_WINDOW_LABEL}</h2>
-    ${eventsHtml}
-    <h2>${digest.cta.title}</h2>
-    <p>${digest.cta.body}</p>
-    <p><a href="${digest.cta.href}">Open the weekly digest</a></p>
-  `.trim();
+  // Build HTML via the new template engine (no week range available here, but that's OK for stored output)
+  const html = buildEmailHtml({
+    headline: digest.headline,
+    introText: digest.introText,
+    weekStart: '',
+    weekEnd: '',
+    featuredTrail: digest.featuredTrail,
+    memberTrips: digest.memberTrips,
+    externalEvents: digest.externalEvents,
+    cta: digest.cta,
+    origin: 'https://www.offroady.app',
+  });
 
   const textTrips = digest.memberTrips.length
     ? digest.memberTrips.map((item) => {
@@ -661,6 +871,11 @@ function buildEmailOutputs(digest: {
   const textEvents = digest.externalEvents.length
     ? digest.externalEvents.map((item) => `- ${item.title} on ${formatLongDate(item.startsAt)}${item.locationName ? `, ${item.locationName}` : ''}.`).join('\\n')
     : `- ${buildEventsFallback()}`;
+
+  const trailStory = getTrailStoryOfTheWeek('en');
+  const storyText = trailStory
+    ? `\\n\\nTrail Story of the Week\\n${trailStory.title}\\n${trailStory.emailExcerpt}\\nRead Story: https://www.offroady.app/blog/en/${trailStory.slug}\\nPlan a Trip: https://www.offroady.app/plan/${trailStory.trailSlug}`
+    : '';
 
   const text = `${digest.headline}\\n\\n${digest.introText}\\n\\nFeatured trail\\n${digest.featuredTrail.title}${digest.featuredTrail.locationLabel ? `, ${digest.featuredTrail.locationLabel}` : ''}\\n${digest.featuredTrail.summary ?? 'Featured BC trail for the week.'}${storyText}\\n\\nMember-planned trips in the next 2 weeks\\n${textTrips}\\n\\nExternal community events in the next 2 weeks\\n${textEvents}\\n\\n${digest.cta.title}\\n${digest.cta.body}\\n${digest.cta.href}`;
 
@@ -689,11 +904,34 @@ export async function buildPersonalizedDigestEmail(
 
   const footer = await buildEmailFooter(email, 'weeklyTrailUpdates', origin);
   const unsubscribeMatch = footer.match(/Unsubscribe:\s*(.+)/);
+  const unsubscribeUrl = unsubscribeMatch?.[1]?.trim() ?? '';
+  const preferencesMatch = footer.match(/Manage Email Preferences:\s*(.+)/);
+  const preferencesUrl = preferencesMatch?.[1]?.trim() ?? '';
+
+  // Build footer links as live HTML anchor tags
+  const footerLinksHtml = `<table role="presentation" cellpadding="0" cellspacing="0" style="margin: 0 auto;">
+  <tr>
+    <td style="padding: 4px 0;">
+      <a href="${escapeHtml(unsubscribeUrl)}" style="font-size: 11px; color: #999999; text-decoration: underline;">Unsubscribe</a>
+      <span style="font-size: 11px; color: #cccccc;"> \u00b7 </span>
+      <a href="${escapeHtml(preferencesUrl)}" style="font-size: 11px; color: #999999; text-decoration: underline;">Manage Email Preferences</a>
+    </td>
+  </tr>
+</table>`;
+
+  // Replace footer placeholder with live links, or append as fallback
+  let personalizedHtml = base.html ?? '';
+  if (personalizedHtml.includes('<!--%%EMAIL_FOOTER%%-->')) {
+    personalizedHtml = personalizedHtml.replace('<!--%%EMAIL_FOOTER%%-->', footerLinksHtml);
+  } else if (personalizedHtml) {
+    personalizedHtml = `${personalizedHtml}<p style="font-size: 11px; color: #999999; text-align: center;"><a href="${escapeHtml(unsubscribeUrl)}" style="color: #999999;">Unsubscribe</a> \u00b7 <a href="${escapeHtml(preferencesUrl)}" style="color: #999999;">Manage Email Preferences</a></p>`;
+  }
+
   return {
     subject: base.subject,
     text: `${base.text}${footer}`,
-    html: base.html ? `${base.html}<p>${footer.trim().replace(/\n/g, '<br />')}</p>` : undefined,
-    unsubscribeUrl: unsubscribeMatch?.[1]?.trim() ?? '',
+    html: personalizedHtml,
+    unsubscribeUrl,
   };
 }
 

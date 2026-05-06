@@ -1,13 +1,22 @@
 "use client";
 
 import type { FormEvent } from 'react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import type { AdminDigestSummary, ExternalEventRecord, ExternalEventStatus } from '@/lib/offroady/weekly-digests';
 
 type Props = {
   digests: AdminDigestSummary[];
   externalEvents: ExternalEventRecord[];
+};
+
+type DigestDeliveryStats = {
+  digestId: string;
+  logged: boolean;
+  sentCount: number;
+  failedCount: number;
+  pendingCount: number;
+  totalCount: number;
 };
 
 const eventStatuses: ExternalEventStatus[] = ['draft', 'published', 'cancelled'];
@@ -17,6 +26,8 @@ export default function WeeklyDigestAdminPanel({ digests, externalEvents }: Prop
   const [busy, setBusy] = useState('');
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
+  const [deliveryStats, setDeliveryStats] = useState<Map<string, DigestDeliveryStats>>(new Map());
+  const [deliveryStatsLoading, setDeliveryStatsLoading] = useState(false);
   const [form, setForm] = useState({
     title: '',
     startsAt: '',
@@ -29,6 +40,35 @@ export default function WeeklyDigestAdminPanel({ digests, externalEvents }: Prop
     ctaLabel: 'Learn more',
     status: 'draft' as ExternalEventStatus,
   });
+
+  // Load delivery stats for all digests
+  useEffect(() => {
+    const publishedDigests = digests.filter((d) => d.status === 'published');
+    if (publishedDigests.length === 0) return;
+
+    setDeliveryStatsLoading(true);
+    Promise.all(
+      publishedDigests.map(async (digest) => {
+        try {
+          const response = await fetch(`/api/internal/weekly-digests/${digest.id}/delivery-stats`, {
+            headers: {
+              'Content-Type': 'application/json',
+            },
+          });
+          if (!response.ok) return null;
+          return await response.json() as DigestDeliveryStats;
+        } catch {
+          return null;
+        }
+      })
+    ).then((results) => {
+      const map = new Map<string, DigestDeliveryStats>();
+      for (const result of results) {
+        if (result) map.set(result.digestId, result);
+      }
+      setDeliveryStats(map);
+    }).finally(() => setDeliveryStatsLoading(false));
+  }, [digests]);
 
   async function request(path: string, init?: RequestInit, successMessage?: string) {
     setBusy(path);
@@ -107,39 +147,72 @@ export default function WeeklyDigestAdminPanel({ digests, externalEvents }: Prop
         {error ? <div className="mt-4 rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700">{error}</div> : null}
         {message ? <div className="mt-4 rounded-xl bg-[#eef5ee] px-4 py-3 text-sm text-[#2f5d3a]">{message}</div> : null}
         <div className="mt-6 space-y-4">
-          {digests.length ? digests.map((digest) => (
-            <div key={digest.id} className="rounded-2xl border border-black/8 bg-[#f8faf8] p-5">
-              <div className="flex flex-wrap items-start justify-between gap-4">
-                <div>
-                  <div className="text-xs font-semibold uppercase tracking-[0.16em] text-[#5d7d61]">{digest.status}</div>
-                  <div className="mt-1 text-lg font-semibold text-[#243126]">{digest.headline}</div>
-                  <div className="mt-1 text-sm text-gray-500">Week of {digest.weekStart} · {digest.memberTripCount} member trips · {digest.externalEventCount} external events</div>
-                  <div className="mt-2 text-sm text-gray-600">Featured trail: {digest.featuredTrailTitle}</div>
-                  <a href={`/weekly-digests/${digest.slug}`} className="mt-3 inline-flex text-sm font-semibold text-[#2f5d3a] hover:text-[#264d30]">Open digest →</a>
-                </div>
-                <div className="flex flex-wrap gap-2">
-                  <button
-                    type="button"
-                    disabled={busy === digest.id}
-                    onClick={() => request(`/api/internal/weekly-digests/${digest.id}/refresh`, { method: 'POST' }, 'Digest refreshed.')}
-                    className="rounded-lg border border-gray-300 px-3 py-2 text-sm font-semibold text-gray-800 transition hover:bg-gray-50 disabled:opacity-70"
-                  >
-                    Refresh
-                  </button>
-                  {digest.status !== 'published' ? (
+          {digests.length ? digests.map((digest) => {
+            // Calculate delivery warnings
+            const stats = deliveryStats.get(digest.id);
+            const isPublished = digest.status === 'published';
+            const hasDeliveries = stats && stats.totalCount > 0;
+            const showDeliveryWarning = isPublished && !hasDeliveries && !deliveryStatsLoading;
+
+            return (
+              <div key={digest.id} className={`rounded-2xl border p-5 ${showDeliveryWarning ? 'border-amber-300 bg-amber-50' : 'border-black/8 bg-[#f8faf8]'}`}>
+                <div className="flex flex-wrap items-start justify-between gap-4">
+                  <div>
+                    <div className="text-xs font-semibold uppercase tracking-[0.16em] text-[#5d7d61]">{digest.status}</div>
+                    <div className="mt-1 text-lg font-semibold text-[#243126]">{digest.headline}</div>
+                    <div className="mt-1 text-sm text-gray-500">Week of {digest.weekStart} · {digest.memberTripCount} member trips · {digest.externalEventCount} external events</div>
+                    <div className="mt-2 text-sm text-gray-600">Featured trail: {digest.featuredTrailTitle}</div>
+
+                    {/* Delivery stats */}
+                    {stats && stats.totalCount > 0 ? (
+                      <div className="mt-2 text-xs text-gray-500">
+                        Delivery: {stats.sentCount} sent, {stats.failedCount} failed
+                        {stats.pendingCount > 0 ? `, ${stats.pendingCount} pending` : ''}
+                      </div>
+                    ) : null}
+
+                    {/* Warning for published without delivery */}
+                    {showDeliveryWarning ? (
+                      <div className="mt-2 flex items-center gap-2 rounded-lg bg-amber-100 px-3 py-1.5 text-xs font-semibold text-amber-800">
+                        ⚠ Published — no email deliveries logged
+                      </div>
+                    ) : null}
+
+                    <a href={`/weekly-digests/${digest.slug}`} className="mt-3 inline-flex text-sm font-semibold text-[#2f5d3a] hover:text-[#264d30]">Open digest →</a>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
                     <button
                       type="button"
                       disabled={busy === digest.id}
-                      onClick={() => request(`/api/internal/weekly-digests/${digest.id}/publish`, { method: 'POST' }, 'Digest published.')}
-                      className="rounded-lg bg-[#2f5d3a] px-3 py-2 text-sm font-semibold text-white transition hover:bg-[#264d30] disabled:opacity-70"
+                      onClick={() => request(`/api/internal/weekly-digests/${digest.id}/refresh`, { method: 'POST' }, 'Digest refreshed.')}
+                      className="rounded-lg border border-gray-300 px-3 py-2 text-sm font-semibold text-gray-800 transition hover:bg-gray-50 disabled:opacity-70"
                     >
-                      Publish
+                      Refresh
                     </button>
-                  ) : null}
+                    {digest.status !== 'published' ? (
+                      <button
+                        type="button"
+                        disabled={busy === digest.id}
+                        onClick={() => request(`/api/internal/weekly-digests/${digest.id}/publish`, { method: 'POST' }, 'Digest published and emails sent.')}
+                        className="rounded-lg bg-[#2f5d3a] px-3 py-2 text-sm font-semibold text-white transition hover:bg-[#264d30] disabled:opacity-70"
+                      >
+                        Publish &amp; Send Email
+                      </button>
+                    ) : (
+                      <button
+                        type="button"
+                        disabled={busy === digest.id}
+                        onClick={() => request(`/api/internal/weekly-digests/${digest.id}/send-emails`, { method: 'POST' }, 'Email delivery triggered.')}
+                        className="rounded-lg border border-[#2f5d3a] px-3 py-2 text-sm font-semibold text-[#2f5d3a] transition hover:bg-[#eef5ee] disabled:opacity-70"
+                      >
+                        Send / Retry Emails
+                      </button>
+                    )}
+                  </div>
                 </div>
               </div>
-            </div>
-          )) : <div className="rounded-2xl bg-[#f8faf8] p-5 text-sm text-gray-600">No weekly digests yet. Generate the first draft above.</div>}
+            );
+          }) : <div className="rounded-2xl bg-[#f8faf8] p-5 text-sm text-gray-600">No weekly digests yet. Generate the first draft above.</div>}
         </div>
       </section>
 

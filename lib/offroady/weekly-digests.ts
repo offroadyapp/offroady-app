@@ -1,7 +1,7 @@
 import { getLocalTrailBySlug } from '@/lib/offroady/trails';
 import { getServiceSupabase } from '@/lib/supabase/server';
 import { buildEmailFooter, listWeeklyDigestSubscribers } from '@/lib/offroady/email-preferences';
-import { sendTransactionalEmail } from '@/lib/offroady/email';
+import { sendWeeklyDigestEmail } from '@/lib/offroady/email';
 import { resolveTripTrailReference } from '@/lib/offroady/trip-trails';
 import { getAllPublishedTrailStories, getAllCanonicalTrailStories } from '@/content/blog/trail-stories';
 import { type Language } from '@/lib/offroady/language';
@@ -76,6 +76,8 @@ export type AdminDigestSummary = Omit<WeeklyDigestRecord, 'memberTrips' | 'exter
   externalEventCount: number;
 };
 
+export type DeliveryLogStatus = 'pending' | 'sent' | 'failed' | 'skipped';
+
 export type WeeklyDigestDeliveryRecord = {
   email: string;
   status: 'sent' | 'skipped';
@@ -88,6 +90,31 @@ export type WeeklyDigestDeliverySummary = {
   sent: number;
   skipped: number;
   records: WeeklyDigestDeliveryRecord[];
+};
+
+export type WeeklyDigestDeliveryLogResult = {
+  digestId: string;
+  status: DeliveryLogStatus;
+  subscriberCount: number;
+  sentCount: number;
+  failedCount: number;
+  skippedDueToDuplicateCount: number;
+  records: Array<{
+    email: string;
+    status: DeliveryLogStatus;
+    errorMessage: string | null;
+    resendMessageId: string | null;
+  }>;
+};
+
+export type PublishResult = {
+  digestId: string;
+  status: DigestStatus;
+  subscriberCount: number;
+  sentCount: number;
+  failedCount: number;
+  skippedDuplicateCount: number;
+  digest: WeeklyDigestRecord;
 };
 
 export type ExternalEventRecord = {
@@ -670,31 +697,150 @@ export async function buildPersonalizedDigestEmail(
   };
 }
 
-export async function deliverWeeklyDigestEmails(digest: WeeklyDigestRecord, origin?: string): Promise<WeeklyDigestDeliverySummary> {
+// Do not publish weekly digests by directly updating the database.
+// Publishing must go through publishWeeklyDigest so email delivery is triggered and logged.
+export async function deliverWeeklyDigestEmails(digest: WeeklyDigestRecord, origin?: string): Promise<WeeklyDigestDeliveryLogResult> {
+  console.log(`[deliverWeeklyDigestEmails] digestId=${digest.id}`);
+
+  // Check digest exists and is published
+  if (digest.status !== 'published') {
+    throw new Error('Cannot deliver emails for a digest that is not published.');
+  }
+
+  const supabase = getServiceSupabase();
   const subscribers = await listWeeklyDigestSubscribers();
-  const records: WeeklyDigestDeliveryRecord[] = [];
+  console.log(`[deliverWeeklyDigestEmails] subscriberCount=${subscribers.length}`);
+
+  // Get existing delivery log entries for this digest
+  const { data: existingLogs, error: logError } = await supabase
+    .from('weekly_digest_email_deliveries')
+    .select('*')
+    .eq('digest_id', digest.id);
+
+  if (logError) throw logError;
+
+  const existingLogMap = new Map<string, typeof existingLogs[0]>();
+  for (const log of existingLogs ?? []) {
+    existingLogMap.set(log.email, log);
+  }
+
+  const records: Array<{
+    email: string;
+    status: DeliveryLogStatus;
+    errorMessage: string | null;
+    resendMessageId: string | null;
+  }> = [];
+
+  let sentCount = 0;
+  let failedCount = 0;
+  let skippedDueToDuplicateCount = 0;
 
   for (const subscriber of subscribers) {
+    const existingEntry = existingLogMap.get(subscriber.email);
+
+    // Skip if already sent (idempotent)
+    if (existingEntry && existingEntry.status === 'sent') {
+      records.push({
+        email: subscriber.email,
+        status: 'skipped',
+        errorMessage: 'already sent',
+        resendMessageId: existingEntry.resend_message_id,
+      });
+      skippedDueToDuplicateCount++;
+      continue;
+    }
+
+    // If previously failed, we can retry — leave it as pending/failed and try again
+    // Upsert a pending entry first
+    const { error: upsertError } = await supabase
+      .from('weekly_digest_email_deliveries')
+      .upsert({
+        digest_id: digest.id,
+        email: subscriber.email,
+        user_id: subscriber.userId,
+        status: 'pending',
+        updated_at: new Date().toISOString(),
+      }, {
+        onConflict: 'digest_id,email',
+      });
+
+    if (upsertError) {
+      console.error(`[deliverWeeklyDigestEmails] upsertError for ${subscriber.email}: ${upsertError.message}`);
+      records.push({
+        email: subscriber.email,
+        status: 'failed',
+        errorMessage: `db-upsert-error: ${upsertError.message}`,
+        resendMessageId: null,
+      });
+      failedCount++;
+      continue;
+    }
+
+    // Build personalized email
     const email = await buildPersonalizedDigestEmail(digest, subscriber.email, origin);
-    const result = await sendTransactionalEmail({
+
+    // Send via Resend
+    const result = await sendWeeklyDigestEmail({
       to: subscriber.email,
       subject: email.subject,
       text: email.text,
       html: email.html,
     });
 
-    records.push({
-      email: subscriber.email,
-      status: result.ok ? 'sent' : 'skipped',
-      reason: result.ok ? 'sent' : result.reason,
-      unsubscribeUrl: email.unsubscribeUrl,
-    });
+    if (result.ok && result.messageId) {
+      // Update delivery log to sent
+      await supabase
+        .from('weekly_digest_email_deliveries')
+        .update({
+          status: 'sent',
+          resend_message_id: result.messageId,
+          sent_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        })
+        .eq('digest_id', digest.id)
+        .eq('email', subscriber.email);
+
+      records.push({
+        email: subscriber.email,
+        status: 'sent',
+        errorMessage: null,
+        resendMessageId: result.messageId,
+      });
+      sentCount++;
+    } else {
+      // Update delivery log to failed
+      const errorMsg = result.reason || 'unknown-error';
+      await supabase
+        .from('weekly_digest_email_deliveries')
+        .update({
+          status: 'failed',
+          error_message: errorMsg,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('digest_id', digest.id)
+        .eq('email', subscriber.email);
+
+      records.push({
+        email: subscriber.email,
+        status: 'failed',
+        errorMessage: errorMsg,
+        resendMessageId: null,
+      });
+      failedCount++;
+    }
   }
 
+  console.log(`[deliverWeeklyDigestEmails] sentCount=${sentCount}`);
+  console.log(`[deliverWeeklyDigestEmails] failedCount=${failedCount}`);
+  console.log(`[deliverWeeklyDigestEmails] skippedDuplicateCount=${skippedDueToDuplicateCount}`);
+
   return {
-    totalSubscribers: subscribers.length,
-    sent: records.filter((record) => record.status === 'sent').length,
-    skipped: records.filter((record) => record.status === 'skipped').length,
+    digestId: digest.id,
+    status: failedCount > 0 ? 'failed' : 'sent',
+    subscriberCount: subscribers.length,
+    sentCount,
+    failedCount,
+    skippedDueToDuplicateCount,
     records,
   };
 }
@@ -986,18 +1132,47 @@ export async function refreshWeeklyDigestById(digestId: string) {
   });
 }
 
-export async function publishWeeklyDigest(digestId: string, options?: { origin?: string }) {
-  const supabase = getServiceSupabase();
-  const { error } = await supabase
-    .from('weekly_digests')
-    .update({ status: 'published', published_at: new Date().toISOString(), updated_at: new Date().toISOString() })
-    .eq('id', digestId);
+// Do not publish weekly digests by directly updating the database.
+// Publishing must go through publishWeeklyDigest so email delivery is triggered and logged.
+export async function publishWeeklyDigest(digestId: string, options?: { origin?: string }): Promise<PublishResult> {
+  console.log(`[publishWeeklyDigest] digestId=${digestId}`);
 
-  if (error) throw error;
+  const supabase = getServiceSupabase();
+
+  // Check current status first
+  const existing = await getDigestRowById(digestId);
+  if (!existing) throw new Error('Weekly digest not found.');
+
+  console.log(`[publishWeeklyDigest] previousStatus=${existing.status}`);
+
+  // If already published, don't re-set published_at, just check delivery log
+  if (existing.status === 'published') {
+    console.log(`[publishWeeklyDigest] digest already published, skipping status update`);
+  } else {
+    const { error } = await supabase
+      .from('weekly_digests')
+      .update({ status: 'published', published_at: new Date().toISOString(), updated_at: new Date().toISOString() })
+      .eq('id', digestId);
+
+    if (error) throw error;
+  }
+
+  console.log(`[publishWeeklyDigest] status=published`);
+
   const digest = await getWeeklyDigestById(digestId);
   if (!digest) throw new Error('Weekly digest not found after publish.');
-  const delivery = await deliverWeeklyDigestEmails(digest, options?.origin);
-  return { digest, delivery };
+
+  const deliveryResult = await deliverWeeklyDigestEmails(digest, options?.origin);
+
+  return {
+    digestId: digest.id,
+    status: 'published',
+    subscriberCount: deliveryResult.subscriberCount,
+    sentCount: deliveryResult.sentCount,
+    failedCount: deliveryResult.failedCount,
+    skippedDuplicateCount: deliveryResult.skippedDueToDuplicateCount,
+    digest,
+  };
 }
 
 export async function getWeeklyDigestBySlug(slug: string) {

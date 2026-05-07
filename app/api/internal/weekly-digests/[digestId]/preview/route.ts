@@ -1,14 +1,11 @@
 import { NextResponse } from 'next/server';
-import { hasInternalApiSecret } from '@/lib/offroady/internal';
+import { requireInternalAccess } from '@/lib/offroady/internal';
 import { getWeeklyDigestById, buildPersonalizedDigestEmail } from '@/lib/offroady/weekly-digests';
 import { validateDigestEmailHtml } from '@/lib/offroady/email-validate';
 
 export async function GET(request: Request, context: { params: Promise<{ digestId: string }> }) {
   try {
-    const hasApiSecret = hasInternalApiSecret(request);
-    if (!hasApiSecret) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    await requireInternalAccess(request);
 
     const { digestId } = await context.params;
 

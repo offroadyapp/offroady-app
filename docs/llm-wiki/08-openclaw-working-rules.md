@@ -14,11 +14,14 @@ This document describes the rules and conventions AI coding agents should follow
 ## 2. Keep UI Consistent With Existing Design
 
 - Use the same Tailwind patterns as existing components
-- Dark theme, off-black backgrounds, white text
+- **Light theme** with green accent palette (`#2f5d3a` primary, `#243126` headings, `#eef5ee` light bg)
 - Follow existing component patterns (card layout, button styles, spacing)
+- **Use the shared Button component** (`app/components/Button.tsx`) for all buttons — see `docs/Design.md` §13 for variants
+- Do not add ad-hoc button classes; reuse Button variants
 - Maintain mobile-first responsive design
 - Do not introduce new UI libraries or icon sets
 - Use inline SVG or emoji for icons (as existing code does)
+- **UI Constitution:** `docs/Design.md` §11 contains standing button readability and design-system rules — all new UI work must comply
 
 ## 3. Run Build / Lint After Changes
 

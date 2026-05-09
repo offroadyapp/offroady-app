@@ -117,7 +117,7 @@ export default function TripDetailActions({ tripId, viewerSignedIn, isJoined, vi
                   type="button"
                   onClick={() => handleMembership('join')}
                   disabled={loading || !waiverAccepted}
-                  className="inline-flex rounded-lg bg-[#1b5e2a] px-5 py-3 font-semibold text-white transition hover:bg-[#13431e] disabled:opacity-70"
+                  className="inline-flex rounded-lg bg-[#2f5d3a] px-5 py-3 font-semibold text-white transition hover:bg-[#264d30] disabled:opacity-70"
                 >
                   {loading ? 'Joining...' : 'Join this Trip'}
                 </button>
@@ -136,7 +136,7 @@ export default function TripDetailActions({ tripId, viewerSignedIn, isJoined, vi
               </div>
               {tripChat.canAccess ? (
                 <div className="inline-flex items-center gap-2 rounded-full bg-[#eef5ee] px-3 py-1 text-xs font-semibold text-[#2f5d3a]">
-                  <span className="h-2 w-2 rounded-full bg-[#1b5e2a]" />
+                  <span className="h-2 w-2 rounded-full bg-[#2f5d3a]" />
                   {tripChat.unreadCount > 0 ? `${tripChat.unreadCount} unread` : 'Chat ready'}
                 </div>
               ) : null}
@@ -148,11 +148,11 @@ export default function TripDetailActions({ tripId, viewerSignedIn, isJoined, vi
                   {tripChat.unreadCount ? <span className="rounded-full bg-white px-2 py-0.5 text-xs font-bold text-[#243126]">{tripChat.unreadCount} unread</span> : null}
                 </Link>
               ) : viewerSignedIn ? (
-                <a href="#join-this-trip" className="inline-flex rounded-lg bg-[#1b5e2a] px-5 py-3 font-semibold text-white transition hover:bg-[#13431e]">
+                <a href="#join-this-trip" className="inline-flex rounded-lg bg-[#2f5d3a] px-5 py-3 font-semibold text-white transition hover:bg-[#264d30]">
                   Join this trip to chat
                 </a>
               ) : (
-                <a href="#member-access" className="inline-flex rounded-lg bg-[#1b5e2a] px-5 py-3 font-semibold text-white transition hover:bg-[#13431e]">
+                <a href="#member-access" className="inline-flex rounded-lg bg-[#2f5d3a] px-5 py-3 font-semibold text-white transition hover:bg-[#264d30]">
                   Log in to join and chat
                 </a>
               )}
@@ -166,7 +166,7 @@ export default function TripDetailActions({ tripId, viewerSignedIn, isJoined, vi
             Want to join this trip? Please sign in or create an account first. You can browse the trip details before that, but joining is for registered members.
           </p>
           <div className="mt-5 flex flex-wrap gap-3">
-            <a href="#member-access" className="inline-flex rounded-lg bg-[#1b5e2a] px-5 py-3 font-semibold text-white transition hover:bg-[#13431e]">
+            <a href="#member-access" className="inline-flex rounded-lg bg-[#2f5d3a] px-5 py-3 font-semibold text-white transition hover:bg-[#264d30]">
               Join this Trip
             </a>
             <TripShareButton trip={shareTrip} viewerSignedIn={false} authHref="#member-access" />
@@ -182,7 +182,7 @@ export default function TripDetailActions({ tripId, viewerSignedIn, isJoined, vi
             <h3 className="mt-2 text-xl font-bold text-[#243126]">Keep the run lined up on timing, meetup details, trail conditions, and updates.</h3>
             <p className="mt-3 text-sm leading-6 text-gray-600">Trip Chat is private to the planner and joined participants. Log in, join the trip, and then use it to sort the plan with everyone in the run.</p>
             <div className="mt-4">
-              <a href="#member-access" className="inline-flex rounded-lg bg-[#1b5e2a] px-5 py-3 font-semibold text-white transition hover:bg-[#13431e]">
+              <a href="#member-access" className="inline-flex rounded-lg bg-[#2f5d3a] px-5 py-3 font-semibold text-white transition hover:bg-[#264d30]">
                 Log in to join and chat
               </a>
             </div>

@@ -156,7 +156,7 @@ export default async function Home() {
           <div className="absolute inset-0 bg-gradient-to-r from-black/55 via-black/35 to-black/20" />
           <div className="relative mx-auto flex min-h-[72vh] max-w-7xl items-center px-4 py-20 sm:px-6 lg:px-8">
             <div className="max-w-2xl text-white">
-              <div className="mb-5 inline-flex rounded-full border border-white/25 bg-white/10 px-4 py-2 text-sm backdrop-blur">
+              <div className="mb-5 inline-flex rounded-full border border-white/80 bg-[#1b2e20]/60 px-4 py-2 text-sm backdrop-blur-sm">
                 Weekly trail picks + lightweight social planning for local riders
               </div>
               <h1 className="text-4xl font-bold leading-tight tracking-tight sm:text-5xl lg:text-6xl">
@@ -168,16 +168,16 @@ export default async function Home() {
                 Discover a featured BC trail, see whether a trip is already forming, and either join that date or put a new one on the calendar.
               </p>
               <div className="mt-8 flex flex-wrap gap-3">
-                <a href={latestDigest ? `/weekly-digests/${latestDigest.slug}` : '#featured'} className="rounded-lg bg-[#1f5a36] px-5 py-3 font-semibold text-white shadow-lg ring-1 ring-[#2f7a4d]/70 transition hover:bg-[#18482b] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white active:bg-[#143b23]">
+                <a href={latestDigest ? `/weekly-digests/${latestDigest.slug}` : '#featured'} className="rounded-lg bg-[#2f5d3a] px-5 py-3 font-semibold text-white shadow-lg transition hover:bg-[#264d30] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white active:bg-[#1b5e2a]">
                   Trail of the Week
                 </a>
-                <a href="/join-a-trip" className="rounded-lg border border-white/70 px-5 py-3 font-medium text-white transition hover:bg-white/10">
+                <a href="/join-a-trip" className="rounded-lg border border-white/80 bg-[#1b2e20]/70 px-5 py-3 font-semibold text-white shadow-sm transition hover:bg-[#1b2e20]/90 backdrop-blur-sm">
                   Join a Trip
                 </a>
-                <a href="#more-trails" className="rounded-lg border border-white/70 px-5 py-3 font-medium text-white transition hover:bg-white/10">
+                <a href="#more-trails" className="rounded-lg border border-white/80 bg-[#1b2e20]/70 px-5 py-3 font-semibold text-white shadow-sm transition hover:bg-[#1b2e20]/90 backdrop-blur-sm">
                   Explore more trails
                 </a>
-                <a href="/propose-a-trail" className="rounded-lg border border-white/70 bg-white/10 px-5 py-3 font-medium text-white transition hover:bg-white/20">
+                <a href="/propose-a-trail" className="rounded-lg border border-white/80 bg-[#1b2e20]/70 px-5 py-3 font-semibold text-white shadow-sm transition hover:bg-[#1b2e20]/90 backdrop-blur-sm">
                   Propose a Trail
                 </a>
               </div>

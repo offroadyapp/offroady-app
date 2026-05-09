@@ -808,3 +808,193 @@ Offroady 的页面看起来应该像：
 - 有真实 trip 和真实 people 的可信感
 - 不冷，不硬，不乱
 - 让人想点进去、想加入、想下次再回来
+
+---
+
+# 11. UI Constitution — Button Readability & Design-System Consistency
+
+*Effective: 2026-05-08 — standing implementation rule for all UI work.*
+
+---
+
+### 1. Readability comes before decoration
+
+All buttons and interactive controls on Offroady must prioritize readability, clarity, and consistency over decorative styling.
+
+A button is not acceptable if its label is hard to read, low-contrast, or visually ambiguous in any state.
+
+---
+
+### 2. Shared components are the source of truth
+
+Button appearance must be controlled primarily through shared design-system components, variants, and theme tokens.
+
+**Avoid:**
+- page-level one-off button color overrides
+- ad hoc text color choices
+- section-specific styling that breaks consistency
+- custom button styling that duplicates existing variants without a strong reason
+
+---
+
+### 3. Button text must always be readable
+
+For every button variant and state, text must remain clearly visible.
+
+**Rules:**
+- dark background → light readable text
+- light background → dark readable text
+- outline button → readable text and visible border
+- disabled button → visibly disabled but still readable
+- hover / focus / active states → must preserve readability and contrast
+
+No button should rely on subtle color differences that make the label difficult to see.
+
+---
+
+### 4. Contrast problems must be fixed at the root
+
+If a button appears unreadable on any page, the fix should target the root cause whenever possible:
+- shared button component
+- shared theme tokens
+- shared variant classes
+- reusable design primitives
+
+Do not rely on repeated one-off patches on individual pages unless the page has a truly unique and justified requirement.
+
+---
+
+### 5. Consistency across the entire site
+
+The same button variant should behave consistently across:
+- homepage
+- trail pages
+- trip pages
+- chat sections
+- account / settings pages
+- forms
+- modals / dialogs
+- admin / internal pages where applicable
+
+Users should not encounter the same type of action rendered with inconsistent contrast or styling from page to page.
+
+---
+
+### 6. State coverage is required
+
+Every button audit and implementation must consider all relevant states:
+- default
+- hover
+- focus
+- active / pressed
+- disabled
+- loading
+- selected, if applicable
+
+A button is not considered complete unless all states remain understandable and readable.
+
+---
+
+### 7. Accessibility is a baseline requirement
+
+Interactive controls should meet a reasonable accessibility standard for contrast and clarity.
+
+Readability should not depend on perfect monitor settings, unusual lighting conditions, or the user guessing where the label is.
+
+---
+
+### 8. Design-system discipline
+
+Before adding or changing a button style, the implementation should ask:
+- Is there already a shared button variant for this?
+- Can this be solved by improving the shared component instead?
+- Is this page introducing unnecessary visual inconsistency?
+
+**Default principle:** reuse first, customize only when necessary.
+
+---
+
+### 9. Anti-patterns to avoid
+
+**Do not:**
+- place dark text on dark green or dark image-heavy backgrounds
+- place very light text on pale backgrounds
+- reduce opacity so much that labels become hard to read
+- let background images overpower CTA readability
+- create section-specific button colors without updating the design system
+
+---
+
+### 10. Acceptance standard
+
+A button implementation is acceptable only if:
+- the label is immediately readable
+- the button remains understandable in every state
+- it is visually consistent with the design system
+- it does not require page-specific hacks to remain usable
+
+---
+
+## 12. Offroady Color Tokens (Design System Reference)
+
+*Standardized palette extracted from existing components — source of truth for all button variants.*
+
+| Token | Hex | Usage |
+|-------|-----|-------|
+| `green-primary` | `#2f5d3a` | Primary buttons, links, focus rings |
+| `green-primary-hover` | `#264d30` | Primary button hover |
+| `green-primary-active` | `#1b5e2a` | Primary CTA pressed state |
+| `green-text` | `#243126` | Headings, dark text on light bg |
+| `green-muted` | `#5d7d61` | Small labels, secondary text |
+| `green-light-bg` | `#eef5ee` | Button active highlight, alert bg |
+| `green-border` | `#cfe6d2` | Pale borders, success messages |
+| `gray-border` | `#e5e7eb` (gray-300) | Secondary/outline button border |
+| `gray-text` | `#1f2937` (gray-800) | Secondary button text |
+| `danger-bg` | `#9f2d2d` | Destructive actions (Leave, Delete) |
+| `danger-hover` | `#862626` | Destructive hover |
+| `hero-btn-bg` | `#1b2e20` at 70% opacity | Dark semi-transparent bg for hero/secondary buttons on image overlays |
+
+---
+
+## 13. Button Component Architecture
+
+*Defined in `app/components/Button.tsx` — the single source of truth.*
+
+### Variants
+
+| Variant | When to use | Appearance |
+|---------|-------------|------------|
+| `primary` | Main CTA on any page | `bg-green-primary text-white hover:bg-green-primary-hover` |
+| `secondary` | Alternative / cancel actions on light bg | `border border-gray-300 text-gray-800 hover:bg-gray-50` |
+| `secondary-light` | Alternative actions on dark/image bg | `border border-white/80 bg-hero-btn-bg text-white shadow-sm hover:bg-[#1b2e20]/90` |
+| `danger` | Destructive actions (Leave, Delete) | `bg-danger-bg text-white hover:bg-danger-hover` |
+| `ghost` | Subtle inline actions | `text-green-primary hover:bg-green-light-bg` |
+| `link` | Text-only link-style button | `text-green-primary underline hover:text-green-primary-hover` |
+
+### Sizes
+
+| Size | When to use | Padding / Font |
+|------|-------------|----------------|
+| `sm` | Inline / compact contexts | `px-2.5 py-1 text-xs` |
+| `md` | Standard buttons (default) | `px-4 py-2.5 text-sm` |
+| `lg` | Hero / featured CTA | `px-5 py-3 text-sm` |
+
+### State classes (applied automatically)
+
+- `disabled:cursor-not-allowed disabled:opacity-70`
+- `transition` for smooth hover
+- Focus ring: `focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-green-primary`
+
+---
+
+### Usage Principle
+
+```tsx
+// ✅ Correct — use shared component
+<Button variant="primary" size="lg">Join Trip</Button>
+
+// ❌ Wrong — ad-hoc classes
+<button className="rounded-lg bg-[#2f5d3a] px-5 py-3 font-semibold text-white...">Join Trip</button>
+```
+
+All new buttons must use the shared `Button` component. Existing ad-hoc buttons should be migrated on each component touch until the entire site is consistent.

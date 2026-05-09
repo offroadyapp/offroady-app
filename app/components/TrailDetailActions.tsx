@@ -180,7 +180,7 @@ export default function TrailDetailActions({
           {hasUpcomingTrip ? (
             <Link
               href={planHref}
-              className="inline-flex rounded-lg border border-white/25 bg-white/10 px-5 py-3 text-sm font-semibold text-white transition hover:bg-white/15"
+              className="inline-flex rounded-lg border border-white/80 bg-[#1b2e20]/70 px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-[#1b2e20]/90 backdrop-blur-sm"
             >
               Plan Another Trip
             </Link>
@@ -191,7 +191,7 @@ export default function TrailDetailActions({
               href={googleMapsUrl}
               target="_blank"
               rel="noreferrer"
-              className={`inline-flex rounded-lg px-5 py-3 text-sm font-semibold transition ${compact ? 'border border-amber-300 text-amber-700 hover:bg-amber-50' : 'border border-amber-300/70 bg-amber-400/15 text-amber-200 hover:bg-amber-400/25'}`}
+              className={`inline-flex rounded-lg px-5 py-3 text-sm font-semibold transition ${compact ? 'border border-amber-300 text-amber-700 hover:bg-amber-50' : 'border border-amber-300/80 bg-[#1b2e20]/70 text-amber-200 shadow-sm hover:bg-[#1b2e20]/90 backdrop-blur-sm'}`}
             >
               Show on Map
             </a>
@@ -200,7 +200,7 @@ export default function TrailDetailActions({
           <button
             type="button"
             onClick={() => setShareOpen(true)}
-            className={`inline-flex rounded-lg px-5 py-3 text-sm font-semibold transition ${compact ? 'border border-gray-300 text-gray-800 hover:bg-gray-50' : 'border border-white/30 bg-white/5 text-white hover:bg-white/10'}`}
+            className={`inline-flex rounded-lg px-5 py-3 text-sm font-semibold transition ${compact ? 'border border-gray-300 text-gray-800 hover:bg-gray-50' : 'border border-white/80 bg-[#1b2e20]/70 text-white shadow-sm hover:bg-[#1b2e20]/90 backdrop-blur-sm'}`}
           >
             Share
           </button>
@@ -213,12 +213,12 @@ export default function TrailDetailActions({
               inactiveLabel="Save Trail"
               className="px-5 py-3"
               activeClassName={compact ? 'bg-[#eef5ee] text-[#2f5d3a] hover:bg-[#e4efe4]' : 'bg-white text-[#243126] hover:bg-white/90'}
-              inactiveClassName={compact ? 'border border-gray-300 text-gray-800 hover:bg-gray-50' : 'border border-white/30 bg-white/5 text-white hover:bg-white/10'}
+              inactiveClassName={compact ? 'border border-gray-300 text-gray-800 hover:bg-gray-50' : 'border border-white/80 bg-[#1b2e20]/70 text-white shadow-sm hover:bg-[#1b2e20]/90 backdrop-blur-sm'}
             />
           ) : (
             <a
               href="#member-access"
-              className={`inline-flex rounded-lg px-5 py-3 text-sm font-semibold transition ${compact ? 'border border-gray-300 text-gray-800 hover:bg-gray-50' : 'border border-white/30 bg-white/5 text-white hover:bg-white/10'}`}
+              className={`inline-flex rounded-lg px-5 py-3 text-sm font-semibold transition ${compact ? 'border border-gray-300 text-gray-800 hover:bg-gray-50' : 'border border-white/80 bg-[#1b2e20]/70 text-white shadow-sm hover:bg-[#1b2e20]/90 backdrop-blur-sm'}`}
             >
               Save Trail
             </a>

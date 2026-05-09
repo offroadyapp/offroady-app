@@ -378,7 +378,7 @@ export default async function BlogDetailContent({
             {resolved.relatedTrailSlug ? (
               <Link
                 href={buildPlanUrl(resolved.relatedTrailSlug)}
-                className="rounded-lg bg-[#1a3a24] px-5 py-3 font-semibold text-white transition hover:bg-[#264d30]"
+                className="rounded-lg bg-[#2f5d3a] px-5 py-3 font-semibold text-white transition hover:bg-[#264d30]"
               >
                 Plan a Trip
               </Link>

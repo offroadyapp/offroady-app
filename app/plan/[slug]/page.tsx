@@ -12,6 +12,7 @@ import { getSessionUser } from '@/lib/offroady/auth';
 import { getFavoriteTrailSlugs } from '@/lib/offroady/account';
 import { getUpcomingTripDiscovery } from '@/lib/offroady/trip-discovery';
 import { getCanonicalTrailStoryByTrailSlug } from '@/content/blog/trail-stories';
+import { getAllPublishedBlogTranslations, getCanonicalBlogPostById } from '@/content/blog/posts';
 import { getContentLanguage, buildBlogUrl, type Language } from '@/lib/offroady/language';
 
 export const dynamic = 'force-dynamic';
@@ -66,10 +67,13 @@ export default async function PlanTripPage({ params }: PageProps) {
     h.get('accept-language'),
     c.get('offroady_lang')?.value ?? null
   );
+  // Try trail stories first (from trail-stories.ts)
   const canonicalStory = getCanonicalTrailStoryByTrailSlug(trail.slug);
   let storySlug: string | null = null;
   let storyTitle: string | null = null;
   let storyExcerpt: string | null = null;
+  let isBlogPost = false;
+
   if (canonicalStory) {
     // Prefer requested language
     const pref = canonicalStory.translations[lang];
@@ -88,6 +92,26 @@ export default async function PlanTripPage({ params }: PageProps) {
       }
     }
   }
+
+  // Fallback: check blog posts for matching relatedTrailSlug
+  if (!storySlug) {
+    const blogTranslations = getAllPublishedBlogTranslations();
+    for (const bt of blogTranslations) {
+      const canonical = getCanonicalBlogPostById(bt.contentId);
+      if (canonical?.relatedTrailSlug === trail.slug) {
+        const pref = canonical.translations[lang];
+        const translation = pref?.status === 'published' ? pref : canonical.translations[lang === 'en' ? 'zh' : 'en'];
+        if (translation && translation.status === 'published') {
+          storySlug = translation.slug;
+          storyTitle = translation.title;
+          storyExcerpt = translation.excerpt;
+          isBlogPost = true;
+        }
+        break;
+      }
+    }
+  }
+
   const storyHref = storySlug ? buildBlogUrl(storySlug, lang) : null;
 
   // Check if story is a fallback (different from preferred lang slug resolution)

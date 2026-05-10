@@ -65,8 +65,183 @@ const posts: BlogPost[] = [
   // Existing pages that import posts directly still work.
 
   
-  {
+    {
     slug: 'hale-creek-newbie-run-4wdabc',
+    title: 'Hale Creek Newbie Run: A Must for First-Time Off-Roaders',
+    excerpt: '4WDABC Newbie Run with 50+ vehicles, two route options for beginners and advanced drivers. A welcoming community event for first-time off-roaders in BC.',
+    category: 'Trip Stories',
+    tags: ['Hale Creek', '4WDABC', 'Newbie Run', 'BC Off-Roading', 'Beginner', 'Trip Story', 'Group Run'],
+    publishedAt: null,
+    author: 'Offroady Team',
+    coverImage: '/images/blog/halecreek/hale-creek-newbie-run-cover.jpg',
+    coverAlt: '4WDABC Newbie Run vehicles lined up at the Hale Creek meeting point — BC off-road community event for beginners',
+    seoTitle: 'Hale Creek Newbie Run: First-Time Off-Road Guide | Offroady',
+    seoDescription: 'Join the 4WDABC Newbie Run at Hale Creek with 50+ vehicles. Easy way and hard way route options. Perfect for beginners to learn off-road basics in a real environment.',
+    keywords: ['Hale Creek newbie run', '4WDABC beginner off-road', 'BC newbie off-road event', 'Hale Creek FSR', 'BC off-road beginner group', '4WDABC Newbie Run', 'beginner off-road BC'],
+    relatedTrailSlug: 'hale-creek-easy-way-access-area',
+    readingTime: '5 min read',
+    status: 'draft',
+    body: `If you are new to off-roading and wondering where to start, I highly recommend finding an event like this one.
+
+I joined a **Newbie Run** organized by **4WDABC — the BC 4WD Association**. As the name suggests, this event is designed for beginners: no need to know how to climb rocks, navigate mud pits, or read a trail. Just bring your vehicle, your curiosity, and a willingness to learn.
+
+That is the best part — it is not just a casual drive. It is learning while having fun.
+
+![4WDABC Newbie Run participants gathering at Hale Creek](/images/blog/halecreek/hale-creek-newbie-run-gathering-01.jpg)
+
+## 50+ Vehicles — Quite a Sight
+
+About **50+ vehicles** showed up. Everything from Jeeps and Toyotas to pickups and SUVs, and even some non-off-road vehicles. The atmosphere was relaxed and friendly — it felt more like a community meetup than a competition.
+
+For a beginner, seeing that many off-road vehicles gathered in one place is already exciting. Before heading out, the organizers gave clear instructions: the route plan, group assignments, safety rules, and convoy protocols. This is invaluable for new drivers — things like maintaining proper distance, radio communication, when to wait for the vehicle behind you, and how to handle difficult sections.
+
+The group was split into **3 groups**:
+- **Two easy way groups** — for beginners and mild off-road vehicles
+- **One hard way group** — for those wanting more challenge
+
+This setup is ideal. Beginners can choose according to their vehicle and experience level without being pressured into difficult terrain. The most important thing in off-roading is knowing your limits — not proving anything.
+
+![Newbie Run convoy departing along Hale Creek FSR with Harrison Lake view](/images/blog/halecreek/hale-creek-newbie-run-convoy-start.jpg)
+
+## The Real Value: Guidance and Support
+
+For first-timers, the biggest challenge is not having a capable vehicle — it is not knowing how to make decisions on the trail:
+- Which line should I take?
+- When do I need low range?
+- When to maintain momentum versus creeping slowly?
+- How to handle ruts, loose rocks, and mud?
+- If the vehicle ahead can make it, can mine?
+- What if I get stuck?
+
+You cannot learn these things just from watching videos. Driving with experienced people is the best way to learn. Someone leads, someone spots, and sometimes they get out to explain why they chose a particular line. That kind of hands-on guidance is priceless.
+
+The easy way route was not boring — there were still sections that required judgment and technique, just at a comfortable pace for newcomers. And you could occasionally see the hard way group tackling steeper, rockier sections — a preview of what you can aim for as you gain experience.
+
+![Hard way group navigating through Hale Creek forest section](/images/blog/halecreek/hale-creek-newbie-run-easy-route.jpg)
+
+## Easy Way Does Not Mean Boring
+
+Some people might think easy way is not exciting. Not at all. For beginners, the easy route is exactly where you should be. You have time to observe, think, and feel how your vehicle behaves on unpaved surfaces.
+
+You start noticing:
+- Where your wheels get better traction
+- Why ground clearance matters
+- How gravel feels different from pavement
+- Why convoy pacing is important
+- How trails that look the same can drive very differently
+
+These are the fundamentals of off-roading. And here is the thing — some participants were not even driving hardcore off-road rigs. Stock SUVs and crossovers completed the easy route without issues. This proves that **you do not need a modified Jeep Wrangler to start off-roading**. A reliable SUV or crossover, combined with good judgment and support from others, is enough to begin your off-road journey.
+
+![Hale Creek camp sign — the meeting point for the Newbie Run](/images/blog/halecreek/hale-creek-newbie-run-scenic-afternoon.jpg)
+
+## Hard Way Shows What Is Possible
+
+The hard way group encountered more technical sections. For beginners, it is not about jumping into those challenges immediately — but seeing what others can do is inspiring.
+
+That is one of the best things about off-roading: the same area can offer completely different experiences depending on the route, vehicle, and skill level. Having group options means you can enjoy the day at your own pace while seeing what is possible as you improve.
+
+## Safety in Numbers
+
+Going alone to an unfamiliar trail can be nerve-wracking: What if I take a wrong turn? What if there is no cell signal? What if I get stuck or break down?
+
+The Newbie Run solves this: **you are not alone.** Vehicles are spaced front and back, the organizers are experienced, and everyone looks out for each other.
+
+Of course, basic preparation is still essential:
+- Check your vehicle before heading out
+- Fill up on gas
+- Bring water and food
+- Wear appropriate footwear
+- Pack basic emergency gear
+- Follow the organizer instructions
+- Do not wander off alone
+- Do not attempt sections beyond your comfort level
+
+Off-roading is not about taking unnecessary risks — it is about safely reaching places you would not normally go.
+
+![A tire punctured by sharp rocks — changing tires on the trail is not uncommon](/images/blog/halecreek/hale-creek-newbie-run-break-stop.jpg)
+
+## Highly Recommended for Beginners
+
+I strongly encourage anyone new to off-roading to join a Newbie Run. In a single day, you learn more than from weeks of reading articles online. You see different vehicles perform, hear experienced drivers explain their choices, and discover what kind of terrain suits your vehicle.
+
+Most importantly, you realize the off-road community is welcoming. It is not about who has the most expensive rig — it is about going out together, helping each other, and coming back safely.
+
+The Hale Creek event was relaxed, fun, and full of great people. A perfect introduction for anyone curious about off-roading.
+
+![Lake view on the return drive — a beautiful end to a great day](/images/blog/halecreek/hale-creek-newbie-run-wrap-up.jpg)
+
+---
+
+## Photo Gallery
+
+![Convoy making their way on the Hard way route](/images/blog/halecreek/hale-creek-newbie-run-convoy-angle-02.jpg)
+
+![Another angle of the convoy moving through the forest](/images/blog/halecreek/hale-creek-newbie-run-convoy-angle-03.jpg)
+
+![A dog joining the adventure on the trail](/images/blog/halecreek/hale-creek-newbie-run-trail-scenery-04.jpg)
+
+![Stunning lake view at the lunch stop](/images/blog/halecreek/hale-creek-newbie-run-lunch-break.jpg)
+
+![A water crossing challenge along the lakeside section](/images/blog/halecreek/hale-creek-newbie-run-mid-trail-05.jpg)
+
+![Easy way group tackling a steep, rocky section](/images/blog/halecreek/hale-creek-newbie-run-hard-way-01.jpg)
+
+![Easy way group navigating through a technical section](/images/blog/halecreek/hale-creek-newbie-run-hard-way-02.jpg)
+
+![A variety of vehicles showing off at the gathering point](/images/blog/halecreek/hale-creek-newbie-run-afternoon-trail.jpg)
+
+---
+
+## Our Take at Offroady
+
+This event reinforced something I have believed for a while: many people want to get out there — they just do not know where to go, who to go with, or whether they can do it.
+
+That is exactly what Offroady is built for. If you are a beginner, start with a trail suited to your vehicle. If you do not want to go alone, plan a trip or join a trip and head out with others.
+
+The best off-road experiences are not about heading into the wilderness alone — they are about going with a group of like-minded people, learning together, and coming back together.
+
+**Maybe next time, we can ride together.**`,
+    videos: [
+      {
+        type: 'youtube',
+        url: 'https://youtu.be/Y8yiD0ta0UE',
+        title: 'Hale Creek Newbie Run easy way convoy',
+        caption: 'Easy way group making their way through Hale Creek FSR at a beginner-friendly pace',
+      },
+      {
+        type: 'youtube',
+        url: 'https://youtu.be/W02MBEqk_oY',
+        title: 'Hale Creek Newbie Run hard way technical sections',
+        caption: 'Hard way group tackling more challenging terrain',
+      },
+      {
+        type: 'youtube',
+        url: 'https://youtu.be/W2pW0M_Ztp0',
+        title: 'Hale Creek scenic afternoon drive',
+        caption: 'Scenic afternoon drive through the Hale Creek backcountry',
+      },
+      {
+        type: 'youtube',
+        url: 'https://youtu.be/yus2ziaGsW4',
+        title: 'Hale Creek Newbie Run highlights',
+        caption: 'Event highlights — convoy through forest and mountain terrain',
+      },
+      {
+        type: 'youtube',
+        url: 'https://youtu.be/PpeGqzNy4yc',
+        title: 'Hale Creek Newbie Run wrap-up',
+        caption: 'Wrapping up a great day of beginner-friendly off-roading',
+      },
+      {
+        type: 'youtube',
+        url: 'https://youtu.be/_v8mnBBGcbk',
+        title: 'Mini truck taking on the Hale Creek challenge',
+        caption: 'Mini truck showing up for the Hale Creek challenge — small rig, big heart',
+      },
+    ],
+  },
+{
+    slug: 'hale-creek-newbie-run-4wdabc-zh',
     title: 'Hale Creek 新手必参加的Newbie Run!',
     excerpt: '4WDABC 举办的 Newbie Run，50 多台车分组出发，新手跟着学习基础越野知识、车辆操作和安全注意事项。有 easy way 也有 hard way，轻松、有趣，也很适合第一次想尝试越野的朋友。本文含全程照片图库和视频回顾。',
     category: 'Trip Stories',

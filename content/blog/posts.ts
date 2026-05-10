@@ -16,9 +16,20 @@ export type BlogPost = {
   readingTime: string;
   status: 'draft' | 'published';
   body: string;
+  videos?: VideoItem[];
 };
 
 // --- Multi-language canonical structure ---
+
+export type VideoItem = {
+  type: 'youtube' | 'youtube_short' | 'external' | 'mp4';
+  url: string;
+  embedUrl?: string;
+  title?: string;
+  caption?: string;
+  thumbnailUrl?: string;
+  credit?: string;
+};
 
 export type Language = 'en' | 'zh';
 
@@ -34,6 +45,7 @@ export type CanonicalBlogTranslation = {
   status: 'draft' | 'published';
   coverImage?: string;
   coverAlt?: string;
+  videos?: VideoItem[];
 };
 
 export type CanonicalBlogPost = {
@@ -52,7 +64,165 @@ const posts: BlogPost[] = [
   // The canonical content is in canonicalBlogPosts below.
   // Existing pages that import posts directly still work.
 
+  
   {
+    slug: 'hale-creek-newbie-run-4wdabc',
+    title: 'Newbie Run：50 多台车一起去 Hale Creek，原来越野新手也可以这么玩',
+    excerpt: '4WDABC 举办的 Newbie Run，50 多台车分组出发，新手跟着学习基础越野知识、车辆操作和安全注意事项。有 easy way 也有 hard way，轻松、有趣，也很适合第一次想尝试越野的朋友。',
+    category: 'Trip Stories',
+    tags: ['Hale Creek', '4WDABC', 'Newbie Run', 'BC Off-Roading', 'Beginner', 'Trip Story', 'Group Run'],
+    publishedAt: '2026-05-09T18:00:00-07:00',
+    author: 'Offroady Team',
+    coverImage: '/images/blog/hale-creek-newbie-run-20260509/IMG_20260509_100010.jpg',
+    coverAlt: 'Vehicles gathered for 4WDABC newbie run at Hale Creek, BC',
+    seoTitle: 'Hale Creek Newbie Run with 4WDABC | BC Beginner Off-Road Trip Story',
+    seoDescription: '50+ vehicles, two route groups, and a welcoming beginner-friendly atmosphere at the 4WDABC newbie run on Hale Creek FSR near Harrison. A great BC off-road experience for new drivers.',
+    keywords: ['Hale Creek newbie run', '4WDABC beginner off-road', 'BC newbie off-road event', 'Hale Creek FSR', 'BC off-road beginner group'],
+    relatedTrailSlug: 'hale-creek-easy-way-access-area',
+    readingTime: '8 min read',
+    status: 'published',
+    body: `这次参加的是 **4WDABC——BC 省越野车协会** 组织的一个 **Newbie Run**。
+
+顾名思义，这种活动就是专门面向新手的：不需要你一上来就会爬石头、冲泥坑、判断路线，也不需要你假装自己很懂。你只需要带着车、带着好奇心、带着一点点紧张，然后跟着队伍出发就可以了。
+
+这也是我觉得这类活动最好的地方：它不是单纯"出去玩一圈"，而是边玩边学。
+
+![Vehicles gathering for 4WDABC newbie run at Hale Creek](/images/blog/hale-creek-newbie-run-20260509/IMG_20260509_100953.jpg)
+
+## 50 多台车，场面还是挺震撼的
+
+这次活动参加的人不少，现场大概有 **50 多台车**。各种车型都有——Jeep、Toyota、pickup、SUV，甚至有人开着非越野车辆来参加。怎么说呢，氛围轻松得很，感觉大家不是来比赛的，而是来交朋友的。
+
+对于新手来说，第一次看到这么多越野车一起集合，其实已经有点小激动了。出发前，组织者做了基本说明，包括当天路线、分组、安全注意事项、车队行进规则。这个环节对新手特别有帮助——越野不是一个"自己随便开进去看看"的活动。车距怎么保持、无线电怎么沟通、什么时候等待后车、困难路段怎么处理，这些都是安全的一部分。
+
+这次队伍分成了 **3 组**：
+- **两组走 easy way**——适合新手和轻度越野车辆
+- **一组走 hard way**——给想挑战一点难度的
+
+这个安排非常好。新手根据自己的车辆和驾驶经验选择路线，不必硬上难度。越野最重要的不是逞强，而是知道自己和车辆的边界在哪里。
+
+![Off-road convoy starting out on the trail](/images/blog/hale-creek-newbie-run-20260509/IMG_20260509_111102.jpg)
+
+## Newbie Run 最有价值的地方：有人带，有人讲，有人提醒
+
+很多人第一次接触越野，最大的问题不是车不够好，而是不知道该怎么判断。比如：
+
+- 这段路应该怎么选线？
+- 什么时候需要低速四驱？
+- 什么时候要保持动力，什么时候要慢慢挪？
+- 遇到坑、碎石、泥地应该怎么处理？
+- 前车过得去，我的车是不是一定过得去？
+- 如果卡住了，应该怎么安全处理？
+
+这些东西光看视频真的很难真正学会。跟着有经验的人一起走，会直观得多。有人在前面示范，有人在关键地方提醒，有时还会下车讲解为什么这么走——这对新手来说是无价的。
+
+这次虽然是 newbie run，但绝不是"无聊的平路开车"。路上有一些需要判断和操作的地方，只是整体节奏很友好，不会让新手一开始就压力山大。
+
+而且时不时还能看到 hard way 那边的"现场直播"——有车在挑战一些稍微陡一点、石头多一点的路段。对新手来说，看着别人怎么过，自己心里也有数了：哦，原来要这样走。
+
+![Vehicles navigating the easy route at Hale Creek](/images/blog/hale-creek-newbie-run-20260509/IMG_20260509_114947.jpg)
+
+## Easy way 不等于没意思
+
+很多人听到 easy way，可能觉得是不是没什么挑战。其实完全不是。
+
+对新手来说，easy route 恰恰是最适合学习的地方。你有时间观察，有时间思考，也有机会在安全范围内感受车辆在非铺装路面上的反应。你会开始注意到：
+
+- 车轮压在哪里会更稳
+- 底盘高度为什么重要
+- 轮胎抓地力和普通公路驾驶有什么不同
+- 车队为什么要保持节奏
+- 路面看起来差不多，实际开起来差别很大
+
+这些都是越野的基础。很多看起来"简单"的路，其实正好适合练习基本判断。
+
+而且别忘了——有些新手甚至开的不是硬派越野车。这次确实有非越野车辆参加，跟着 easy way 组也能顺利完成。这说明一个问题：**你不需要一辆改装过的牧马人才开始越野。** 一辆靠谱的 SUV 或 crossover，加上正确的判断和同伴照应，已经可以开启你的越野之旅了。
+
+![Scenic view and afternoon terrain on the trail](/images/blog/hale-creek-newbie-run-20260509/IMG_20260509_133630.jpg)
+
+## Hard way 给大家看到了另一种可能
+
+走 hard way 的那组，确实遇到了一些更有挑战性的路段。对刚开始的新手来说，不一定马上要去挑战，但看看别人怎么过也很长见识。
+
+越野的乐趣之一就在这里：同一片区域，不同路线、不同车辆、不同经验的人，会有完全不同的玩法。有些路段对老手来说是"好玩"，对新手来说就是"压力"。所以有分组、有选择，是非常好的安排。
+
+我觉得这也是参加 club run 的好处——你不会被迫做超出能力范围的事，但你能看到自己技术进步后，还能去哪里、怎么玩。
+
+## 安全感很重要，尤其是第一次越野
+
+如果是自己一个人开去陌生的 trail，很多人会紧张：万一走错路怎么办？手机没信号怎么办？卡住了怎么办？车坏了怎么办？
+
+这次 Newbie Run 最大的好处就是：**你不是一个人。** 前后都有车，组织者有经验，队伍会互相照应。
+
+当然，这并不意味着完全不用准备。基本的东西还是需要的：
+- 出发前检查车辆
+- 油量充足
+- 带水和食物
+- 穿适合户外的鞋
+- 带基本应急用品
+- 听从组织者安排
+- 不单独离队
+- 不盲目挑战没把握的路段
+
+越野不是为了冒险出事，而是为了安全地去到平时去不到的地方。
+
+![Vehicles stopped for a break on the Hale Creek trail](/images/blog/hale-creek-newbie-run-20260509/IMG_20260509_143935.jpg)
+
+## 对新手来说，这种活动真的很值得参加
+
+我会很鼓励刚开始接触越野的朋友参加 Newbie Run。原因很简单：你可以在一天里学到很多基础知识，而且是**在真实环境里学**，不是在网上看几篇文章自己想象。
+
+你会看到不同车辆的表现，听到有经验的人讲解，也会更清楚自己的车适合什么样的路线。
+
+更重要的是，你会发现越野社区其实很友好。大家不是来比谁的车更贵、谁胆子更大，而是一起出去玩、互相帮助、一起安全回来。
+
+这次 Hale Creek 的活动整体感觉很轻松，也很好玩。人多，车多，气氛好。对于第一次参加的人来说，是一个很好的入门体验。
+
+![Participants and vehicles on the return from the run](/images/blog/hale-creek-newbie-run-20260509/IMG_20260509_150025.jpg)
+
+## Offroady 的想法：让更多人找到适合自己的 trail 和同行伙伴
+
+这次活动也让我更确定一件事：很多人其实是想出去玩的，只是不知道去哪、不知道跟谁去、不知道自己能不能去。
+
+这正是 Offroady 想解决的问题。如果你是新手，可以先从适合自己车辆的 trail 开始。如果你不想一个人去，可以 plan a trip 或 join a trip，和其他人一起走。
+
+越野最好的体验，往往不是一个人闷头开进去，而是和一群靠谱的人一起出发、一起学习、一起回来。
+
+**下次，也许我们可以一起出发。**`,
+    videos: [
+      {
+        type: 'youtube',
+        url: 'https://youtu.be/Y8yiD0ta0UE',
+        title: 'Hale Creek Newbie Run convoy on the easy route',
+        caption: 'Easy way group making their way through Hale Creek FSR',
+      },
+      {
+        type: 'youtube',
+        url: 'https://youtu.be/W02MBEqk_oY',
+        title: 'Hard way group tackling technical sections',
+        caption: 'Hard way group showing the more challenging side of Hale Creek',
+      },
+      {
+        type: 'youtube',
+        url: 'https://youtu.be/W2pW0M_Ztp0',
+        title: 'Scenic drive through Hale Creek backcountry',
+        caption: 'Beautiful afternoon views on the Hale Creek trail',
+      },
+      {
+        type: 'youtube',
+        url: 'https://youtu.be/yus2ziaGsW4',
+        title: 'Group highlights from the 4WDABC newbie run',
+        caption: 'More highlights from this fun day out on the trail',
+      },
+      {
+        type: 'youtube',
+        url: 'https://youtu.be/PpeGqzNy4yc',
+        title: 'Hale Creek Newbie Run wrap-up',
+        caption: 'Wrapping up a great day of beginner-friendly off-roading',
+      },
+    ],
+  },
+{
     slug: 'first-time-offroading-bc',
     title: '第一次越野要准备什么？新手必读装备清单',
     excerpt: '在BC的森林服务土路（FSR）上第一次越野该带什么？自救装备、胎压放气、通讯导航、安全清单——BC老越野的经验总结。',
@@ -404,8 +574,15 @@ Trip link: [Mount Cheam FSR access](/trips/70f24bf9-9fd8-4ff4-93d6-50ace4b05119)
 
 而且我们已经可以很确定地说：
 
-**下次，还会更好玩。**
-`,
+**下次，还会更好玩。**`,
+  videos: [
+    {
+      type: 'youtube',
+      url: 'https://youtu.be/dQw4w9WgXcQ',
+      title: 'Mount Cheam FSR Trip Highlights',
+      caption: 'A quick recap of our Mount Cheam FSR adventure \u2014 washouts, fallen trees, and river views.',
+    },
+  ],
   },
   {
     slug: 'trail-difficulty-explained-zh',
@@ -486,6 +663,7 @@ function t(post: BlogPost): CanonicalBlogTranslation {
     status: post.status,
     coverImage: post.coverImage,
     coverAlt: post.coverAlt,
+    videos: post.videos,
   };
 }
 

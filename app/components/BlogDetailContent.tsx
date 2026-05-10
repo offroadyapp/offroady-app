@@ -15,6 +15,8 @@ import {
   getCanonicalTrailStoryByTrailSlug,
   getTrailStoryTranslation,
 } from '@/content/blog/trail-stories';
+import VideoPlayer from '@/app/components/VideoPlayer';
+import type { VideoItem } from '@/lib/offroady/blog-types';
 import {
   buildBlogUrl,
   buildPlanUrl,
@@ -188,6 +190,7 @@ type ResolvedContent = {
   seoTitle: string;
   seoDescription: string;
   publishedAt: string | null;
+  videos?: VideoItem[];
 };
 
 export async function resolveBlogContent(contentLang: Language, slug: string): Promise<ResolvedContent | null> {
@@ -212,6 +215,7 @@ export async function resolveBlogContent(contentLang: Language, slug: string): P
       seoTitle: blogTranslation.translation.seoTitle,
       seoDescription: blogTranslation.translation.seoDescription,
       publishedAt: canonical?.publishedAt ?? null,
+      videos: blogTranslation.translation.videos,
     };
   }
 
@@ -236,6 +240,7 @@ export async function resolveBlogContent(contentLang: Language, slug: string): P
         seoTitle: trailTranslation.translation.seoTitle,
         seoDescription: trailTranslation.translation.seoDescription,
         publishedAt: canonical?.publishedAt ?? null,
+        videos: trailTranslation.translation.videos,
       };
     }
   }
@@ -265,6 +270,7 @@ export async function resolveBlogContent(contentLang: Language, slug: string): P
       seoTitle: oldPost.seoTitle,
       seoDescription: oldPost.seoDescription,
       publishedAt: oldPost.publishedAt,
+      videos: undefined,
     };
   }
 
@@ -353,6 +359,16 @@ export default async function BlogDetailContent({
             ) : null}
 
             <div className="mt-8 space-y-1">{renderBody(resolved.body)}</div>
+
+            {resolved.videos && resolved.videos.length > 0 ? (
+              <div className="mt-8 space-y-6">
+                {resolved.videos.map((video, idx) => (
+                  <div key={idx}>
+                    <VideoPlayer video={video} />
+                  </div>
+                ))}
+              </div>
+            ) : null}
           </div>
         </article>
 

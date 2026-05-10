@@ -67,27 +67,27 @@ const posts: BlogPost[] = [
   
   {
     slug: 'hale-creek-newbie-run-4wdabc',
-    title: 'Newbie Run：50 多台车一起去 Hale Creek，原来越野新手也可以这么玩',
-    excerpt: '4WDABC 举办的 Newbie Run，50 多台车分组出发，新手跟着学习基础越野知识、车辆操作和安全注意事项。有 easy way 也有 hard way，轻松、有趣，也很适合第一次想尝试越野的朋友。',
+    title: '第一次参加 4WDABC Newbie Run：50 多台车一起去 Hale Creek',
+    excerpt: '4WDABC 举办的 Newbie Run，50 多台车分组出发，新手跟着学习基础越野知识、车辆操作和安全注意事项。有 easy way 也有 hard way，轻松、有趣，也很适合第一次想尝试越野的朋友。本文含全程照片图库和视频回顾。',
     category: 'Trip Stories',
-    tags: ['Hale Creek', '4WDABC', 'Newbie Run', 'BC Off-Roading', 'Beginner', 'Trip Story', 'Group Run'],
-    publishedAt: '2026-05-09T18:00:00-07:00',
+    tags: ['Hale Creek', '4WDABC', 'Newbie Run', 'BC Off-Roading', 'Beginner', 'Trip Story', 'Group Run', 'Beginner Off-Road'],
+    publishedAt: null,
     author: 'Offroady Team',
-    coverImage: '/images/blog/hale-creek-newbie-run-20260509/IMG_20260509_100010.jpg',
-    coverAlt: 'Vehicles gathered for 4WDABC newbie run at Hale Creek, BC',
-    seoTitle: 'Hale Creek Newbie Run with 4WDABC | BC Beginner Off-Road Trip Story',
-    seoDescription: '50+ vehicles, two route groups, and a welcoming beginner-friendly atmosphere at the 4WDABC newbie run on Hale Creek FSR near Harrison. A great BC off-road experience for new drivers.',
-    keywords: ['Hale Creek newbie run', '4WDABC beginner off-road', 'BC newbie off-road event', 'Hale Creek FSR', 'BC off-road beginner group'],
+    coverImage: '/images/blog/halecreek/hale-creek-newbie-run-cover.jpg',
+    coverAlt: '4WDABC Newbie Run 参加车辆在 Hale Creek 集合点整齐排列，BC 省越野社区新手活动',
+    seoTitle: '第一次参加 4WDABC Newbie Run：Hale Creek 越野新手活动回顾 | Offroady',
+    seoDescription: '参加 4WDABC 在 Hale Creek 举办的 Newbie Run，50 多台车分组出发。有 easy way 和 hard way 两种路线选择，新手可以在真实越野环境中学习基础知识和安全规则。',
+    keywords: ['Hale Creek newbie run', '4WDABC beginner off-road', 'BC newbie off-road event', 'Hale Creek FSR', 'BC off-road beginner group', '4WDABC Newbie Run', '越野新手活动'],
     relatedTrailSlug: 'hale-creek-easy-way-access-area',
-    readingTime: '8 min read',
-    status: 'published',
-    body: `这次参加的是 **4WDABC——BC 省越野车协会** 组织的一个 **Newbie Run**。
+    readingTime: '10 min read',
+    status: 'draft',
+    body: `如果你是一个越野新手，正在犹豫要不要迈出第一步，那我强烈建议你找一个这样的活动试试。
 
-顾名思义，这种活动就是专门面向新手的：不需要你一上来就会爬石头、冲泥坑、判断路线，也不需要你假装自己很懂。你只需要带着车、带着好奇心、带着一点点紧张，然后跟着队伍出发就可以了。
+这次我参加的是 **4WDABC——BC 省越野车协会** 组织的一个 **Newbie Run**。顾名思义，这种活动就是专门面向新手的：不需要你一上来就会爬石头、冲泥坑、判断路线，也不需要你假装自己很懂。你只需要带着车、带着好奇心、带着一点点紧张，然后跟着队伍出发就可以了。
 
 这也是我觉得这类活动最好的地方：它不是单纯"出去玩一圈"，而是边玩边学。
 
-![Vehicles gathering for 4WDABC newbie run at Hale Creek](/images/blog/hale-creek-newbie-run-20260509/IMG_20260509_100953.jpg)
+![4WDABC Newbie Run 参加车辆和车友在 Hale Creek 集合点](/images/blog/halecreek/hale-creek-newbie-run-gathering-01.jpg)
 
 ## 50 多台车，场面还是挺震撼的
 
@@ -101,7 +101,7 @@ const posts: BlogPost[] = [
 
 这个安排非常好。新手根据自己的车辆和驾驶经验选择路线，不必硬上难度。越野最重要的不是逞强，而是知道自己和车辆的边界在哪里。
 
-![Off-road convoy starting out on the trail](/images/blog/hale-creek-newbie-run-20260509/IMG_20260509_111102.jpg)
+![Newbie Run 车队出发，沿着 Hale Creek FSR 鱼贯前行](/images/blog/halecreek/hale-creek-newbie-run-convoy-start.jpg)
 
 ## Newbie Run 最有价值的地方：有人带，有人讲，有人提醒
 
@@ -120,7 +120,7 @@ const posts: BlogPost[] = [
 
 而且时不时还能看到 hard way 那边的"现场直播"——有车在挑战一些稍微陡一点、石头多一点的路段。对新手来说，看着别人怎么过，自己心里也有数了：哦，原来要这样走。
 
-![Vehicles navigating the easy route at Hale Creek](/images/blog/hale-creek-newbie-run-20260509/IMG_20260509_114947.jpg)
+![Easy way 组轻松通过 Hale Creek 森林路段](/images/blog/halecreek/hale-creek-newbie-run-easy-route.jpg)
 
 ## Easy way 不等于没意思
 
@@ -138,7 +138,7 @@ const posts: BlogPost[] = [
 
 而且别忘了——有些新手甚至开的不是硬派越野车。这次确实有非越野车辆参加，跟着 easy way 组也能顺利完成。这说明一个问题：**你不需要一辆改装过的牧马人才开始越野。** 一辆靠谱的 SUV 或 crossover，加上正确的判断和同伴照应，已经可以开启你的越野之旅了。
 
-![Scenic view and afternoon terrain on the trail](/images/blog/hale-creek-newbie-run-20260509/IMG_20260509_133630.jpg)
+![Hale Creek 午后美景，越野路上的风景也是享受的一部分](/images/blog/halecreek/hale-creek-newbie-run-scenic-afternoon.jpg)
 
 ## Hard way 给大家看到了另一种可能
 
@@ -166,7 +166,7 @@ const posts: BlogPost[] = [
 
 越野不是为了冒险出事，而是为了安全地去到平时去不到的地方。
 
-![Vehicles stopped for a break on the Hale Creek trail](/images/blog/hale-creek-newbie-run-20260509/IMG_20260509_143935.jpg)
+![车队在 Hale Creek trail 中途休整，气氛轻松愉快](/images/blog/halecreek/hale-creek-newbie-run-break-stop.jpg)
 
 ## 对新手来说，这种活动真的很值得参加
 
@@ -178,7 +178,29 @@ const posts: BlogPost[] = [
 
 这次 Hale Creek 的活动整体感觉很轻松，也很好玩。人多，车多，气氛好。对于第一次参加的人来说，是一个很好的入门体验。
 
-![Participants and vehicles on the return from the run](/images/blog/hale-creek-newbie-run-20260509/IMG_20260509_150025.jpg)
+![活动结束，车队陆续返回，充实的一天](/images/blog/halecreek/hale-creek-newbie-run-wrap-up.jpg)
+
+---
+
+## 活动照片图库
+
+![车队在 Hale Creek FSR 上蜿蜒前行，场面壮观](/images/blog/halecreek/hale-creek-newbie-run-convoy-angle-02.jpg)
+
+![从另一个角度看到的车队行进画面](/images/blog/halecreek/hale-creek-newbie-run-convoy-angle-03.jpg)
+
+![Hale Creek 沿途的森林和山路景色](/images/blog/halecreek/hale-creek-newbie-run-trail-scenery-04.jpg)
+
+![中午休息时大家在 trail 上停车用餐交流](/images/blog/halecreek/hale-creek-newbie-run-lunch-break.jpg)
+
+![Hale Creek 中段 trail 路况，碎石和土路混合](/images/blog/halecreek/hale-creek-newbie-run-mid-trail-05.jpg)
+
+![Hard way 组的挑战路段，陡坡加碎石](/images/blog/halecreek/hale-creek-newbie-run-hard-way-01.jpg)
+
+![Hard way 路段另一角度，车辆正在通过技术难点](/images/blog/halecreek/hale-creek-newbie-run-hard-way-02.jpg)
+
+![下午车队继续探索 Hale Creek 深处](/images/blog/halecreek/hale-creek-newbie-run-afternoon-trail.jpg)
+
+---
 
 ## Offroady 的想法：让更多人找到适合自己的 trail 和同行伙伴
 
@@ -193,32 +215,32 @@ const posts: BlogPost[] = [
       {
         type: 'youtube',
         url: 'https://youtu.be/Y8yiD0ta0UE',
-        title: 'Hale Creek Newbie Run convoy on the easy route',
-        caption: 'Easy way group making their way through Hale Creek FSR',
+        title: 'Hale Creek Newbie Run easy way convoy',
+        caption: 'Easy way 组沿 Hale Creek FSR 前行，适合新手的路线节奏',
       },
       {
         type: 'youtube',
         url: 'https://youtu.be/W02MBEqk_oY',
-        title: 'Hard way group tackling technical sections',
-        caption: 'Hard way group showing the more challenging side of Hale Creek',
+        title: 'Hale Creek Newbie Run hard way technical sections',
+        caption: 'Hard way 组挑战更有技术难度的路段，展现越野进阶路线',
       },
       {
         type: 'youtube',
         url: 'https://youtu.be/W2pW0M_Ztp0',
-        title: 'Scenic drive through Hale Creek backcountry',
-        caption: 'Beautiful afternoon views on the Hale Creek trail',
+        title: 'Hale Creek scenic afternoon drive',
+        caption: '下午风景驾驶片段，展示 Hale Creek 区域的自然风光',
       },
       {
         type: 'youtube',
         url: 'https://youtu.be/yus2ziaGsW4',
-        title: 'Group highlights from the 4WDABC newbie run',
-        caption: 'More highlights from this fun day out on the trail',
+        title: 'Hale Creek Newbie Run highlights',
+        caption: '当天活动精彩集锦，车队穿越森林和山路',
       },
       {
         type: 'youtube',
         url: 'https://youtu.be/PpeGqzNy4yc',
         title: 'Hale Creek Newbie Run wrap-up',
-        caption: 'Wrapping up a great day of beginner-friendly off-roading',
+        caption: '活动收尾，大家安全返回集合点',
       },
     ],
   },

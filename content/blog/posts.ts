@@ -79,7 +79,7 @@ const posts: BlogPost[] = [
     seoDescription: '参加 4WDABC 在 Hale Creek 举办的 Newbie Run，50 多台车分组出发。有 easy way 和 hard way 两种路线选择，新手可以在真实越野环境中学习基础知识和安全规则。',
     keywords: ['Hale Creek newbie run', '4WDABC beginner off-road', 'BC newbie off-road event', 'Hale Creek FSR', 'BC off-road beginner group', '4WDABC Newbie Run', '越野新手活动'],
     relatedTrailSlug: 'hale-creek-easy-way-access-area',
-    readingTime: '10 min read',
+    readingTime: '5 min read',
     status: 'draft',
     body: `如果你是一个越野新手，正在犹豫要不要迈出第一步，那我强烈建议你找一个这样的活动试试。
 
@@ -87,7 +87,7 @@ const posts: BlogPost[] = [
 
 这也是我觉得这类活动最好的地方：它不是单纯"出去玩一圈"，而是边玩边学。
 
-![4WDABC Newbie Run 参加车辆和车友在 Hale Creek 集合点](/images/blog/halecreek/hale-creek-newbie-run-gathering-01.jpg)
+![4WDABC Newbie Run 参加车辆和车友在 Hale Creek 集合点听组织者讲解](/images/blog/halecreek/hale-creek-newbie-run-gathering-01.jpg)
 
 ## 50 多台车，场面还是挺震撼的
 
@@ -101,7 +101,7 @@ const posts: BlogPost[] = [
 
 这个安排非常好。新手根据自己的车辆和驾驶经验选择路线，不必硬上难度。越野最重要的不是逞强，而是知道自己和车辆的边界在哪里。
 
-![Newbie Run 车队出发，沿着 Hale Creek FSR 鱼贯前行](/images/blog/halecreek/hale-creek-newbie-run-convoy-start.jpg)
+![Newbie Run 车队可以看到的Harrison湖景](/images/blog/halecreek/hale-creek-newbie-run-convoy-start.jpg)
 
 ## Newbie Run 最有价值的地方：有人带，有人讲，有人提醒
 
@@ -120,7 +120,7 @@ const posts: BlogPost[] = [
 
 而且时不时还能看到 hard way 那边的"现场直播"——有车在挑战一些稍微陡一点、石头多一点的路段。对新手来说，看着别人怎么过，自己心里也有数了：哦，原来要这样走。
 
-![Easy way 组轻松通过 Hale Creek 森林路段](/images/blog/halecreek/hale-creek-newbie-run-easy-route.jpg)
+![Hard way 组通过 Hale Creek 森林路段](/images/blog/halecreek/hale-creek-newbie-run-easy-route.jpg)
 
 ## Easy way 不等于没意思
 
@@ -138,7 +138,7 @@ const posts: BlogPost[] = [
 
 而且别忘了——有些新手甚至开的不是硬派越野车。这次确实有非越野车辆参加，跟着 easy way 组也能顺利完成。这说明一个问题：**你不需要一辆改装过的牧马人才开始越野。** 一辆靠谱的 SUV 或 crossover，加上正确的判断和同伴照应，已经可以开启你的越野之旅了。
 
-![Hale Creek 午后美景，越野路上的风景也是享受的一部分](/images/blog/halecreek/hale-creek-newbie-run-scenic-afternoon.jpg)
+![Hale Creek 营地标牌](/images/blog/halecreek/hale-creek-newbie-run-scenic-afternoon.jpg)
 
 ## Hard way 给大家看到了另一种可能
 
@@ -166,7 +166,7 @@ const posts: BlogPost[] = [
 
 越野不是为了冒险出事，而是为了安全地去到平时去不到的地方。
 
-![车队在 Hale Creek trail 中途休整，气氛轻松愉快](/images/blog/halecreek/hale-creek-newbie-run-break-stop.jpg)
+![被尖硬的石头扎破轮胎，途中换轮胎也并不少见](/images/blog/halecreek/hale-creek-newbie-run-break-stop.jpg)
 
 ## 对新手来说，这种活动真的很值得参加
 
@@ -178,27 +178,27 @@ const posts: BlogPost[] = [
 
 这次 Hale Creek 的活动整体感觉很轻松，也很好玩。人多，车多，气氛好。对于第一次参加的人来说，是一个很好的入门体验。
 
-![活动结束，车队陆续返回，充实的一天](/images/blog/halecreek/hale-creek-newbie-run-wrap-up.jpg)
+![回程中看到的湖景](/images/blog/halecreek/hale-creek-newbie-run-wrap-up.jpg)
 
 ---
 
 ## 活动照片图库
 
-![车队在 Hale Creek FSR 上蜿蜒前行，场面壮观](/images/blog/halecreek/hale-creek-newbie-run-convoy-angle-02.jpg)
+![车队在 Hard way上蜿蜒前行，场面壮观](/images/blog/halecreek/hale-creek-newbie-run-convoy-angle-02.jpg)
 
 ![从另一个角度看到的车队行进画面](/images/blog/halecreek/hale-creek-newbie-run-convoy-angle-03.jpg)
 
-![Hale Creek 沿途的森林和山路景色](/images/blog/halecreek/hale-creek-newbie-run-trail-scenery-04.jpg)
+![带着狗狗一同前进](/images/blog/halecreek/hale-creek-newbie-run-trail-scenery-04.jpg)
 
-![中午休息时大家在 trail 上停车用餐交流](/images/blog/halecreek/hale-creek-newbie-run-lunch-break.jpg)
+![湖边一览无余，令人神往](/images/blog/halecreek/hale-creek-newbie-run-lunch-break.jpg)
 
-![Hale Creek 中段 trail 路况，碎石和土路混合](/images/blog/halecreek/hale-creek-newbie-run-mid-trail-05.jpg)
+![湖边也有涉水而过的挑战](/images/blog/halecreek/hale-creek-newbie-run-mid-trail-05.jpg)
 
-![Hard way 组的挑战路段，陡坡加碎石](/images/blog/halecreek/hale-creek-newbie-run-hard-way-01.jpg)
+![Easy way 组的挑战路段，陡坡加碎石](/images/blog/halecreek/hale-creek-newbie-run-hard-way-01.jpg)
 
-![Hard way 路段另一角度，车辆正在通过技术难点](/images/blog/halecreek/hale-creek-newbie-run-hard-way-02.jpg)
+![Easy way 路段另一角度，车辆正在通过技术难点](/images/blog/halecreek/hale-creek-newbie-run-hard-way-02.jpg)
 
-![下午车队继续探索 Hale Creek 深处](/images/blog/halecreek/hale-creek-newbie-run-afternoon-trail.jpg)
+![各种车辆争奇斗艳](/images/blog/halecreek/hale-creek-newbie-run-afternoon-trail.jpg)
 
 ---
 
@@ -241,6 +241,12 @@ const posts: BlogPost[] = [
         url: 'https://youtu.be/PpeGqzNy4yc',
         title: 'Hale Creek Newbie Run wrap-up',
         caption: '活动收尾，大家安全返回集合点',
+      },
+      {
+        type: 'youtube',
+        url: 'https://youtu.be/_v8mnBBGcbk',
+        title: 'Mini truck taking on the Hale Creek challenge',
+        caption: 'Mini truck 也来挑战 Hale Creek 越野路线，体型虽小勇气不小',
       },
     ],
   },

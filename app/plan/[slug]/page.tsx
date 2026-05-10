@@ -12,7 +12,7 @@ import { getSessionUser } from '@/lib/offroady/auth';
 import { getFavoriteTrailSlugs } from '@/lib/offroady/account';
 import { getUpcomingTripDiscovery } from '@/lib/offroady/trip-discovery';
 import { getCanonicalTrailStoryByTrailSlug } from '@/content/blog/trail-stories';
-import { getAllPublishedBlogTranslations, getCanonicalBlogPostById } from '@/content/blog/posts';
+import { getAllCanonicalBlogPosts, getCanonicalBlogPostById } from '@/content/blog/posts';
 import { getContentLanguage, buildBlogUrl, type Language } from '@/lib/offroady/language';
 
 export const dynamic = 'force-dynamic';
@@ -93,15 +93,15 @@ export default async function PlanTripPage({ params }: PageProps) {
     }
   }
 
-  // Fallback: check blog posts for matching relatedTrailSlug
+  // Fallback: check blog posts for matching relatedTrailSlug (allow draft for linked stories)
   if (!storySlug) {
-    const blogTranslations = getAllPublishedBlogTranslations();
-    for (const bt of blogTranslations) {
-      const canonical = getCanonicalBlogPostById(bt.contentId);
+    const allBlogPosts = getAllCanonicalBlogPosts();
+    for (const canonical of allBlogPosts) {
       if (canonical?.relatedTrailSlug === trail.slug) {
         const pref = canonical.translations[lang];
-        const translation = pref?.status === 'published' ? pref : canonical.translations[lang === 'en' ? 'zh' : 'en'];
-        if (translation && translation.status === 'published') {
+        const fallbackLang = lang === 'en' ? 'zh' : 'en';
+        const translation = pref ? pref : canonical.translations[fallbackLang];
+        if (translation && (translation.status === 'published' || translation.status === 'draft')) {
           storySlug = translation.slug;
           storyTitle = translation.title;
           storyExcerpt = translation.excerpt;

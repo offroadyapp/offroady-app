@@ -80,7 +80,8 @@ const posts: BlogPost[] = [
     keywords: ['Hale Creek newbie run', '4WDABC beginner off-road', 'BC newbie off-road event', 'Hale Creek FSR', 'BC off-road beginner group', '4WDABC Newbie Run', 'beginner off-road BC'],
     relatedTrailSlug: 'hale-creek-easy-way-access-area',
     readingTime: '5 min read',
-    status: 'draft',
+    status: 'published',
+    publishedAt: '2026-05-10T12:00:00-07:00',
     body: `If you are new to off-roading and wondering where to start, I highly recommend finding an event like this one.
 
 I joined a **Newbie Run** organized by **4WDABC — the BC 4WD Association**. As the name suggests, this event is designed for beginners: no need to know how to climb rocks, navigate mud pits, or read a trail. Just bring your vehicle, your curiosity, and a willingness to learn.

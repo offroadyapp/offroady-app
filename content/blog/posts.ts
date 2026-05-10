@@ -67,7 +67,7 @@ const posts: BlogPost[] = [
   
   {
     slug: 'hale-creek-newbie-run-4wdabc',
-    title: '第一次参加 4WDABC Newbie Run：50 多台车一起去 Hale Creek',
+    title: 'Hale Creek 新手必参加的Newbie Run!',
     excerpt: '4WDABC 举办的 Newbie Run，50 多台车分组出发，新手跟着学习基础越野知识、车辆操作和安全注意事项。有 easy way 也有 hard way，轻松、有趣，也很适合第一次想尝试越野的朋友。本文含全程照片图库和视频回顾。',
     category: 'Trip Stories',
     tags: ['Hale Creek', '4WDABC', 'Newbie Run', 'BC Off-Roading', 'Beginner', 'Trip Story', 'Group Run', 'Beginner Off-Road'],

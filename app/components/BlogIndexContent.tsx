@@ -16,6 +16,7 @@ import {
   buildBlogUrl,
   type Language,
 } from '@/lib/offroady/language';
+import { getAllPublishedStories } from '@/lib/offroady/stories-server';
 
 type UnifiedItem = {
   type: 'post' | 'story';
@@ -34,7 +35,9 @@ type UnifiedItem = {
 };
 
 function renderPostCard(item: UnifiedItem, lang: Language) {
-  const href = buildBlogUrl(item.slug, item.availableLang as Language);
+  // User-submitted stories use /stories/ path instead of /blog/
+  const isUserStory = item.slug.startsWith('story-');
+  const href = isUserStory ? `/stories/${item.slug}` : buildBlogUrl(item.slug, item.availableLang as Language);
   const isFallback = item.fallbackLang !== null && item.fallbackLang !== lang;
 
   return (
@@ -155,13 +158,35 @@ export default async function BlogIndexContent({ lang }: { lang: Language }) {
     });
   }
 
+  // Add user-submitted stories to the blog listing
+  try {
+    const userStories = await getAllPublishedStories();
+    for (const us of userStories) {
+      allItems.push({
+        type: 'story',
+        slug: us.slug,
+        title: us.title,
+        excerpt: us.excerpt ?? 'A trail story from the Offroady community.',
+        coverImage: us.cover_image_url ?? undefined,
+        publishedAt: us.published_at,
+        readingTime: '',
+        tags: [],
+        fallbackLang: null,
+        availableLang: lang,
+        contentId: us.slug,
+      });
+    }
+  } catch {
+    // User stories table may not exist yet
+  }
+
   allItems.sort((a, b) => {
     const aBlogCanon = getCanonicalBlogPostById(a.contentId);
     const bBlogCanon = getCanonicalBlogPostById(b.contentId);
     const aStoryCanon = getCanonicalTrailStoryByContentId(a.contentId);
     const bStoryCanon = getCanonicalTrailStoryByContentId(b.contentId);
-    const aPub = aBlogCanon?.publishedAt ?? aStoryCanon?.publishedAt ?? '';
-    const bPub = bBlogCanon?.publishedAt ?? bStoryCanon?.publishedAt ?? '';
+    const aPub = aBlogCanon?.publishedAt ?? aStoryCanon?.publishedAt ?? a.publishedAt ?? '';
+    const bPub = bBlogCanon?.publishedAt ?? bStoryCanon?.publishedAt ?? b.publishedAt ?? '';
     return new Date(bPub).getTime() - new Date(aPub).getTime();
   });
 
@@ -180,7 +205,23 @@ export default async function BlogIndexContent({ lang }: { lang: Language }) {
               <h1 className="mt-2 text-4xl font-bold tracking-tight">{blogTitle}</h1>
               <p className="mt-4 max-w-3xl text-base leading-7 text-white/80">{blogSubtitle}</p>
             </div>
-            <LanguageToggle currentLang={lang} />
+            <div className="flex flex-col items-end gap-3">
+              <LanguageToggle currentLang={lang} />
+              <div className="flex flex-wrap gap-2">
+                <Link
+                  href="/submit-story"
+                  className="inline-flex rounded-lg bg-[#3a7b4a] px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-[#2f6a3e]"
+                >
+                  Submit a Trail Story
+                </Link>
+                <Link
+                  href="/write-blog"
+                  className="inline-flex rounded-lg border-2 border-white/30 bg-white/10 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-white/20"
+                >
+                  {lang === 'zh' ? '写博客' : 'Write a Blog'}
+                </Link>
+              </div>
+            </div>
           </div>
         </section>
 

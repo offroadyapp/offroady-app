@@ -3,6 +3,7 @@ import { getPublishedSlugs } from '@/content/blog/posts';
 import { getPublishedTrailStorySlugs } from '@/content/blog/trail-stories';
 import { getAllCanonicalBlogPosts } from '@/content/blog/posts';
 import { getAllCanonicalTrailStories } from '@/content/blog/trail-stories';
+import { getAllPublishedStories } from '@/lib/offroady/stories-server';
 
 const BASE_URL = 'https://www.offroady.app';
 
@@ -17,16 +18,16 @@ const staticRoutes = [
   '/propose-a-trail',
   '/trail-of-the-week',
   '/weekly-digests',
+  '/submit-story',
 ];
 
-export default function sitemap(): MetadataRoute.Sitemap {
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const blogSlugs = getPublishedSlugs();
   const trailStorySlugs = getPublishedTrailStorySlugs();
   const canonicalBlogPosts = getAllCanonicalBlogPosts();
   const canonicalTrailStories = getAllCanonicalTrailStories();
 
   // Legacy blog slugs (single-language, backward compat)
-  // These are still in the old /blog/slug format
   const legacyBlogEntries: MetadataRoute.Sitemap = blogSlugs.map((slug) => ({
     url: `${BASE_URL}/blog/${slug}`,
     lastModified: new Date(),
@@ -72,6 +73,20 @@ export default function sitemap(): MetadataRoute.Sitemap {
     }
   }
 
+  // User-submitted published stories (only published, not draft/pending/rejected)
+  let userStoryEntries: MetadataRoute.Sitemap = [];
+  try {
+    const userStories = await getAllPublishedStories();
+    userStoryEntries = userStories.map((story) => ({
+      url: `${BASE_URL}/stories/${story.slug}`,
+      lastModified: new Date(story.published_at ?? new Date().toISOString()),
+      changeFrequency: 'monthly' as const,
+      priority: 0.6,
+    }));
+  } catch {
+    // User stories table may not exist yet
+  }
+
   // Blog index for each language
   const blogIndexEntries: MetadataRoute.Sitemap = [
     { url: `${BASE_URL}/blog/en`, lastModified: new Date(), changeFrequency: 'weekly' as const, priority: 0.9 },
@@ -92,5 +107,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
     ...legacyStoryEntries,
     ...langBlogEntries,
     ...langStoryEntries,
+    ...userStoryEntries,
   ];
 }

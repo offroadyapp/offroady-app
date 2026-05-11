@@ -8,6 +8,7 @@ import PlanTripClient from './PlanTripClient';
 import TrailDetailActions from '@/app/components/TrailDetailActions';
 import TrailCompletedTrips from '@/app/components/TrailCompletedTrips';
 import { getLocalTrailBySlug } from '@/lib/offroady/trails';
+import StoryTrailDetailSection from '@/app/components/StoryTrailDetailSection';
 import { getSessionUser } from '@/lib/offroady/auth';
 import { getFavoriteTrailSlugs } from '@/lib/offroady/account';
 import { getUpcomingTripDiscovery } from '@/lib/offroady/trip-discovery';
@@ -235,6 +236,8 @@ export default async function PlanTripPage({ params }: PageProps) {
           </div>
         </section>
       ) : null}
+
+      <StoryTrailDetailSection trailSlug={trail.slug} trailTitle={trail.title} />
 
       <PlanTripClient trail={trail} isLoggedIn={Boolean(viewer)} />
 

@@ -155,43 +155,57 @@ export function matchTrailByName(
 // ─── Scoring ───────────────────────────────────────────────────
 
 export function scoreRelevance(source: ExternalContentSource): number {
-  let score = 50; // base
+  let score = 40; // base (lowered — only BC content passes through now)
 
   // Trail name detected = very relevant
   if (source.detected_trail_name) {
-    score += 25;
+    score += 20;
     // Known trail = bonus
     const match = matchTrailByName(source.detected_trail_name);
-    if (match) score += 10;
+    if (match) score += 15;
   }
 
-  // Region boost
-  const region = (source.detected_region ?? '').toLowerCase();
-  for (const prio of PRIORITY_REGIONS) {
-    if (region.includes(prio)) {
-      score += 10;
-      break;
+  // Region detected = relevant (we know it's BC now)
+  if (source.detected_region) {
+    score += 15;
+
+    // Priority region bonus
+    const region = source.detected_region.toLowerCase();
+    for (const prio of PRIORITY_REGIONS) {
+      if (region.includes(prio)) {
+        score += 10;
+        break;
+      }
     }
   }
 
   // Activity type
   const activity = (source.detected_activity_type ?? '').toLowerCase();
-  const relevantTypes = ['4x4', 'offroad', 'off-road', 'trail', 'overland', 'fording', 'fsr',
-    'wheeling', 'jeep', 'truck', 'exploring', 'camping', 'hiking access', 'group run', 'newbie',
-    'beginner', 'adventure'];
+  const relevantTypes = ['newbie run', 'group run', 'completed trip', 'trip report',
+    'exploration', 'seasonal update', 'scenic run', 'overland adventure'];
   for (const t of relevantTypes) {
     if (activity.includes(t)) {
-      score += 5;
+      score += 10;
       break;
     }
   }
 
-  // Season
+  // Event date = active/planned activity
+  if (source.detected_event_date) {
+    score += 10;
+  }
+
+  // Difficulty known = concrete details
+  if (source.detected_difficulty) {
+    score += 5;
+  }
+
+  // Season known
   if (source.detected_season) {
     score += 5;
   }
 
-  // Source type
+  // Source type bonus
   if (source.source_type === 'club') score += 5;
   if (source.source_type === 'meetup') score += 5;
 

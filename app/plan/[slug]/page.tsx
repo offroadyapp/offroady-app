@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { notFound } from 'next/navigation';
+import { notFound, redirect } from 'next/navigation';
 import Link from 'next/link';
 import { headers, cookies } from 'next/headers';
 import CopyCoordinatesButton from '@/app/components/CopyCoordinatesButton';
@@ -8,6 +8,7 @@ import PlanTripClient from './PlanTripClient';
 import TrailDetailActions from '@/app/components/TrailDetailActions';
 import TrailCompletedTrips from '@/app/components/TrailCompletedTrips';
 import { getLocalTrailBySlug } from '@/lib/offroady/trails';
+import { getTrailProposalBySlug } from '@/lib/offroady/proposals';
 import StoryTrailDetailSection from '@/app/components/StoryTrailDetailSection';
 import { getSessionUser } from '@/lib/offroady/auth';
 import { getFavoriteTrailSlugs } from '@/lib/offroady/account';
@@ -52,6 +53,11 @@ export default async function PlanTripPage({ params }: PageProps) {
   const viewer = await getSessionUser();
 
   if (!trail) {
+    // Check if this slug matches a confirmed proposal
+    const proposal = await getTrailProposalBySlug(slug);
+    if (proposal && proposal.isConfirmed) {
+      redirect(`/trail-proposals/${slug}`);
+    }
     notFound();
   }
 
@@ -110,6 +116,23 @@ export default async function PlanTripPage({ params }: PageProps) {
         }
         break;
       }
+    }
+  }
+
+  // Fallback: check DB-backed blog posts
+  if (!storySlug) {
+    try {
+      const { getBlogPostsForTrail } = await import('@/lib/offroady/db-blog-resolver');
+      const dbStories = await getBlogPostsForTrail(trail.slug);
+      if (dbStories.length > 0) {
+        const dbPost = dbStories.find((p: Record<string, unknown>) => p.language === lang) ?? dbStories[0];
+        storySlug = dbPost.slug;
+        storyTitle = dbPost.title;
+        storyExcerpt = dbPost.excerpt;
+        isBlogPost = true;
+      }
+    } catch {
+      // DB not available
     }
   }
 
@@ -238,6 +261,31 @@ export default async function PlanTripPage({ params }: PageProps) {
       ) : null}
 
       <StoryTrailDetailSection trailSlug={trail.slug} trailTitle={trail.title} />
+
+      {/* Stories & Community Activity section for DB-backed posts */}
+      {!storySlug && trail.slug ? (
+        <section className="mx-auto max-w-5xl px-4 py-8 sm:px-6 lg:px-8">
+          <div className="rounded-3xl border border-black/8 bg-white p-6 shadow-sm text-center">
+            <p className="text-sm font-semibold uppercase tracking-[0.16em] text-gray-500">Stories &amp; Community Activity</p>
+            <p className="mt-3 text-lg text-gray-600">你去过这条 trail 吗？欢迎分享故事或发起一次组队。</p>
+            <p className="mt-1 text-lg text-gray-600">Have you been here? Share your story or plan a trip.</p>
+            <div className="mt-4 flex flex-wrap justify-center gap-3">
+              <Link
+                href="/submit-story"
+                className="inline-flex rounded-lg bg-[#2f5d3a] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#264d30]"
+              >
+                Share Your Story
+              </Link>
+              <Link
+                href={`/plan/${trail.slug}`}
+                className="inline-flex rounded-lg border border-gray-300 px-4 py-2 text-sm font-semibold text-gray-800 transition hover:bg-gray-50"
+              >
+                Plan a Trip
+              </Link>
+            </div>
+          </div>
+        </section>
+      ) : null}
 
       <PlanTripClient trail={trail} isLoggedIn={Boolean(viewer)} />
 

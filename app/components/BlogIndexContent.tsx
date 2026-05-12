@@ -180,6 +180,30 @@ export default async function BlogIndexContent({ lang }: { lang: Language }) {
     // User stories table may not exist yet
   }
 
+  // Add DB-backed blog posts (from auto-pipeline)
+  try {
+    const { loadPublishedDbBlogPosts } = await import('@/lib/offroady/db-blog-resolver');
+    const dbPosts = await loadPublishedDbBlogPosts(lang);
+    for (const dbp of dbPosts) {
+      allItems.push({
+        type: 'post',
+        slug: dbp.slug,
+        title: dbp.title,
+        excerpt: dbp.excerpt,
+        coverImage: dbp.cover_image_url ?? undefined,
+        publishedAt: dbp.published_at,
+        readingTime: '',
+        category: dbp.category,
+        tags: [],
+        fallbackLang: null,
+        availableLang: dbp.language as Language,
+        contentId: dbp.translation_group_id,
+      });
+    }
+  } catch {
+    // DB blog posts not available
+  }
+
   allItems.sort((a, b) => {
     const aBlogCanon = getCanonicalBlogPostById(a.contentId);
     const bBlogCanon = getCanonicalBlogPostById(b.contentId);

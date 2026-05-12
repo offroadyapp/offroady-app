@@ -15,6 +15,7 @@ import {
   getCanonicalTrailStoryByTrailSlug,
   getTrailStoryTranslation,
 } from '@/content/blog/trail-stories';
+import { resolveDbBlogContent } from '@/lib/offroady/db-blog-resolver';
 import VideoPlayer from '@/app/components/VideoPlayer';
 import type { VideoItem } from '@/lib/offroady/blog-types';
 import {
@@ -243,6 +244,34 @@ export async function resolveBlogContent(contentLang: Language, slug: string): P
         videos: trailTranslation.translation.videos,
       };
     }
+  }
+
+  // Fallback: Try DB-backed blog posts (from auto-pipeline)
+  try {
+    const dbPost = await resolveDbBlogContent(slug, contentLang);
+    if (dbPost) {
+      return {
+        title: dbPost.title,
+        excerpt: dbPost.excerpt,
+        body: dbPost.body,
+        readingTime: '',
+        tags: [],
+        coverImage: dbPost.coverImage,
+        coverAlt: undefined,
+        lang: dbPost.lang as Language,
+        availableLang: dbPost.availableLang as Language,
+        contentId: dbPost.translationGroupId,
+        isTrailStory: false,
+        relatedTrailSlug: dbPost.relatedTrailSlug,
+        category: dbPost.category,
+        seoTitle: dbPost.seoTitle,
+        seoDescription: dbPost.seoDescription,
+        publishedAt: dbPost.publishedAt,
+        videos: undefined,
+      };
+    }
+  } catch {
+    // DB not available, fall through to old-style lookup
   }
 
   // Fallback: old-style direct slug lookup

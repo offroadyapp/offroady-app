@@ -27,6 +27,13 @@ export default function ContentSourcesClient() {
   const [error, setError] = useState<string | null>(null);
   const [statusFilter, setStatusFilter] = useState<string>('');
   const [pipelineStatus, setPipelineStatus] = useState<Record<string, unknown> | null>(null);
+  const [actionMsg, setActionMsg] = useState<{text:string;type:'success'|'error'}|null>(null);
+  const [actionLoading, setActionLoading] = useState<string|null>(null);
+
+  const showMsg = (text:string,type:'success'|'error') => {
+    setActionMsg({text,type});
+    setTimeout(() => setActionMsg(null), 6000);
+  };
 
   const fetchSources = useCallback(async () => {
     setLoading(true);
@@ -63,6 +70,8 @@ export default function ContentSourcesClient() {
   }, [fetchSources, fetchPipelineStatus]);
 
   const updateStatus = async (id: string, status: string, reason?: string) => {
+    setActionLoading(id);
+    setActionMsg(null);
     try {
       const res = await fetch('/api/internal/content-sources', {
         method: 'PATCH',
@@ -70,14 +79,24 @@ export default function ContentSourcesClient() {
         body: JSON.stringify({ id, status, rejection_reason: reason }),
       });
       const data = await res.json();
-      if (!data.ok) throw new Error(data.error);
+      if (!data.ok) {
+        console.error('Status update error:', data);
+        showMsg(`Update failed: ${data.error}`, 'error');
+        return;
+      }
+      showMsg('Status updated', 'success');
       fetchSources();
     } catch (err) {
-      alert(`Update failed: ${err instanceof Error ? err.message : 'Unknown error'}`);
+      console.error('Status update exception:', err);
+      showMsg(`Update failed: ${err instanceof Error ? err.message : 'Unknown error'}`, 'error');
+    } finally {
+      setActionLoading(null);
     }
   };
 
   const generateBlog = async (sourceId: string, publish = false) => {
+    setActionLoading(sourceId);
+    setActionMsg(null);
     try {
       const res = await fetch('/api/internal/content-sources', {
         method: 'POST',
@@ -86,41 +105,48 @@ export default function ContentSourcesClient() {
       });
       const data = await res.json();
       if (!data.ok) {
-        alert(`Generation failed: ${data.error}`);
+        console.error('Blog generation error:', data);
+        showMsg(`Generation failed: ${data.error}`, 'error');
         return;
       }
 
       const msg = publish ? 'Published!' : 'Saved as draft';
-      alert(`${msg}\nEN: ${data.pair?.enSlug}\nZH: ${data.pair?.zhSlug}`);
+      console.log('Blog generation success:', data);
+      showMsg(`${msg}: EN/${data.pair?.enSlug} ZH/${data.pair?.zhSlug}`, 'success');
       fetchSources();
     } catch (err) {
-      alert(`Error: ${err instanceof Error ? err.message : 'Unknown error'}`);
+      console.error('Blog generation exception:', err);
+      showMsg(`Error: ${err instanceof Error ? err.message : 'Unknown error'}`, 'error');
+    } finally {
+      setActionLoading(null);
     }
   };
 
   const runPipeline = async () => {
+    setActionMsg(null);
     if (!confirm('Run the full content pipeline now? This may auto-publish 1 story.')) return;
     try {
       const res = await fetch('/api/internal/content-sources/pipeline', { method: 'POST' });
       const data = await res.json();
 
       if (data.success) {
-        alert([
-          `Pipeline complete!`,
+        showMsg([
+          'Pipeline complete!',
           `Sources checked: ${data.sourcesChecked}`,
           `Added: ${data.sourcesAdded}`,
-          `Published: ${data.postsPublished}`,
           `Drafts: ${data.draftsCreated}`,
+          `Published: ${data.postsPublished}`,
           `Review: ${data.postsNeedingReview}`,
-        ].join('\n'));
+        ].join(' | '), 'success');
       } else {
-        alert(`Pipeline failed: ${data.errors?.join(', ') || 'Unknown error'}`);
+        showMsg(`Pipeline failed: ${data.errors?.join(', ') || 'Unknown error'}`, 'error');
       }
 
       fetchSources();
       fetchPipelineStatus();
     } catch (err) {
-      alert(`Error: ${err instanceof Error ? err.message : 'Unknown error'}`);
+      console.error('Pipeline exception:', err);
+      showMsg(`Error: ${err instanceof Error ? err.message : 'Unknown error'}`, 'error');
     }
   };
 
@@ -151,6 +177,20 @@ export default function ContentSourcesClient() {
           ▶ Run Pipeline
         </button>
       </div>
+
+      {/* Action Feedback Toast */}
+      {actionMsg && (
+        <div
+          className={`mb-4 px-4 py-3 rounded-lg text-sm font-medium shadow-md border ${
+            actionMsg.type === 'success'
+              ? 'bg-green-100 text-green-800 border-green-300'
+              : 'bg-red-100 text-red-800 border-red-300'
+          }`}
+          onClick={() => setActionMsg(null)}
+        >
+          {actionMsg.text}
+        </div>
+      )}
 
       {/* Daily Auto-Publish Status Card */}
       {pipelineStatus && (
@@ -299,15 +339,17 @@ export default function ContentSourcesClient() {
                         <>
                           <button
                             onClick={() => generateBlog(source.id, false)}
-                            className="text-xs px-2 py-1 bg-blue-50 text-blue-700 rounded hover:bg-blue-100 w-full"
+                            disabled={actionLoading === source.id}
+                            className="text-xs px-2 py-1 bg-blue-50 text-blue-700 rounded hover:bg-blue-100 w-full disabled:opacity-50"
                           >
-                            Draft
+                            {actionLoading === source.id ? '...' : 'Draft'}
                           </button>
                           <button
                             onClick={() => generateBlog(source.id, true)}
-                            className="text-xs px-2 py-1 bg-green-50 text-green-700 rounded hover:bg-green-100 w-full"
+                            disabled={actionLoading === source.id}
+                            className="text-xs px-2 py-1 bg-green-50 text-green-700 rounded hover:bg-green-100 w-full disabled:opacity-50"
                           >
-                            Publish
+                            {actionLoading === source.id ? '...' : 'Publish'}
                           </button>
                         </>
                       )}
@@ -317,17 +359,19 @@ export default function ContentSourcesClient() {
                             const reason = prompt('Rejection reason:');
                             if (reason !== null) updateStatus(source.id, 'rejected', reason || undefined);
                           }}
-                          className="text-xs px-2 py-1 bg-red-50 text-red-600 rounded hover:bg-red-100 w-full"
+                          disabled={actionLoading === source.id}
+                          className="text-xs px-2 py-1 bg-red-50 text-red-600 rounded hover:bg-red-100 w-full disabled:opacity-50"
                         >
-                          Reject
+                          {actionLoading === source.id ? '...' : 'Reject'}
                         </button>
                       )}
                       {source.status === 'rejected' && (
                         <button
                           onClick={() => updateStatus(source.id, 'shortlisted')}
-                          className="text-xs px-2 py-1 bg-gray-100 text-gray-600 rounded hover:bg-gray-200 w-full"
+                          disabled={actionLoading === source.id}
+                          className="text-xs px-2 py-1 bg-gray-100 text-gray-600 rounded hover:bg-gray-200 w-full disabled:opacity-50"
                         >
-                          Unreject
+                          {actionLoading === source.id ? '...' : 'Unreject'}
                         </button>
                       )}
                     </div>

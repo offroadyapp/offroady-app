@@ -20,6 +20,16 @@ export type TrailStory = {
   imageLicense?: string;
 };
 
+export type VideoItem = {
+  type: 'youtube' | 'youtube_short' | 'external' | 'mp4';
+  url: string;
+  embedUrl?: string;
+  title?: string;
+  caption?: string;
+  thumbnailUrl?: string;
+  credit?: string;
+};
+
 export type Language = 'en' | 'zh';
 
 export type CanonicalTrailStoryTranslation = {
@@ -39,6 +49,7 @@ export type CanonicalTrailStoryTranslation = {
   researchNotes?: string;
   imageCredit?: string;
   imageLicense?: string;
+  videos?: VideoItem[];
 };
 
 export type CanonicalTrailStory = {

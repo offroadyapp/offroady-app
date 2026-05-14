@@ -75,10 +75,12 @@ export async function DELETE(
 
     // Step 2: Anonymize the public.users row
     // Keep the row (maintains FK integrity), wipe all personal data
+    // email uses a unique placeholder (NOT NULL constraint), auth_user_id is NULL so they can re-register
+    const deletedEmail = `deleted-${userId}@deleted.local`;
     const { error: updateError } = await supabase
       .from('users')
       .update({
-        email: null,
+        email: deletedEmail,
         display_name: '[Deleted User]',
         phone: null,
         auth_user_id: null,

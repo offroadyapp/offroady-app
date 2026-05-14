@@ -143,7 +143,7 @@ export default function UserManagementClient({ viewerId }: { viewerId: string })
             <tbody>
               {filtered.map((u) => {
                 const isSelf = u.id === viewerId;
-                const isAnonymized = !u.email && u.display_name === '[Deleted User]';
+                const isAnonymized = u.display_name === '[Deleted User]' && (!u.auth_user_id || (u.email && u.email.endsWith('@deleted.local')));
 
                 return (
                   <tr key={u.id} className="border-b border-gray-50 last:border-0 hover:bg-gray-50/50">

@@ -159,8 +159,9 @@ export default function HowItWorksPage() {
               <QuickTip number="2" text="Join an existing trip — no sign-up needed to browse." />
               <QuickTip number="3" text="Sign up to plan your own trips and chat with the group." />
               <QuickTip number="4" text="Find riding buddies in the Community directory." />
-              <QuickTip number="5" text="Write a story after the run to share with everyone." />
-              <QuickTip number="6" text="Get the weekly digest so you never miss a weekend run." />
+              <QuickTip number="5" text="Propose a new trail if it's not in the directory yet." />
+              <QuickTip number="6" text="Write a story after the run to share with everyone." />
+              <QuickTip number="7" text="Subscribe to the weekly digest so you never miss a weekend run." />
             </div>
           </section>
 

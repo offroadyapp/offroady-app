@@ -3,6 +3,8 @@
 import Link from 'next/link';
 import { useMemo, useState } from 'react';
 import { getBrowserSupabase } from '@/lib/supabase/browser';
+// Hardcode admin email check directly to avoid import chain issues with client components
+const ADMIN_EMAILS = ['cheng108@me.com'];
 
 type Viewer = {
   displayName: string;
@@ -24,11 +26,19 @@ const accountLinks = [
   { href: '/favorite-crews', label: 'Favorite Crews' },
   { href: '/my-trips', label: 'My Trips' },
   { href: '/my-crews', label: 'My Crews' },
+  { href: '/my-stories', label: 'My Stories' },
+  { href: '/propose-a-trail', label: 'Propose a Trail' },
   { href: '/community', label: 'Community' },
   { href: '/community/messages', label: 'Messages' },
   { href: '/community/invites', label: 'Community Invites' },
   { href: '/notifications', label: 'Notifications' },
   { href: '/my-account/email-preferences', label: 'Email Preferences' },
+];
+
+const adminLinks = [
+  { href: '/internal/story-review', label: 'Story Review' },
+  { href: '/internal/weekly-digests', label: 'Weekly Digests' },
+  { href: '/internal/user-management', label: 'User Management' },
 ];
 
 function initials(name: string) {
@@ -41,6 +51,9 @@ function initials(name: string) {
 }
 
 export default function AuthMenu({ viewer }: Props) {
+  const isAdmin = viewer
+    ? ADMIN_EMAILS.includes(viewer.email.trim().toLowerCase())
+    : false;
   const [menuOpen, setMenuOpen] = useState(false);
 
   const avatarLabel = useMemo(() => {
@@ -96,6 +109,11 @@ export default function AuthMenu({ viewer }: Props) {
           )}
         </span>
         <span className="hidden sm:block">My Account</span>
+        {isAdmin && (
+          <span className="ml-1 hidden rounded-full bg-[#2f5d3a] px-1.5 py-0.5 text-[10px] font-bold text-white sm:block">
+            Admin
+          </span>
+        )}
       </button>
 
       {menuOpen ? (
@@ -103,14 +121,43 @@ export default function AuthMenu({ viewer }: Props) {
           <div className="border-b border-black/6 px-3 py-3">
             <div className="font-semibold text-[#243126]">{viewer.displayName}</div>
             <div className="text-xs text-gray-500">{viewer.email}</div>
+            {isAdmin && (
+              <div className="mt-1 inline-flex rounded-full bg-[#eef5ee] px-2 py-0.5 text-[10px] font-semibold text-[#2f5d3a]">
+                Admin
+              </div>
+            )}
           </div>
+
+          {/* Admin section */}
+          {isAdmin && (
+            <div className="border-b border-black/6 py-1">
+              <div className="px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.16em] text-[#5d7d61]">
+                Admin Tools
+              </div>
+              {adminLinks.map((item) => (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className="block rounded-xl px-3 py-2 text-sm text-gray-700 transition hover:bg-[#f4f6f3]"
+                >
+                  {item.label}
+                </Link>
+              ))}
+            </div>
+          )}
+
           <div className="py-1">
             {accountLinks.map((item) => (
-              <Link key={item.href} href={item.href} className="block rounded-xl px-3 py-2 text-sm text-gray-700 transition hover:bg-[#f4f6f3]">
+              <Link
+                key={item.href}
+                href={item.href}
+                className="block rounded-xl px-3 py-2 text-sm text-gray-700 transition hover:bg-[#f4f6f3]"
+              >
                 {item.label}
               </Link>
             ))}
           </div>
+
           <button
             type="button"
             onClick={handleLogout}

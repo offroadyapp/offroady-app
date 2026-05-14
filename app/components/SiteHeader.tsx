@@ -12,6 +12,7 @@ const navItems = [
   { href: '/join-a-trip', label: 'Join a Trip' },
   { href: '/community', label: 'Community' },
   { href: '/blog', label: 'Blog' },
+  { href: '/how-it-works', label: 'How It Works' },
   { href: '/about', label: 'About' },
 ];
 

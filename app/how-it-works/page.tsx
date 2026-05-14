@@ -11,6 +11,10 @@ export default function HowItWorksPage() {
           <p className="mt-4 max-w-3xl text-base leading-7 text-gray-600">
             Everything you need to discover trails, plan trips, connect with other off-roaders, and share your stories — all in one place.
           </p>
+          <div className="mt-5 inline-flex items-center gap-2 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+            <span>🔒</span>
+            <span>Some functions are only available to registered users. Sign up for free to access trip planning, community features, and story sharing.</span>
+          </div>
         </section>
 
         <div className="space-y-16">

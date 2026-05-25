@@ -150,7 +150,7 @@ export default function PlanTripClient({ trail, isLoggedIn }: Props) {
 
   async function handleCreateTrackedInvites() {
     if (!isLoggedIn) {
-      window.location.href = '/propose-a-trail';
+      window.location.href = '/#member-access';
       return;
     }
 
@@ -196,7 +196,7 @@ export default function PlanTripClient({ trail, isLoggedIn }: Props) {
             Full trail access is not open before login. Sign up or log in on the homepage first, then come back to review the route, check the forecast, and build your trip plan.
           </p>
           <Link
-            href="/propose-a-trail"
+            href="/#member-access"
             className="mt-6 inline-flex rounded-lg bg-[#2f5d3a] px-5 py-3 font-semibold text-white transition hover:bg-[#264d30]"
           >
             Sign up or log in to unlock planning
@@ -207,7 +207,7 @@ export default function PlanTripClient({ trail, isLoggedIn }: Props) {
   }
 
   return (
-    <section className="mx-auto max-w-5xl px-4 py-16 sm:px-6 lg:px-8">
+    <section id="plan-this-trip" className="mx-auto max-w-5xl px-4 py-16 sm:px-6 lg:px-8">
       {referredBy ? (
         <div className="mb-6 rounded-2xl border border-black/8 bg-[#eef5ee] px-5 py-4 text-sm text-[#243126] shadow-sm">
           Shared by <span className="font-semibold">{referredBy}</span>
@@ -253,19 +253,25 @@ export default function PlanTripClient({ trail, isLoggedIn }: Props) {
             />
 
             <div className="mt-4 grid gap-3 sm:grid-cols-2">
-              <input
-                type="text"
-                value={meetupArea}
-                onChange={(event) => setMeetupArea(event.target.value)}
-                placeholder="Meetup area"
-                className="w-full rounded-lg border border-gray-300 px-4 py-3 outline-none transition focus:border-[#2f5d3a]"
-              />
-              <input
-                type="time"
-                value={departureTime}
-                onChange={(event) => setDepartureTime(event.target.value)}
-                className="w-full rounded-lg border border-gray-300 px-4 py-3 outline-none transition focus:border-[#2f5d3a]"
-              />
+              <div>
+                <label className="text-sm font-semibold text-[#243126]">Where to meet up?</label>
+                <input
+                  type="text"
+                  value={meetupArea}
+                  onChange={(event) => setMeetupArea(event.target.value)}
+                  placeholder="e.g. North Vancouver, Squamish, Coquitlam"
+                  className="mt-2 w-full rounded-lg border border-gray-300 px-4 py-3 outline-none transition focus:border-[#2f5d3a]"
+                />
+              </div>
+              <div>
+                <label className="text-sm font-semibold text-[#243126]">When to meet up?</label>
+                <input
+                  type="time"
+                  value={departureTime}
+                  onChange={(event) => setDepartureTime(event.target.value)}
+                  className="mt-2 w-full rounded-lg border border-gray-300 px-4 py-3 outline-none transition focus:border-[#2f5d3a]"
+                />
+              </div>
             </div>
 
             <textarea

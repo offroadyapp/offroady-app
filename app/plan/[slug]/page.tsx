@@ -221,7 +221,7 @@ export default async function PlanTripPage({ params }: PageProps) {
                 initialFavorite={favoriteTrailSlugs.includes(trail.slug)}
                 hasUpcomingTrip={hasUpcomingTrips}
                 joinHref={joinHref}
-                planHref={`/plan/${trail.slug}`}
+                planHref={`/plan/${trail.slug}#plan-this-trip`}
               />
             </div>
           </div>
@@ -277,7 +277,7 @@ export default async function PlanTripPage({ params }: PageProps) {
                 Share Your Story
               </Link>
               <Link
-                href={`/plan/${trail.slug}`}
+                href={`/plan/${trail.slug}#plan-this-trip`}
                 className="inline-flex rounded-lg border border-gray-300 px-4 py-2 text-sm font-semibold text-gray-800 transition hover:bg-gray-50"
               >
                 Plan a Trip
@@ -301,7 +301,7 @@ export default async function PlanTripPage({ params }: PageProps) {
           initialFavorite={favoriteTrailSlugs.includes(trail.slug)}
           hasUpcomingTrip={hasUpcomingTrips}
           joinHref={joinHref}
-          planHref={`/plan/${trail.slug}`}
+          planHref={`/plan/${trail.slug}#plan-this-trip`}
           compact={true}
         />
       </section>

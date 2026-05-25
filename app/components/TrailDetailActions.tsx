@@ -163,26 +163,26 @@ export default function TrailDetailActions({
         <div className="mt-5 flex flex-wrap gap-3">
           {hasUpcomingTrip ? (
             <Link
-              href={joinHref}
+              href={viewerSignedIn ? joinHref : '/#member-access'}
               className="inline-flex rounded-lg bg-[#2f5d3a] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#264d30]"
             >
-              Join Trip
+              {viewerSignedIn ? 'Join Trip' : 'Log in to join'}
             </Link>
           ) : (
             <Link
-              href={planHref}
+              href={viewerSignedIn ? planHref : '/#member-access'}
               className="inline-flex rounded-lg bg-[#2f5d3a] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#264d30]"
             >
-              Plan a Trip
+              {viewerSignedIn ? 'Plan a Trip' : 'Log in to plan'}
             </Link>
           )}
 
           {hasUpcomingTrip ? (
             <Link
-              href={planHref}
+              href={viewerSignedIn ? planHref : '/#member-access'}
               className="inline-flex rounded-lg border border-white/80 bg-[#1b2e20]/70 px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-[#1b2e20]/90 backdrop-blur-sm"
             >
-              Plan Another Trip
+              {viewerSignedIn ? 'Plan Another Trip' : 'Log in to plan another'}
             </Link>
           ) : null}
 

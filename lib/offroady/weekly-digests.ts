@@ -328,7 +328,7 @@ function defaultCta(featuredTrail: FeaturedTrailSnapshot) {
   return {
     title: 'Want in on the next run?',
     body: `Browse the trail, join an upcoming trip, or plan your own run for ${featuredTrail.title}.`,
-    href: `/plan/${featuredTrail.slug}`,
+    href: `/plan/${featuredTrail.slug}#plan-this-trip`,
   };
 }
 
@@ -698,7 +698,7 @@ function buildEmailHtml(digest: {
     : '';
 
   // CTA Section
-  const digestSlug = digest.cta.href.split('/').pop() ?? '';
+  const digestSlug = (digest.cta.href.split('/').pop() ?? '').split('#')[0];
   const ctaHtml = `
 <tr>
   <td style="padding: 24px;">
@@ -957,12 +957,13 @@ export async function deliverWeeklyDigestEmails(digest: WeeklyDigestRecord, orig
 
     // If previously failed, we can retry — leave it as pending/failed and try again
     // Upsert a pending entry first
+    // user_id is intentionally omitted to avoid FK constraint failures against auth.users
+    // (many subscribers have user_ids from user_email_preferences that don't exist in auth.users)
     const { error: upsertError } = await supabase
       .from('weekly_digest_email_deliveries')
       .upsert({
         digest_id: digest.id,
         email: subscriber.email,
-        user_id: subscriber.userId,
         status: 'pending',
         updated_at: new Date().toISOString(),
       }, {

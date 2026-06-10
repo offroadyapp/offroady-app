@@ -785,6 +785,20 @@ function buildEmailHtml(digest: {
 
           ${ctaHtml}
 
+          <!-- WeChat Group QR Code -->
+          <tr>
+            <td style="padding: 8px 24px 32px;" align="center">
+              <table role="presentation" cellpadding="0" cellspacing="0" style="margin: 0 auto; background-color: #f9f7f2; border-radius: 12px; border: 1px solid #e5e0d0;">
+                <tr>
+                  <td align="center" style="padding: 20px;">
+                    <p style="margin: 0 0 14px; font-size: 14px; font-weight: 600; color: #333333;">\u6b22\u8fce\u6ce8\u518c\u7528\u6237\u626b\u7801\u52a0\u5165\u5fae\u4fe1\u7fa4</p>
+                    <img src="${ORIGIN}/images/wechat-group-qr.jpg" alt="WeChat Group" width="180" style="display: block; max-width: 100%; height: auto; border-radius: 8px;" />
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
           <!-- Footer -->
           <tr>
             <td style="padding: 8px 24px 24px;" align="center">

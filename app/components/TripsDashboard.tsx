@@ -152,7 +152,12 @@ export default function TripsDashboard({ trips, chatPreviewByTripId = {} }: Prop
             <div>
               <div className="flex flex-wrap items-center gap-2">
                 <Link href={`/trips/${trip.id}`} className="text-lg font-semibold text-[#243126] hover:text-[#2f5d3a]">{trip.title}</Link>
-                {isCompleted ? (
+                {isCancelled ? (
+                  <span className="inline-flex items-center gap-1 rounded-full bg-red-50 px-2.5 py-0.5 text-xs font-semibold text-red-700">
+                    <span className="h-2 w-2 rounded-full bg-red-500" />
+                    Cancelled
+                  </span>
+                ) : isCompleted ? (
                   <span className="inline-flex items-center gap-1 rounded-full bg-[#eef5ee] px-2.5 py-0.5 text-xs font-semibold text-[#2f5d3a]">
                     <span className="h-2 w-2 rounded-full bg-[#2f5d3a]" />
                     Completed

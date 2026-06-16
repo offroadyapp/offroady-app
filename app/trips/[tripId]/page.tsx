@@ -42,7 +42,15 @@ export default async function TripDetailPage({ params }: { params: Promise<{ tri
               )}
             </div>
             <div>Date: {trip.date}</div>
-            <div>Status: {trip.status}</div>
+            <div>Status:{' '}
+              {trip.status === 'cancelled' ? (
+                <span className="font-semibold text-red-700">Cancelled</span>
+              ) : trip.status === 'completed' ? (
+                <span className="font-semibold text-[#2f5d3a]">Completed</span>
+              ) : (
+                trip.status
+              )}
+            </div>
             <div>Meetup: {trip.meetupArea}</div>
             <div>Departure: {trip.departureTime}</div>
             <div>Organizer: {trip.shareName}</div>

@@ -5,6 +5,7 @@ import { useId, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import AuthPanel from './AuthPanel';
 import TripShareButton from './TripShareButton';
+import CancelTripModal from './CancelTripModal';
 import type { TripShareFields } from '@/lib/offroady/trip-sharing';
 
 type Props = {
@@ -38,6 +39,8 @@ export default function TripDetailActions({ tripId, viewerSignedIn, isJoined, vi
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [waiverAccepted, setWaiverAccepted] = useState(false);
+  const [cancelModalOpen, setCancelModalOpen] = useState(false);
+  const [cancelBusy, setCancelBusy] = useState(false);
 
   async function handleMembership(action: 'join' | 'leave') {
     setLoading(true);
@@ -86,6 +89,15 @@ export default function TripDetailActions({ tripId, viewerSignedIn, isJoined, vi
                     {loading ? 'Leaving...' : 'Leave Trip'}
                   </button>
                 ) : null}
+                {viewerRole === 'organizer' && shareTrip.status !== 'cancelled' && shareTrip.status !== 'completed' ? (
+                  <button
+                    type="button"
+                    onClick={() => setCancelModalOpen(true)}
+                    className="inline-flex rounded-lg border border-red-300 px-5 py-3 font-semibold text-red-700 transition hover:bg-red-50"
+                  >
+                    Cancel Trip
+                  </button>
+                ) : null}
                 <TripShareButton trip={shareTrip} viewerSignedIn={viewerSignedIn} authHref="#member-access" />
               </div>
             </>
@@ -125,6 +137,29 @@ export default function TripDetailActions({ tripId, viewerSignedIn, isJoined, vi
               </div>
             </>
           )}
+          <CancelTripModal
+            open={cancelModalOpen}
+            busy={cancelBusy}
+            onCancel={() => { setCancelModalOpen(false); }}
+            onConfirm={async (reason) => {
+              setCancelBusy(true);
+              try {
+                const response = await fetch(`/api/trips/${tripId}/cancel`, {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ reason }),
+                });
+                const payload = await response.json();
+                if (!response.ok) throw new Error(payload.error || 'Failed to cancel trip');
+                setCancelModalOpen(false);
+                router.refresh();
+              } catch (err) {
+                setError(err instanceof Error ? err.message : 'Failed to cancel trip');
+              } finally {
+                setCancelBusy(false);
+              }
+            }}
+          />
           {error ? <div className="mt-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</div> : null}
           <div className="mt-6 rounded-2xl border border-black/8 bg-white p-5">
             <div className="flex flex-wrap items-start justify-between gap-3">

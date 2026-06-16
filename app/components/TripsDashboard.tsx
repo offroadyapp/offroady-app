@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import FavoriteToggleButton from './FavoriteToggleButton';
 import LeaveActionButton from './LeaveActionButton';
 import ConfirmModal from './ConfirmModal';
+import CancelTripModal from './CancelTripModal';
 import type { TripMembershipSummary } from '@/lib/offroady/account';
 import type { TripChatPreview } from '@/lib/offroady/trip-chat';
 
@@ -45,6 +46,56 @@ function renderChatLine(preview?: TripChatPreview) {
   return activityAge
     ? `Latest note · ${sender}: ${preview.latestMessageText} · ${activityAge}`
     : `Latest note · ${sender}: ${preview.latestMessageText}`;
+}
+
+function CancelTripButton({ tripId, className }: { tripId: string; className?: string }) {
+  const router = useRouter();
+  const [showModal, setShowModal] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+
+  async function handleCancel(reason: string) {
+    setLoading(true);
+    setError('');
+    try {
+      const response = await fetch(`/api/trips/${tripId}/cancel`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ reason }),
+      });
+      const payload = await response.json();
+      if (!response.ok) throw new Error(payload.error || 'Failed to cancel trip');
+      setShowModal(false);
+      router.refresh();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to cancel trip');
+      setLoading(false);
+    }
+  }
+
+  return (
+    <>
+      {showModal ? (
+        <CancelTripModal
+          open={showModal}
+          busy={loading}
+          onCancel={() => { setShowModal(false); setError(''); }}
+          onConfirm={handleCancel}
+        />
+      ) : null}
+      <div>
+        <button
+          type="button"
+          onClick={() => setShowModal(true)}
+          disabled={loading}
+          className={className || 'inline-flex rounded-lg border border-red-300 bg-white px-4 py-2 text-sm font-semibold text-red-700 transition hover:bg-red-50 disabled:opacity-70'}
+        >
+          Cancel Trip
+        </button>
+        {error ? <p className="mt-1 text-xs text-red-600">{error}</p> : null}
+      </div>
+    </>
+  );
 }
 
 function MarkAsCompletedButton({ tripId }: { tripId: string }) {
@@ -90,6 +141,7 @@ export default function TripsDashboard({ trips, chatPreviewByTripId = {} }: Prop
         const tripSoon = hoursUntilTrip(trip.date) <= 48 && hoursUntilTrip(trip.date) >= 0;
         const pastTrip = isPastTrip(trip.date);
         const isOrganizer = trip.viewerRole === 'organizer';
+        const isCancelled = trip.status === 'cancelled';
         const isCompleted = trip.status === 'completed';
         const canMarkComplete = isOrganizer && pastTrip && !isCompleted;
         const chatPreview = chatPreviewByTripId[trip.id];
@@ -141,8 +193,12 @@ export default function TripsDashboard({ trips, chatPreviewByTripId = {} }: Prop
                   apiPath={`/api/trips/${trip.id}/membership`}
                   successMessage="Left trip."
                 />
-              ) : isOrganizer && !isCompleted ? (
-                <div className="max-w-[220px] text-right text-xs text-amber-700">Transfer organizer role or cancel the trip before leaving.</div>
+              ) : isOrganizer && !isCompleted && !isCancelled ? (
+                pastTrip ? (
+                  <div className="max-w-[220px] text-right text-xs text-amber-700">Transfer organizer role or cancel the trip before leaving.</div>
+                ) : (
+                  <CancelTripButton tripId={trip.id} />
+                )
               ) : null}
             </div>
           </div>
